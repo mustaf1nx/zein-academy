@@ -1,0 +1,3645 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZEIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; display: flex; height: 100vh; overflow: hidden; }
+
+/* ===== LOGIN SCREEN ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatDot {
+  0%,100% { transform: translateY(0) scale(1); opacity:.18; }
+  50%      { transform: translateY(-18px) scale(1.12); opacity:.32; }
+}
+@keyframes spinRing {
+  to { transform: rotate(360deg); }
+}
+.login-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: stretch;
+  background: #0b0e1a;
+  font-family: 'Inter', sans-serif;
+}
+.login-left {
+  flex: 1;
+  background: linear-gradient(145deg, #0f1525 0%, #141d38 60%, #0f1525 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  padding: 48px;
+}
+.login-dots {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.login-dot {
+  position: absolute; border-radius: 50%;
+  background: #4f8ef7;
+  animation: floatDot var(--d,6s) ease-in-out infinite;
+  animation-delay: var(--dl,0s);
+}
+.login-left-content {
+  position: relative; z-index: 1;
+  animation: fadeInUp .7s ease both;
+}
+.login-brand {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 48px;
+}
+.login-brand-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg,#4f8ef7,#7c5cfc);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 900; color: #fff;
+  box-shadow: 0 8px 32px rgba(79,142,247,.35);
+}
+.login-brand-name {
+  font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -.5px;
+}
+.login-tagline {
+  font-size: 15px; color: #5a6a9a; margin-top: 2px; font-weight: 400;
+}
+.login-hero-title {
+  font-size: 38px; font-weight: 800; color: #fff;
+  line-height: 1.15; letter-spacing: -.8px; margin-bottom: 18px;
+  max-width: 420px;
+}
+.login-hero-title span { color: #4f8ef7; }
+.login-hero-sub {
+  font-size: 15px; color: #5a6a9a; line-height: 1.6; max-width: 360px;
+}
+.login-stats {
+  display: flex; gap: 32px; margin-top: 48px;
+}
+.login-stat-val {
+  font-size: 24px; font-weight: 800; color: #fff;
+}
+.login-stat-label {
+  font-size: 12px; color: #4a5a80; margin-top: 2px;
+}
+
+/* Ring decoration */
+.login-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(79,142,247,.1);
+  pointer-events: none;
+}
+.login-ring-spin {
+  position: absolute; border-radius: 50%;
+  border: 1.5px dashed rgba(79,142,247,.15);
+  animation: spinRing 18s linear infinite;
+  pointer-events: none;
+}
+
+/* Right side — form */
+.login-right {
+  width: 460px; flex-shrink: 0;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 44px;
+}
+.login-form-wrap {
+  width: 100%;
+  animation: fadeInUp .55s .1s ease both;
+}
+.login-form-title {
+  font-size: 24px; font-weight: 800; color: #0d1117; margin-bottom: 6px;
+}
+.login-form-sub {
+  font-size: 14px; color: #8891b0; margin-bottom: 36px;
+}
+.lf-group { margin-bottom: 20px; }
+.lf-label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: #4a5578; letter-spacing: .4px; text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.lf-input-wrap { position: relative; }
+.lf-input-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: #b0b8d0; display: flex; pointer-events: none;
+}
+.lf-input {
+  width: 100%; padding: 13px 14px 13px 42px;
+  border: 2px solid #e8eaf2; border-radius: 10px;
+  font-size: 14px; font-family: inherit; color: #0d1117;
+  background: #f8f9fc; outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  letter-spacing: .3px;
+}
+.lf-input:focus {
+  border-color: #4f8ef7; background: #fff;
+  box-shadow: 0 0 0 3px rgba(79,142,247,.12);
+}
+.lf-input.error { border-color: #ef4444; background: #fff8f8; }
+.lf-input::placeholder { color: #c0c8de; }
+.lf-eye {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: #b0b8d0; padding: 4px;
+  display: flex; border-radius: 6px; transition: color .15s;
+}
+.lf-eye:hover { color: #4f8ef7; }
+.lf-hint { font-size: 11px; color: #a0a8c0; margin-top: 5px; }
+.lf-hint.error-msg { color: #ef4444; display: none; }
+.lf-hint.error-msg.show { display: block; }
+.lf-submit {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #4f8ef7 0%, #7c5cfc 100%);
+  color: #fff; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; letter-spacing: .2px;
+  cursor: pointer; margin-top: 8px;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(79,142,247,.3);
+}
+.lf-submit:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(79,142,247,.4); }
+.lf-submit:active { transform: translateY(0); }
+.lf-submit.loading { opacity: .7; pointer-events: none; }
+.lf-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 24px 0; color: #c8cfe0; font-size: 12px;
+}
+.lf-divider::before, .lf-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e8eaf2;
+}
+.lf-accounts {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.lf-account-btn {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #e8eaf2; border-radius: 8px;
+  background: #f8f9fc; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  transition: border-color .15s, background .15s;
+  font-family: inherit;
+}
+.lf-account-btn:hover { border-color: #4f8ef7; background: #f0f5ff; }
+.lf-account-role {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; color: #4f8ef7;
+}
+.lf-account-name { font-size: 13px; color: #333; font-weight: 500; }
+.lf-account-iin { font-size: 11px; color: #a0a8c0; font-family: monospace; }
+.lf-account-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px; flex-shrink: 0;
+}
+.login-screen.hidden { display: none; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.sidebar-logo {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 18px;
+}
+.logo-text { font-size: 20px; font-weight: 700; color: #111; }
+.nav { flex: 1; padding: 10px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #555;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 0;
+  transition: all 0.15s;
+  position: relative;
+}
+.nav-item:hover { background: #f5f6ff; color: #6366f1; }
+.nav-item.active { background: #eef0ff; color: #6366f1; font-weight: 600; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #6366f1; border-radius: 0 2px 2px 0; }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-group-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #555;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s;
+  user-select: none;
+}
+.nav-group-header:hover { background: #f5f6ff; color: #6366f1; }
+.nav-group-header svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-group-header .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform 0.2s; }
+.nav-group-header.open .chevron { transform: rotate(180deg); }
+.nav-sub { display: none; }
+.nav-sub.open { display: block; }
+.nav-sub-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px 8px 44px;
+  cursor: pointer;
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s;
+}
+.nav-sub-item:hover { background: #f5f6ff; color: #6366f1; }
+.nav-sub-item.active { background: #eef0ff; color: #6366f1; font-weight: 600; }
+.nav-sub-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-divider { height: 1px; background: #f0f0f0; margin: 6px 0; }
+.sidebar-user {
+  padding: 14px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 13px;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta { font-size: 11px; color: #888; }
+.logout-btn {
+  background: none; border: none; cursor: pointer; color: #999;
+  padding: 4px; border-radius: 6px;
+  transition: color 0.15s;
+  display: flex;
+}
+.logout-btn:hover { color: #ef4444; }
+
+/* ROLE SWITCHER */
+.role-bar {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex; gap: 6px;
+}
+.role-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #fff;
+  color: #666;
+}
+.role-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.page { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.page.active { display: flex; }
+.page-header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.page-title { font-size: 20px; font-weight: 700; color: #111; }
+.page-actions { display: flex; gap: 8px; align-items: center; }
+.page-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-primary { background: #6366f1; color: #fff; }
+.btn-primary:hover { background: #5558e8; }
+.btn-outline { background: #fff; color: #6366f1; border: 1.5px solid #6366f1; }
+.btn-outline:hover { background: #eef0ff; }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 6px; border-radius: 6px; background: none; border: 1px solid #e5e7eb; color: #666; cursor: pointer; }
+.btn-icon:hover { background: #f5f5f5; }
+
+/* SEARCH BAR */
+.search-bar {
+  display: flex; gap: 10px; margin-bottom: 16px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 14px 10px 38px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+  outline: none;
+  position: relative;
+}
+.search-wrap { position: relative; flex: 1; }
+.search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #aaa; width: 16px; height: 16px; }
+.search-input:focus { border-color: #6366f1; }
+
+/* TABLE */
+.table-wrap { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: visible; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: #f9fafb;
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafbff; }
+tbody td { padding: 11px 14px; color: #333; }
+.td-truncate { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* BADGES */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge-active { background: #dcfce7; color: #16a34a; }
+.badge-inactive { background: #f3f4f6; color: #6b7280; }
+.badge-started { background: #dbeafe; color: #2563eb; }
+.badge-not-started { background: #f3f4f6; color: #6b7280; }
+.badge-return { background: #fee2e2; color: #dc2626; }
+.badge-kaz { background: #fef3c7; color: #d97706; }
+.badge-rus { background: #dbeafe; color: #2563eb; }
+
+/* ACTION MENU */
+.action-menu { position: relative; display: inline-block; }
+.action-dots {
+  background: none; border: none; cursor: pointer;
+  padding: 4px 8px; border-radius: 6px; color: #666; font-size: 18px; line-height: 1;
+}
+.action-dots:hover { background: #f3f4f6; }
+.action-dropdown {
+  position: absolute; right: 0; top: 100%; z-index: 100;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  min-width: 160px; display: none;
+}
+.action-dropdown.open { display: block; }
+.action-dropdown-item {
+  padding: 9px 14px; font-size: 13px; cursor: pointer; color: #333;
+  display: flex; align-items: center; gap: 8px;
+  transition: background 0.1s;
+}
+.action-dropdown-item:hover { background: #f9fafb; }
+.action-dropdown-item.danger { color: #ef4444; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 1000; display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 12px;
+  padding: 24px; width: 500px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-lg { width: 700px; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: #111; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* FORM */
+.form-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 600; color: #555; }
+.form-input, .form-select, .form-textarea {
+  padding: 9px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #6366f1; }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-section-title { font-size: 14px; font-weight: 700; color: #111; margin: 16px 0 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; }
+
+/* SCHEDULE */
+.schedule-grid { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: auto; }
+.schedule-table { border-collapse: collapse; min-width: 900px; }
+.schedule-table th, .schedule-table td { border: 1px solid #e5e7eb; padding: 0; }
+.sched-header { background: #f9fafb; font-size: 12px; font-weight: 700; color: #555; padding: 10px 14px; text-align: center; white-space: nowrap; }
+.sched-day { background: #f9fafb; font-size: 12px; font-weight: 700; color: #444; padding: 8px 12px; white-space: nowrap; }
+.sched-time { font-size: 11px; color: #888; padding: 6px 10px; white-space: nowrap; background: #fafafa; text-align: right; }
+.sched-cell { min-height: 50px; padding: 4px; vertical-align: top; }
+.sched-lesson {
+  border-radius: 6px; padding: 6px 8px; margin: 2px;
+  font-size: 11px; cursor: pointer; transition: opacity 0.15s;
+}
+.sched-lesson:hover { opacity: 0.85; }
+.sched-lesson .lesson-name { font-weight: 700; margin-bottom: 2px; }
+.sched-lesson .lesson-teacher { color: rgba(0,0,0,0.65); }
+.sched-lesson .lesson-room { color: rgba(0,0,0,0.5); margin-top: 1px; }
+.lesson-color-1 { background: #dcfce7; color: #166534; }
+.lesson-color-2 { background: #dbeafe; color: #1e40af; }
+.lesson-color-3 { background: #fef3c7; color: #92400e; }
+.lesson-color-4 { background: #fce7f3; color: #9d174d; }
+.lesson-color-5 { background: #ede9fe; color: #5b21b6; }
+.lesson-count {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff;
+  float: right; margin-left: 4px;
+}
+
+/* ANALYTICS */
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding: 10px 0; }
+.chart-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.chart-bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; transition: background 0.15s; cursor: pointer; }
+.chart-bar:hover { background: #4f46e5; }
+.chart-bar-label { font-size: 10px; color: #888; }
+.chart-bar-val { font-size: 10px; color: #555; font-weight: 600; }
+
+/* TASKS */
+.task-card {
+  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  padding: 14px 18px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 14px;
+  transition: border-color 0.15s;
+}
+.task-card:hover { border-color: #c7d2fe; }
+.task-info { flex: 1; }
+.task-name { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
+.task-type { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: #f3f4f6; color: #555; margin-bottom: 6px; }
+.task-meta { font-size: 12px; color: #888; }
+.task-meta span { color: #6366f1; }
+.task-deadline {
+  display: flex; align-items: center; gap: 5px;
+  background: #fee2e2; color: #dc2626;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  white-space: nowrap;
+}
+
+/* SLOTS */
+.slots-table td { text-align: center; font-size: 12px; font-weight: 600; }
+.slot-green { background: #dcfce7; color: #16a34a; }
+.slot-red { background: #fee2e2; color: #dc2626; }
+.slot-blue { background: #dbeafe; color: #2563eb; }
+.slot-gray { background: #f3f4f6; color: #6b7280; }
+
+/* MY GROUPS */
+.group-card {
+  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  margin-bottom: 10px; overflow: hidden;
+}
+.group-card-header {
+  padding: 14px 18px; display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: background 0.1s;
+}
+.group-card-header:hover { background: #fafbff; }
+.group-name { font-size: 14px; font-weight: 700; color: #111; }
+.group-sub { font-size: 12px; color: #888; margin-top: 2px; }
+.group-body { padding: 0 18px 14px; border-top: 1px solid #f3f4f6; display: none; }
+.group-body.open { display: block; }
+.report-table th { font-size: 11px; }
+.report-table td { font-size: 12px; padding: 8px 10px; }
+.attendance-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid #e5e7eb;
+  cursor: pointer; font-size: 11px; font-weight: 700;
+  transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center;
+}
+.att-present { background: #dcfce7; border-color: #86efac; color: #16a34a; }
+.att-absent { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+.att-none { background: #fff; color: #ccc; }
+.score-input {
+  width: 50px; padding: 4px 6px; border: 1.5px solid #e5e7eb;
+  border-radius: 5px; font-size: 12px; text-align: center;
+}
+
+/* TABS */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; }
+.tab-btn {
+  padding: 10px 18px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; background: none;
+  color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all 0.15s;
+}
+.tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+.tab-btn:hover { color: #6366f1; }
+
+/* STAT CARDS */
+.stat-row { display: flex; gap: 14px; margin-bottom: 20px; }
+.stat-card {
+  flex: 1; background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  padding: 16px 20px;
+}
+.stat-label { font-size: 12px; color: #888; font-weight: 500; margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 800; color: #111; }
+.stat-sub { font-size: 12px; color: #6366f1; margin-top: 4px; }
+
+/* TRANSFER */
+.transfer-box {
+  display: flex; align-items: center; gap: 20px;
+  background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;
+  padding: 30px;
+}
+.transfer-side { flex: 1; }
+.transfer-arrow { font-size: 28px; color: #6366f1; flex-shrink: 0; }
+
+/* DATE LIST */
+.date-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: #fff;
+  border-bottom: 1px solid #f3f4f6;
+}
+.date-item:last-child { border-bottom: none; }
+
+/* RETURNS */
+.return-card {
+  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  margin-bottom: 8px; overflow: hidden;
+}
+.return-card-row {
+  display: grid; grid-template-columns: 120px 140px 100px 160px 70px 1fr;
+  gap: 10px; padding: 12px 16px; align-items: start;
+}
+.return-label { font-size: 11px; color: #888; }
+.return-val { font-size: 13px; color: #111; font-weight: 500; }
+.return-reason { font-size: 12px; color: #555; line-height: 1.5; }
+
+/* FORM HISTORY */
+.history-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+/* MENTOR ASSIGN */
+.mentor-select {
+  padding: 6px 10px; border: 1.5px solid #e5e7eb; border-radius: 6px;
+  font-size: 12px; outline: none; background: #fff; min-width: 100px;
+}
+.assign-btn {
+  padding: 6px 12px; background: #6366f1; color: #fff;
+  border: none; border-radius: 6px; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+.assign-btn:hover { background: #5558e8; }
+.assign-btn:disabled { background: #d1d5db; cursor: default; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+
+/* ENT PROGRESS */
+.progress-bar { height: 6px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: #6366f1; border-radius: 10px; }
+
+/* FILTER TAG */
+.filter-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; background: #eef0ff; color: #6366f1;
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+</style>
+</head>
+
+<div id="confirm-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:28px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center">
+    <div id="confirm-icon" style="font-size:40px;margin-bottom:12px">⚠️</div>
+    <div id="confirm-title" style="font-size:17px;font-weight:700;color:#111;margin-bottom:8px"></div>
+    <div id="confirm-text" style="font-size:13px;color:#666;margin-bottom:24px"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="confirm-cancel" style="padding:10px 24px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:#555">Отмена</button>
+      <button id="confirm-ok" style="padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;color:#fff;background:#ef4444">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT PROFILE MODAL -->
+<div id="student-profile-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,0.2);margin:auto">
+    <div id="student-profile-content">
+      <div style="text-align:center;padding:40px;color:#aaa">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div class="login-screen" id="login-screen">
+
+  <div class="login-left">
+    <div class="login-ring" style="width:320px;height:320px;bottom:-80px;left:-80px"></div>
+    <div class="login-ring" style="width:200px;height:200px;top:60px;right:60px"></div>
+    <div class="login-ring-spin" style="width:440px;height:440px;bottom:-140px;left:-140px"></div>
+    <div class="login-dots">
+      <div class="login-dot" style="width:8px;height:8px;top:18%;left:22%;--d:7s;--dl:0s"></div>
+      <div class="login-dot" style="width:5px;height:5px;top:55%;left:65%;--d:9s;--dl:1.2s"></div>
+      <div class="login-dot" style="width:6px;height:6px;top:75%;left:38%;--d:6s;--dl:.5s"></div>
+      <div class="login-dot" style="width:10px;height:10px;top:30%;left:78%;--d:8s;--dl:2s"></div>
+    </div>
+    <div class="login-left-content">
+      <div class="login-brand">
+        <div><div class="login-brand-icon">N</div></div>
+        <div><div class="login-brand-name">ZEIN</div><div class="login-tagline">Образовательный центр</div></div>
+      </div>
+      <div class="login-hero-title">Платформа<br>управления<br><span>образованием</span></div>
+      <div class="login-hero-sub">Единое пространство для учителей, менторов и администрации. Журнал посещений, отчёты, расписание — всё в одном месте.</div>
+      <div class="login-stats">
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-form-wrap">
+      <div class="login-form-title">Добро пожаловать</div>
+      <div class="login-form-sub">Войдите используя ваш ИИН и пароль</div>
+      <div class="lf-group">
+        <label class="lf-label">ИИН</label>
+        <div class="lf-input-wrap">
+          <span class="lf-input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          <input class="lf-input" id="iin-input" type="text" maxlength="12" placeholder="000000000000">
+        </div>
+        <div class="lf-hint">12-значный индивидуальный идентификационный номер</div>
+        <div class="lf-hint error-msg" id="iin-error">Введите корректный ИИН (12 цифр)</div>
+      </div>
+      <div class="lf-group">
+        <label class="lf-label">Пароль</label>
+        <div class="lf-input-wrap">
+          <span class="lf-input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+          <input class="lf-input" id="pass-input" type="password" placeholder="Введите пароль">
+          <button class="lf-eye" id="eye-btn" onclick="togglePass()" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="lf-hint error-msg" id="pass-error">Неверный ИИН или пароль</div>
+      </div>
+      <button class="lf-submit" id="login-btn" onclick="doLogin()">Войти в систему</button>
+      <div class="lf-divider">или войдите как</div>
+      <div class="lf-accounts">
+        <button class="lf-account-btn" onclick="quickLogin('admin')">
+          <div class="lf-account-avatar">СТ</div>
+          <div><div class="lf-account-role">Ст. тренер</div><div class="lf-account-name">Админ</div><div class="lf-account-iin">ИИН: 900101350123</div></div>
+        </button>
+        <button class="lf-account-btn" onclick="quickLogin('teacher')">
+          <div class="lf-account-avatar" style="background:linear-gradient(135deg,#00c896,#0099cc)">МА</div>
+          <div><div class="lf-account-role" style="color:#00b386">Преподаватель</div><div class="lf-account-name">Мухамеди Айман</div><div class="lf-account-iin">ИИН: 950215450234</div></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- /login-screen -->
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar" style="display:none">
+  <div class="sidebar-logo">
+    <div class="logo-icon">Z</div>
+    <div class="logo-text">Zein</div>
+  </div>
+
+  <!-- Role switcher -->
+  <div class="role-bar">
+    <button class="role-btn active" onclick="setRole('admin')">Ст. тренер</button>
+    <button class="role-btn" onclick="setRole('teacher')">Учитель</button>
+  </div>
+
+  <nav class="nav" id="nav">
+    <!-- populated by JS -->
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">ТЕ</div>
+    <div class="user-info">
+      <div class="user-name">Админ</div>
+      <div class="user-meta">77757339394 · ID: 3361</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()" title="Выйти">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main-app" style="display:none">
+
+  <!-- ============ PAGES ============ -->
+
+  <!-- STUDENTS -->
+  <div class="page active" id="page-students">
+    <div class="page-header">
+      <div class="page-title">Ученики</div>
+    </div>
+    <div class="page-body">
+      <div class="search-bar">
+        <div class="search-wrap" style="flex:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input class="search-input" placeholder="Поиск по имени, телефону...">
+        </div>
+        <button class="btn btn-outline" onclick="openModal('filter-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Фильтр
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Фамилия + имя</th><th>Телефон</th>
+              <th>Имя родителя</th><th>Тел. родителя</th>
+              <th>Филиал</th><th>Ментор</th><th>Класс</th>
+              <th>Язык</th><th>Статус</th><th>Групп</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTORS -->
+  <div class="page" id="page-mentors">
+    <div class="page-header">
+      <div class="page-title">Менторы</div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openAddStaffModal('mentor')">+ Добавить</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="search-bar">
+        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody id="mentors-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEACHERS -->
+  <div class="page" id="page-teachers">
+    <div class="page-header">
+      <div class="page-title">Преподаватели</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openAddStaffModal('teacher')">+ Добавить</button></div>
+    </div>
+    <div class="page-body">
+      <div class="search-bar">
+        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Ставка/час</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody id="teachers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIDORUBY -->
+  <div class="page" id="page-lidoruby">
+    <div class="page-header">
+      <div class="page-title">Лидорубы</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openAddStaffModal('lidoruby')">+ Добавить</button></div>
+    </div>
+    <div class="page-body">
+      <div class="search-bar"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Статус</th><th>Действия</th></tr></thead>
+        <tbody id="lidoruby-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANAGERS -->
+  <div class="page" id="page-managers">
+    <div class="page-header">
+      <div class="page-title">Менеджеры</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openAddStaffModal('manager')">+ Добавить</button></div>
+    </div>
+    <div class="page-body">
+      <div class="search-bar"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Статус</th><th>Действия</th></tr></thead>
+        <tbody id="managers-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTOR ASSIGNMENT -->
+  <div class="page" id="page-mentor-assign">
+    <div class="page-header"><div class="page-title">Назначение менторов</div></div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Фамилия + имя</th><th>Имя родителя</th><th>Класс</th><th>Язык</th><th>Филиал</th><th>Статус</th><th>Ментор</th><th>Действия</th></tr></thead>
+          <tbody id="mentor-assign-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="page" id="page-schedule">
+    <div class="page-header">
+      <div class="page-title">Расписание</div>
+      <div class="page-actions">
+        <select class="form-select" style="font-size:13px;padding:7px 12px;min-width:150px">
+          <option>Мәңгілік Ел 36</option>
+        </select>
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Фильтр
+        </button>
+        <button class="btn btn-primary" onclick="openModal('add-schedule-modal')">+ Добавить</button>
+      </div>
+    </div>
+    <div class="page-body" style="padding:0">
+      <div class="schedule-grid" id="schedule-grid"></div>
+    </div>
+  </div>
+
+  <!-- GROUPS -->
+  <div class="page" id="page-groups">
+    <div class="page-header">
+      <div class="page-title">Группы</div>
+      <div class="page-actions">
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Фильтр
+        </button>
+        <button class="btn btn-primary" onclick="openModal('add-group-modal')">+ Добавить</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Название группы</th><th>ФИ преподавателя</th><th>Предмет</th><th>Филиал – Кабинет</th><th>Начало – Окончание</th><th>Дни обучения</th><th>Уч-ки</th></tr></thead>
+          <tbody id="groups-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLASSROOMS -->
+  <div class="page" id="page-classrooms">
+    <div class="page-header">
+      <div class="page-title">Кабинеты</div>
+      <div class="page-actions">
+        <button class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg> Фильтр</button>
+        <button class="btn btn-primary" onclick="openModal('add-classroom-modal')">+ Добавить</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Название кабинета</th><th>Филиал</th><th>Действия</th></tr></thead>
+          <tbody id="classrooms-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY TASKS -->
+  <div class="page" id="page-my-tasks">
+    <div class="page-header">
+      <div class="page-title">Мои задачи</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openModal('add-task-modal')">+ Добавить</button></div>
+    </div>
+    <div class="page-body" id="my-tasks-body"></div>
+  </div>
+
+  <!-- ALL TASKS -->
+  <div class="page" id="page-all-tasks">
+    <div class="page-header">
+      <div class="page-title">Все задачи</div>
+      <div class="page-actions">
+        <button class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg> Фильтр</button>
+        <button class="btn btn-primary" onclick="openModal('add-task-modal')">+ Добавить</button>
+      </div>
+    </div>
+    <div class="page-body" id="all-tasks-body"></div>
+  </div>
+
+  <!-- RETURNS MARK -->
+  <div class="page" id="page-returns-mark">
+    <div class="page-header">
+      <div class="page-title">Пометка возвратов</div>
+      <div class="page-actions"><button class="btn btn-outline" onclick="showPage('page-all-tasks')">Назад</button></div>
+    </div>
+    <div class="page-body">
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:24px;max-width:600px">
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Студент</label>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input class="search-input" placeholder="Поиск студента...">
+          </div>
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-danger" disabled>Пометить как возврат</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY GROUPS (TEACHER) -->
+  <div class="page" id="page-my-groups">
+    <div class="page-header"><div class="page-title">Мои группы</div></div>
+    <div class="page-body">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'today')">Сегодня</button>
+        <button class="tab-btn" onclick="switchTab(this,'all')">Все</button>
+      </div>
+      <div id="my-groups-body"></div>
+    </div>
+  </div>
+
+  <!-- MY REPORTS -->
+  <div class="page" id="page-my-reports">
+    <div class="page-header"><div class="page-title">Мои отчеты</div></div>
+    <div class="page-body">
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Дата от</label>
+          <input type="date" class="form-input">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Дата до</label>
+          <input type="date" class="form-input">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px">
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg> Фильтр</button>
+          <button class="btn btn-outline">Очистить</button>
+        </div>
+      </div>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17H7A5 5 0 017 7h2"/><path d="M15 7h2a5 5 0 010 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <p>Отчетов не найдено</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETURNS LIST -->
+  <div class="page" id="page-returns">
+    <div class="page-header"><div class="page-title">Возвраты</div></div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Создано</th><th>Ученик</th><th>Родитель</th><th>Телефон родителя</th><th>Язык</th><th>Причина</th></tr></thead>
+          <tbody id="returns-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETURN FORM -->
+  <div class="page" id="page-return-form">
+    <div class="page-header"><div class="page-title">Форма для передачи возврата</div></div>
+    <div class="page-body">
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:24px;max-width:800px;margin:0 auto">
+        <div class="form-section-title">Выбор ученика</div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Поиск ученика</label>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div>
+        </div>
+        <div class="form-section-title">Данные родителя</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Имя родителя *</label><input class="form-input" placeholder="Имя родителя"></div>
+          <div class="form-group"><label class="form-label">WhatsApp номер родителя *</label><input class="form-input" placeholder="+77770000000" maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Язык общения родителя *</label>
+          <select class="form-select"><option>KAZ</option><option>RUS</option></select>
+        </div>
+        <div class="form-section-title">Причина возврата</div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Причина *</label>
+          <textarea class="form-textarea" placeholder="Опишите причину возврата..."></textarea>
+        </div>
+        <div style="text-align:right"><button class="btn btn-primary" onclick="submitReturnForm()">Отправить форму</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM HISTORY -->
+  <div class="page" id="page-form-history">
+    <div class="page-header"><div class="page-title">История заполнения формы</div></div>
+    <div class="page-body">
+      <div class="table-wrap" style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Создано</th><th>Менеджер</th><th>Ученик</th><th>Класс</th><th>Язык</th><th>Тел. ученика</th><th>Родитель</th><th>Тел. родителя</th><th>Филиал</th><th>Старт</th><th>Платн./Подар.</th></tr></thead>
+          <tbody id="form-history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW STUDENT -->
+  <div class="page" id="page-new-student">
+    <div class="page-header"><div class="page-title">Запись ученика</div></div>
+    <div class="page-body">
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:28px;max-width:800px;margin:0 auto">
+        <div class="form-section-title">Данные ученика</div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Менеджер клиента *</label>
+          <select class="form-select" id="ns-manager"><option value="">Выберите менеджера</option></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Язык обучения *</label><select class="form-select" id="ns-lang"><option value="KAZ">KAZ</option><option value="RUS">RUS</option></select></div>
+          <div class="form-group"><label class="form-label">Фамилия ученика *</label><input class="form-input" id="ns-last" placeholder="Фамилия"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Имя ученика *</label><input class="form-input" id="ns-first" placeholder="Имя"></div>
+          <div class="form-group"><label class="form-label">WhatsApp ученика</label><input class="form-input" id="ns-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">WhatsApp родителя</label><input class="form-input" id="ns-parent-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+          <div class="form-group"><label class="form-label">Имя родителя *</label><input class="form-input" id="ns-parent-name" placeholder="Имя родителя"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Класс *</label><select class="form-select" id="ns-grade"><option value="0">0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+          <div class="form-group"><label class="form-label">Филиал *</label><select class="form-select" id="ns-branch"><option>Мәңгілік Ел 36</option></select></div>
+        </div>
+        <div class="form-section-title">Параметры обучения</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Купил, мес. *</label><input class="form-input" id="ns-bought" type="number" placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Подарок, мес.</label><input class="form-input" id="ns-gift" type="number" placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Дата начала *</label><input class="form-input" id="ns-start" type="date"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Группы</label>
+          <select class="form-select" id="ns-group"><option value="">Выберите группу</option></select>
+        </div>
+        <div style="text-align:right"><button class="btn btn-primary" onclick="submitNewStudent()">Записать ученика</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTENSION -->
+  <div class="page" id="page-extension">
+    <div class="page-header"><div class="page-title">Продление обучения</div></div>
+    <div class="page-body">
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:28px;max-width:700px;margin:0 auto">
+        <div class="form-section-title">Выбор ученика</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Менеджер клиента *</label>
+            <select class="form-select"><option>Выберите менеджера</option></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Поиск пользователя</label>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div>
+        </div>
+        <div class="form-section-title">Параметры обучения</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Купил, мес. *</label><input class="form-input" type="number" placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Подарок, мес.</label><input class="form-input" type="number" placeholder="0"></div>
+        </div>
+        <div style="text-align:right;margin-top:16px"><button class="btn btn-primary">Продлить</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="page" id="page-analytics">
+    <div class="page-header"><div class="page-title">Аналитика</div></div>
+    <div class="page-body">
+      <div id="analytics-summary"></div>
+      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:20px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+          <div style="font-weight:700;font-size:15px">Распределение по количеству учеников</div>
+          <span style="font-size:13px;color:#666">Всего групп: <b>992</b></span>
+          <span style="font-size:13px;color:#666">Средний размер: <b>6.9</b></span>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm">Штуки</button>
+            <button class="btn btn-outline btn-sm">%</button>
+          </div>
+        </div>
+        <div id="analytics-chart"></div>
+        <div style="font-size:11px;color:#aaa;margin-top:12px">Оси: по горизонтали — «Количество учеников» (0..20+), по вертикали — «Количество групп».</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENT TESTS -->
+  <div class="page" id="page-ent">
+    <div class="page-header">
+      <div class="page-title">Тесты ЕНТ</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openModal('add-ent-modal')">+ Добавить</button></div>
+    </div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Название</th><th>Статус</th><th>Прогресс</th><th>Действия</th></tr></thead>
+          <tbody id="ent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORBIDDEN DATES -->
+  <div class="page" id="page-forbidden-dates">
+    <div class="page-header">
+      <div class="page-title">Недоступные даты начала</div>
+      <div class="page-actions"><button class="btn btn-primary" onclick="openModal('add-date-modal')">Добавить</button></div>
+    </div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Дата (нельзя начать)</th><th>Добавлено</th><th>Действия</th></tr></thead>
+          <tbody id="forbidden-dates-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTOR TRANSFER -->
+  <div class="page" id="page-mentor-transfer">
+    <div class="page-header"><div class="page-title">Передача учеников и задач ментора</div></div>
+    <div class="page-body">
+      <div class="transfer-box">
+        <div class="transfer-side">
+          <div class="form-label" style="margin-bottom:8px">От:</div>
+          <select class="form-select" style="width:100%"><option>Выберите ментора</option><option>Абди Динара</option><option>Амангелди Шуғыла</option><option>Асетова Асем</option></select>
+        </div>
+        <div class="transfer-arrow">→</div>
+        <div class="transfer-side">
+          <div class="form-label" style="margin-bottom:8px">К:</div>
+          <select class="form-select" style="width:100%"><option>Выберите ментора</option><option>Абди Динара</option><option>Амангелди Шуғыла</option><option>Асетова Асем</option></select>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <button class="btn btn-primary">Отправить →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLOTS -->
+  <div class="page" id="page-slots">
+    <div class="page-header">
+      <div class="page-title">Слоты</div>
+      <div class="page-actions">
+        <button class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg> Фильтр</button>
+        <button class="btn btn-primary">Управлять</button>
+      </div>
+    </div>
+    <div class="page-body" style="padding:0">
+      <div style="overflow:auto;background:#fff">
+        <table class="slots-table" style="border-collapse:collapse;min-width:900px">
+          <thead>
+            <tr>
+              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Продукт</th>
+              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Язык</th>
+              <th colspan="5" style="padding:10px 16px;text-align:center;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Мәңгілік Ел 36</th>
+            </tr>
+            <tr>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;background:#f9fafb"></th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;background:#f9fafb"></th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">09:00–12:00</th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">14:30–17:30</th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">17:30–20:30</th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">ЕНТ 14:30–16:30</th>
+              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">ЕНТ 15:30–17:30</th>
+            </tr>
+          </thead>
+          <tbody id="slots-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ============ MODALS ============ -->
+
+<!-- ADD STAFF MODAL -->
+<div class="modal-overlay" id="add-staff-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить сотрудника</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ИИН *</label><input class="form-input" id="staff-iin" placeholder="000000000000" maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,12)">
+      </div>
+      <div class="form-group"><label class="form-label">Роль *</label>
+        <select class="form-select" id="staff-role">
+          <option value="mentor">Ментор</option>
+          <option value="teacher">Преподаватель</option>
+          <option value="manager">Менеджер</option>
+          <option value="lidoruby">Лидоруб</option>
+          <option value="admin">Администратор</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">ФИО *</label><input class="form-input" id="staff-name" placeholder="Фамилия Имя Отчество"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="staff-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+      <div class="form-group"><label class="form-label">Пароль *</label><input class="form-input" id="staff-pass" type="password" placeholder="Минимум 6 символов"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Предмет / специализация</label><input class="form-input" id="staff-subject" placeholder="Математика, Физика..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-staff-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddStaff()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="add-task-modal">
+  <div class="modal">
+    <div class="modal-title">Новая задача</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Название задачи *</label><input class="form-input" id="task-title" placeholder="Например: Связаться с родителем"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Описание</label><textarea class="form-textarea" id="task-desc" placeholder="Детали задачи..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Кому назначить</label><select class="form-select" id="task-assignee"><option value="">— Выбрать —</option></select></div>
+      <div class="form-group"><label class="form-label">Срок</label><input type="date" class="form-input" id="task-due"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-task-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddTask()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD GROUP MODAL -->
+<div class="modal-overlay" id="add-group-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title">Добавить группу</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Название группы *</label><input class="form-input" placeholder="5 коу A1"></div>
+      <div class="form-group"><label class="form-label">Предмет *</label><select class="form-select"><option>Математика и логика</option><option>Русский язык</option><option>Английский язык</option><option>Физика</option><option>Алгебра и геометрия</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Преподаватель *</label><select class="form-select"><option>Выберите преподавателя</option></select></div>
+      <div class="form-group"><label class="form-label">Филиал *</label><select class="form-select"><option>Мәңгілік Ел 36</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Кабинет *</label><select class="form-select"><option>101</option><option>102</option><option>103</option></select></div>
+      <div class="form-group"><label class="form-label">Начало</label><input type="time" class="form-input" value="09:00"></div>
+      <div class="form-group"><label class="form-label">Окончание</label><input type="time" class="form-input" value="10:00"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Дни обучения</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ПН</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ВТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> СР</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ЧТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ПТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> СБ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ВС</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-group-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddGroup()">Создать группу</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLASSROOM MODAL -->
+<div class="modal-overlay" id="add-classroom-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить кабинет</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Название кабинета *</label><input class="form-input" placeholder="101"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Филиал *</label><select class="form-select"><option>Мәңгілік Ел 36</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-classroom-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddClassroom()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SCHEDULE MODAL -->
+<div class="modal-overlay" id="add-schedule-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить урок в расписание</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">День *</label>
+        <select class="form-select"><option>ПН</option><option>ВТ</option><option>СР</option><option>ЧТ</option><option>ПТ</option><option>СБ</option><option>ВС</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Время *</label><input type="time" class="form-input" value="09:00"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Группа *</label><select class="form-select"><option>5 коу A1</option><option>2–3 коу C1</option></select></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Кабинет *</label><select class="form-select"><option>101</option><option>102</option><option>103</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-schedule-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="closeModal('add-schedule-modal')">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER MODAL -->
+<div class="modal-overlay" id="filter-modal">
+  <div class="modal">
+    <div class="modal-title">Фильтр учеников</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Филиал</label><select class="form-select"><option>Все</option><option>Мәңгілік Ел 36</option></select></div>
+      <div class="form-group"><label class="form-label">Ментор</label><select class="form-select"><option>Все</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Класс</label><select class="form-select"><option>Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+      <div class="form-group"><label class="form-label">Язык</label><select class="form-select"><option>Все</option><option>KAZ</option><option>RUS</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Статус</label><select class="form-select"><option>Все</option><option>ACTIVE</option><option>INACTIVE</option><option>NOT_STARTED</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="clearStudentFilter()">Очистить</button>
+      <button class="btn btn-primary" onclick="applyStudentFilter()">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DATE MODAL -->
+<div class="modal-overlay" id="add-date-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить недоступную дату</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Дата *</label><input type="date" class="form-input"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-date-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddDate()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ENT MODAL -->
+<div class="modal-overlay" id="add-ent-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить тест ЕНТ</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Название *</label><input class="form-input" placeholder="Вариант 1 КО"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Статус</label><select class="form-select"><option>ACTIVE</option><option>INACTIVE</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-ent-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitAddENT()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title" id="report-modal-title">Отчет — 5 коу A1 — Понедельник 09:00</div>
+    <div class="table-wrap">
+      <table class="report-table">
+        <thead><tr><th>Ученик</th><th>Присутствие</th><th>Балл за урок</th><th>Балл за д/з</th></tr></thead>
+        <tbody id="report-tbody"><tr><td colspan="4" style="text-align:center;color:#aaa">Загрузка...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="form-group" style="margin:14px 0 0">
+      <label class="form-label">Комментарий к уроку</label>
+      <textarea class="form-textarea" placeholder="Тема урока, замечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('report-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveAttendanceReport()">Сохранить отчет</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// ZEIN ACADEMY — Полная интеграция с API
+// ══════════════════════════════════════════════════════════════════
+
+const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : window.location.origin;
+let TOKEN = localStorage.getItem('zein_token');
+let CURRENT_USER = JSON.parse(localStorage.getItem('zein_user') || 'null');
+let currentRole = 'admin';
+
+// ── API helper ────────────────────────────────────────────────────
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+  const res = await fetch(API + path, { ...options, headers });
+  if (res.status === 401) { doLogout(); return null; }
+  if (res.status === 204) return null;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Ошибка ${res.status}`);
+  }
+  return res.json();
+}
+
+function addStudentToGroupForm(id, name) {
+  if (!window._agStudents) return;
+  window._agStudents[id] = name;
+  window._agDropdown.style.display = 'none';
+  window._agSearchInput.value = '';
+  renderAgStudents();
+}
+
+function removeAgStudent(id) {
+  delete window._agStudents[id];
+  renderAgStudents();
+}
+
+function renderAgStudents() {
+  if (!window._agStudentDiv) return;
+  const entries = Object.entries(window._agStudents || {});
+  window._agStudentDiv.innerHTML = entries.map(([id, name]) => `
+    <div style="display:flex;align-items:center;gap:6px;background:#eef0ff;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;color:#6366f1">
+      ${name}
+      <span onclick="removeAgStudent(${id})" style="cursor:pointer;color:#999;font-size:14px;line-height:1">×</span>
+    </div>`).join('');
+}
+
+function showConfirm(title, text, onConfirm, btnText='Удалить', btnColor='#ef4444', icon='⚠️') {
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-text').textContent = text;
+  document.getElementById('confirm-icon').textContent = icon;
+  const okBtn = document.getElementById('confirm-ok');
+  okBtn.textContent = btnText;
+  okBtn.style.background = btnColor;
+  modal.style.display = 'flex';
+  const close = () => { modal.style.display = 'none'; };
+  document.getElementById('confirm-cancel').onclick = close;
+  modal.onclick = e => { if(e.target===modal) close(); };
+  okBtn.onclick = () => { close(); onConfirm(); };
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 20px;
+    border-radius:10px;font-size:13px;font-weight:600;color:#fff;
+    background:${type==='error'?'#ef4444':type==='warn'?'#f59e0b':'#22c55e'};
+    box-shadow:0 4px 24px rgba(0,0,0,.18);animation:fadeInUp .3s ease;max-width:320px`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.style.opacity='0', 2700);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ── Login ─────────────────────────────────────────────────────────
+function formatIin(inp) { inp.value = inp.value.replace(/\D/g,'').slice(0,12); }
+function togglePass() {
+  const inp = document.getElementById('pass-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function doLogin() {
+  const iin  = document.getElementById('iin-input').value.trim();
+  const pass = document.getElementById('pass-input').value;
+  const iinErr = document.getElementById('iin-error');
+  const passErr = document.getElementById('pass-error');
+  const iinInp = document.getElementById('iin-input');
+  const passInp = document.getElementById('pass-input');
+  iinErr.classList.remove('show'); iinInp.classList.remove('error');
+  passErr.classList.remove('show'); passInp.classList.remove('error');
+
+  if (!/^\d{12}$/.test(iin)) {
+    iinErr.classList.add('show'); iinInp.classList.add('error'); return;
+  }
+  const btn = document.getElementById('login-btn');
+  btn.classList.add('loading'); btn.textContent = 'Вход...';
+  try {
+    const data = await api('/api/auth/login', {
+      method: 'POST', body: JSON.stringify({ iin, password: pass })
+    });
+    if (!data) { passErr.classList.add('show'); passInp.classList.add('error'); return; }
+    _saveSession(data);
+    enterApp(data.role, data.full_name, data.initials);
+  } catch(e) {
+    passErr.classList.add('show'); passInp.classList.add('error');
+  } finally {
+    btn.classList.remove('loading'); btn.textContent = 'Войти в систему';
+  }
+}
+
+async function quickLogin(role) {
+  const btn = document.getElementById('login-btn');
+  btn.classList.add('loading'); btn.textContent = 'Вход...';
+  try {
+    const data = await api('/api/auth/login', {
+      method:'POST', body: JSON.stringify({ iin:'900101350123', password:'zein2024' })
+    });
+    if (!data) { showToast('Войдите через форму', 'error'); return; }
+    _saveSession(data);
+    enterApp(data.role, data.full_name, data.initials);
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.classList.remove('loading'); btn.textContent = 'Войти в систему'; }
+}
+
+function _saveSession(data) {
+  TOKEN = data.access_token;
+  CURRENT_USER = data;
+  localStorage.setItem('zein_token', TOKEN);
+  localStorage.setItem('zein_user', JSON.stringify(data));
+}
+
+function enterApp(role, fullName, initials) {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('sidebar').style.display = '';
+  document.getElementById('main-app').style.display = '';
+  currentRole = role;
+  document.querySelector('.user-name').textContent = fullName || 'Пользователь';
+  document.querySelector('.user-meta').textContent = role === 'admin' ? 'Администратор' : 'Преподаватель';
+  document.querySelector('.user-avatar').textContent = initials || (fullName||'ЗА').slice(0,2).toUpperCase();
+  renderNav(role);
+  if (role === 'teacher') showPage('page-my-groups');
+  else showPage('page-students');
+
+// Принудительно загрузить данные
+  setTimeout(() => {
+    loadStudents();
+    buildSchedule();
+    loadGroups();
+    loadClassrooms();
+    loadStaff('mentor','mentors-tbody',false);
+    loadStaff('teacher','teachers-tbody',true);
+    loadStaff('lidoruby','lidoruby-tbody',false);
+    loadStaff('manager','managers-tbody',false);
+  }, 300);
+  setTimeout(() => {
+    const g = document.getElementById('group-staff');
+    const s = document.getElementById('sub-staff');
+    if(g&&s){ g.classList.add('open'); s.classList.add('open'); }
+  }, 80);
+  _prefillSelects();
+}
+
+function doLogout() {
+  TOKEN = null; CURRENT_USER = null;
+  localStorage.removeItem('zein_token');
+  localStorage.removeItem('zein_user');
+  location.reload();
+}
+
+// Pre-fill dynamic selects across the app
+async function _prefillSelects() {
+  try {
+    const [mentors, managers, groups] = await Promise.all([
+      api('/api/users/?role=mentor'),
+      api('/api/users/?role=manager'),
+      api('/api/groups/'),
+    ]);
+    // Task assignee
+    const taskSel = document.getElementById('task-assignee');
+    if (taskSel && mentors) {
+      taskSel.innerHTML = '<option value="">— Выбрать —</option>' +
+        [...(mentors||[])].map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
+    }
+    // New student manager
+    const mgrSel = document.getElementById('ns-manager');
+    if (mgrSel && managers) {
+      mgrSel.innerHTML = '<option value="">Выберите менеджера</option>' +
+        (managers||[]).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
+    }
+    // New student group
+    const grpSel = document.getElementById('ns-group');
+    if (grpSel && groups) {
+      grpSel.innerHTML = '<option value="">Выберите группу</option>' +
+        (groups||[]).map(g=>`<option value="${g.id}">${g.name} (${g.language})</option>`).join('');
+    }
+  } catch(e) { console.warn('prefill:', e); }
+}
+
+// ══ STUDENTS ══════════════════════════════════════════════════════
+let _studentFilters = {};
+
+async function loadStudents() {
+  const tbody = document.getElementById('students-tbody');
+  tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:#aaa">Загрузка...</td></tr>';
+  try {
+    const p = new URLSearchParams(_studentFilters);
+    const [data, assignments] = await Promise.all([
+      api('/api/students/?' + p.toString()),
+      api('/api/mentors/assignments'),
+    ]);
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:#aaa">Ученики не найдены</td></tr>';
+      return;
+    }
+    // Создать map ментор по student_id
+    const mentorMap = {};
+    (assignments||[]).forEach(a => mentorMap[a.student_id] = a.mentor_name);
+
+    tbody.innerHTML = data.map(s => `
+      <tr onclick="openStudentProfile(${s.id})" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+        <td style="font-size:11px;color:#888">${s.id}</td>
+        <td><b>${s.full_name}</b></td>
+        <td class="td-truncate">${s.phone||'—'}</td>
+        <td>${s.parent_name||'—'}</td>
+        <td class="td-truncate">${s.parent_phone||'—'}</td>
+        <td class="td-truncate">${s.branch||'—'}</td>
+        <td class="td-truncate">${mentorMap[s.id]||'—'}</td>
+        <td>${s.grade}</td>
+        <td><span class="badge ${s.language==='KAZ'?'badge-kaz':'badge-rus'}">${s.language}</span></td>
+        <td><span class="badge ${s.status==='ACTIVE'?'badge-active':s.status==='NOT_STARTED'?'badge-started':'badge-inactive'}">${s.status==='ACTIVE'?'Актив.':s.status==='NOT_STARTED'?'Не нач.':'Неакт.'}</span></td>
+        <td>
+          <div class="action-menu">
+            <button class="action-dots" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
+            <div class="action-dropdown">
+              <div class="action-dropdown-item" onclick="event.stopPropagation();toggleStudentStatus(${s.id},'${s.status}')">
+                ${s.status==='ACTIVE'?'Деактивировать':'Активировать'}
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#ef4444;padding:20px">${e.message}</td></tr>`;
+  }
+}
+
+async function toggleStudentStatus(id, status) {
+  try {
+    await api(`/api/students/${id}`, { method:'PUT', body: JSON.stringify({ status: status==='ACTIVE'?'INACTIVE':'ACTIVE' }) });
+    showToast('Статус обновлён'); loadStudents();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteStudent(id) {
+  showConfirm('Удалить ученика?', 'Это действие нельзя отменить', async () => {
+  try {
+    await api(`/api/students/${id}`, {method:'DELETE'});
+    showToast('Ученик удалён'); loadStudents();
+  } catch(e) { showToast(e.message,'error'); }
+  });
+  return;
+  try {
+    await api(`/api/students/${id}`, { method:'DELETE' });
+    showToast('Ученик удалён'); loadStudents();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// Search
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.querySelector('#page-students .search-input');
+  if (s) { let t; s.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { _studentFilters.search = e.target.value; loadStudents(); }, 400); }); }
+});
+
+function applyStudentFilter() {
+  const modal = document.getElementById('filter-modal');
+  const sels = modal.querySelectorAll('select');
+  const branch = sels[0]?.value; const grade = sels[2]?.value; const lang = sels[3]?.value; const status = sels[4]?.value;
+  _studentFilters = {};
+  if (branch && branch !== 'Все') _studentFilters.branch = branch;
+  if (grade && grade !== 'Все') _studentFilters.grade = grade;
+  if (lang && lang !== 'Все') _studentFilters.language = lang;
+  if (status && status !== 'Все') _studentFilters.status = status;
+  closeModal('filter-modal');
+  loadStudents();
+}
+function clearStudentFilter() { _studentFilters = {}; closeModal('filter-modal'); loadStudents(); }
+
+// New student submit
+async function submitNewStudent() {
+  const last  = document.getElementById('ns-last')?.value?.trim();
+  const first = document.getElementById('ns-first')?.value?.trim();
+  const lang  = document.getElementById('ns-lang')?.value || 'KAZ';
+  const grade = parseInt(document.getElementById('ns-grade')?.value || 5);
+  const phone = document.getElementById('ns-phone')?.value?.trim();
+  const parentPhone = document.getElementById('ns-parent-phone')?.value?.trim();
+  const parentName  = document.getElementById('ns-parent-name')?.value?.trim();
+  const branch = document.getElementById('ns-branch')?.value?.trim() || '';
+  const start  = document.getElementById('ns-start')?.value;
+  const groupId = document.getElementById('ns-group')?.value;
+  const bought = document.getElementById('ns-bought')?.value;
+  const gift   = document.getElementById('ns-gift')?.value;
+  const managerId = document.getElementById('ns-manager')?.value;
+  const fullName = [last, first].filter(Boolean).join(' ');
+  if (!fullName) { showToast('Введите имя ученика', 'error'); return; }
+  try {
+    const student = await api('/api/students/', { method:'POST', body: JSON.stringify({
+      full_name: fullName, grade, language: lang, phone, parent_name: parentName,
+      parent_phone: parentPhone, branch,
+    })});
+    // Enroll in group if selected
+    if (groupId && student) {
+      await api(`/api/groups/${groupId}/students/${student.id}`, { method:'POST' }).catch(()=>{});
+    }
+    // Create enrollment form
+    if (student) {
+      await api('/api/forms/', { method:'POST', body: JSON.stringify({
+        student_name: fullName, grade, language: lang, student_phone: phone,
+        parent_name: parentName, parent_phone: parentPhone, branch,
+        start_date: start || null,
+        payment: bought ? `${bought}/${gift||0}` : null,
+      })}).catch(()=>{});
+    }
+    showToast('Ученик записан!');
+    showPage('page-students');
+    loadStudents();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ STAFF ═════════════════════════════════════════════════════════
+async function loadStaff(role, tbodyId, extraCol) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+
+  // Подключить поиск к полю на странице
+  const page = tbody.closest('.page');
+  if (page) {
+    const searchInp = page.querySelector('.search-input');
+    if (searchInp && !searchInp.dataset.bound) {
+      searchInp.dataset.bound = '1';
+      let timer;
+      searchInp.addEventListener('input', e => {
+        clearTimeout(timer);
+        timer = setTimeout(() => _loadStaffData(role, tbodyId, extraCol, e.target.value), 350);
+      });
+    }
+  }
+  _loadStaffData(role, tbodyId, extraCol, '');
+}
+
+async function _loadStaffData(role, tbodyId, extraCol, search) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#aaa;padding:16px">Загрузка...</td></tr>`;
+  try {
+    const data = await api(`/api/users/?role=${role}`);
+    if (!data) return;
+    const filtered = search
+      ? data.filter(s => s.full_name.toLowerCase().includes(search.toLowerCase()) ||
+                         (s.phone||'').includes(search))
+      : data;
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#aaa;padding:16px">Ничего не найдено</td></tr>`;
+      return;
+    }
+    const parts = n => { const p = (n||'').split(' '); return [p[0]||'—', p.slice(1).join(' ')||'—']; };
+    tbody.innerHTML = filtered.map(s => {
+      const [last, first] = parts(s.full_name);
+      return `<tr>
+        <td style="font-size:11px;color:#888">${s.id}</td>
+        <td><b>${last}</b></td>
+        <td>${first}</td>
+        <td>${s.phone||'—'}</td>
+        ${extraCol ? `<td>${s.subject||'—'}</td>` : ''}
+        <td><span class="badge ${s.is_active?'badge-active':'badge-inactive'}">${s.is_active?'ACTIVE':'INACTIVE'}</span></td>
+        <td>
+          <div class="action-menu">
+            <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
+            <div class="action-dropdown">
+              <div class="action-dropdown-item" onclick="toggleUserActive(${s.id},${s.is_active})">${s.is_active?'Деактивировать':'Активировать'}</div>
+              <div class="action-dropdown-item danger" onclick="deleteUser(${s.id},'${role}')">🗑 Удалить</div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#ef4444;padding:16px">${e.message}</td></tr>`;
+  }
+}
+
+async function deleteUser(id, role) {
+  showConfirm('Удалить сотрудника?', 'Это действие нельзя отменить', async () => {
+    try {
+      await api(`/api/users/${id}`, {method:'DELETE'});
+      showToast('Сотрудник удалён');
+      const map = {mentor:'mentors-tbody', teacher:'teachers-tbody', lidoruby:'lidoruby-tbody', manager:'managers-tbody'};
+      if (map[role]) _loadStaffData(role, map[role], role==='teacher', '');
+    } catch(e) { showToast(e.message,'error'); }
+  });
+}
+
+async function toggleUserActive(id, isActive) {
+  try {
+    await api(`/api/users/${id}`, { method:'PUT', body: JSON.stringify({ is_active: !isActive }) });
+    showToast(isActive ? 'Деактивирован' : 'Активирован');
+    ['mentor','teacher','lidoruby','manager'].forEach((r,i) =>
+      loadStaff(r, ['mentors-tbody','teachers-tbody','lidoruby-tbody','managers-tbody'][i], r==='teacher'));
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitAddStaff() {
+  const iin     = document.getElementById('staff-iin')?.value?.trim();
+  const name    = document.getElementById('staff-name')?.value?.trim();
+  const phone   = document.getElementById('staff-phone')?.value?.trim();
+  const pass    = document.getElementById('staff-pass')?.value?.trim();
+  const role = document.getElementById('add-staff-modal').dataset.role || document.getElementById('staff-role')?.value || 'mentor';
+  const subject = document.getElementById('staff-subject')?.value?.trim();
+  if (!iin || !/^\d{12}$/.test(iin)) { showToast('Введите корректный ИИН (12 цифр)', 'error'); return; }
+  if (!name) { showToast('Введите ФИО', 'error'); return; }
+  if (!pass || pass.length < 6) { showToast('Пароль минимум 6 символов', 'error'); return; }
+  try {
+    await api('/api/users/', { method:'POST', body: JSON.stringify({ iin, full_name: name, phone, password: pass, role, subject }) });
+    showToast('Сотрудник добавлен!');
+    closeModal('add-staff-modal');
+    // Clear fields
+    ['staff-iin','staff-name','staff-phone','staff-pass','staff-subject'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['mentor','teacher','lidoruby','manager'].forEach((r,i) =>
+      loadStaff(r, ['mentors-tbody','teachers-tbody','lidoruby-tbody','managers-tbody'][i], r==='teacher'));
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ MENTOR ASSIGNMENTS ════════════════════════════════════════════
+async function loadMentorAssignments() {
+  const tbody = document.getElementById('mentor-assign-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:16px">Загрузка...</td></tr>';
+  try {
+    const [students, assignments, mentors] = await Promise.all([
+      api('/api/students/?status=ACTIVE'),
+      api('/api/mentors/assignments'),
+      api('/api/users/?role=mentor'),
+    ]);
+    if (!students?.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:16px">Нет активных учеников</td></tr>'; return;
+    }
+    const assignMap = {};
+    (assignments||[]).forEach(a => assignMap[a.student_id] = a);
+    tbody.innerHTML = students.map(s => {
+      const assigned = assignMap[s.id];
+      return `<tr>
+        <td><b>${s.full_name}</b></td>
+        <td>${s.parent_name||'—'}</td>
+        <td>${s.grade}</td>
+        <td><span class="badge ${s.language==='KAZ'?'badge-kaz':'badge-rus'}">${s.language}</span></td>
+        <td class="td-truncate">${s.branch||'—'}</td>
+        <td><span class="badge ${assigned?'badge-active':'badge-not-started'}">${assigned?'Назначен':'Не назначен'}</span></td>
+        <td>
+          <select class="mentor-select" onchange="assignMentor(${s.id},this.value)">
+            <option value="">— Ментор —</option>
+            ${(mentors||[]).map(m=>`<option value="${m.id}" ${assigned?.mentor_id===m.id?'selected':''}>${m.full_name}</option>`).join('')}
+          </select>
+        </td>
+        <td></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function assignMentor(studentId, mentorId) {
+  if (!mentorId) return;
+  try {
+    await api('/api/mentors/assignments', { method:'POST', body: JSON.stringify({ mentor_id:parseInt(mentorId), student_id:studentId }) });
+    showToast('Ментор назначен!');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ GROUPS ════════════════════════════════════════════════════════
+async function loadGroups() {
+  const tbody = document.getElementById('groups-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Загрузка...</td></tr>';
+  try {
+    const data = await api('/api/groups/');
+    if (!data?.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Групп нет</td></tr>'; return;
+    }
+    const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
+    tbody.innerHTML = data.map(g => {
+      const slots = g.schedule_slots||[];
+      const timeStr = slots[0] ? `${slots[0].start_time}–${slots[0].end_time}` : '—';
+      const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'—';
+      return `<tr onclick="openEditGroupModal(${g.id})" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+        <td><b>${g.name}</b></td>
+        <td>${g.teacher_name||'—'}</td>
+        <td>${g.language}</td>
+        <td>${g.branch||'—'} – ${g.classroom_name||'—'}</td>
+        <td>${timeStr}</td>
+        <td>${daysStr}</td>
+        <td>${g.student_count}/${g.capacity}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:#ef4444;text-align:center;padding:20px">${e.message}</td></tr>`;
+  }
+}
+
+async function deleteGroup(id) {
+  if (!confirm('Удалить группу?')) return;
+  try { await api(`/api/groups/${id}`,{method:'DELETE'}); showToast('Удалено'); loadGroups(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitAddGroup() {
+  const modal = document.getElementById('add-group-modal');
+  const name  = modal.querySelector('input[placeholder="5 коу А1"], input[placeholder="5 коу A1"], .form-input')?.value?.trim();
+  const sels  = modal.querySelectorAll('select');
+  
+  // Найти нужные селекты по содержимому
+  let gradeVal='5', langVal='KAZ', teacherVal='', branchVal='', classroomVal='';
+  sels.forEach(s => {
+    const html = s.innerHTML;
+    if (html.includes('KAZ') || html.includes('RUS')) langVal = s.value;
+    else if (html.includes('преподавател') || html.includes('Выберите преподавател')) teacherVal = s.value;
+    else if (html.includes('Мәңгілік') || html.includes('Ел 36') || html.includes('Кенесары') || html.includes('Туран') || html.includes('Мангил')) branchVal = s.value;
+    else if (/^\d+$/.test(s.options[s.selectedIndex]?.text)) classroomVal = s.value;
+    else if (s.options[0]?.text?.match(/^\d+$/) || s.innerHTML.includes('<option>5</option>')) gradeVal = s.value;
+  });
+
+  const timeInputs = modal.querySelectorAll('input[type=time]');
+  const tStart = timeInputs[0]?.value || '09:00';
+  const tEnd   = timeInputs[1]?.value || '10:00';
+  const dayMap = {ПН:'MON',ВТ:'TUE',СР:'WED',ЧТ:'THU',ПТ:'FRI',СБ:'SAT',ВС:'SUN'};
+  const selectedDays = [...modal.querySelectorAll('input[type=checkbox]:checked')]
+    .map(c => dayMap[c.parentElement.textContent.trim()]).filter(Boolean);
+
+  if (!name) { showToast('Введите название группы','error'); return; }
+
+  try {
+    const group = await api('/api/groups/', { method:'POST', body: JSON.stringify({
+      name,
+      grade: parseInt(gradeVal) || 5,
+      language: langVal || 'KAZ',
+      branch: branchVal || '',
+      capacity: 15,
+      teacher_id: teacherVal ? parseInt(teacherVal) : null,
+    })});
+
+    for (const day of selectedDays) {
+      if (group?.id) {
+        await api(`/api/groups/${group.id}/schedule`, {
+          method:'POST',
+          body: JSON.stringify({
+            day_of_week: day,
+            start_time: tStart + ':00',
+            end_time: tEnd + ':00'
+          })
+        }).catch(()=>{});
+      }
+    }
+    // Добавить выбранных учеников
+    if (window._agStudents && group?.id) {
+      for (const studentId of Object.keys(window._agStudents)) {
+        await api(`/api/groups/${group.id}/students/${studentId}`, {method:'POST'}).catch(()=>{});
+      }
+      window._agStudents = {};
+      if (window._agStudentDiv) window._agStudentDiv.innerHTML = '';
+    }
+    showToast('Группа создана!');
+    closeModal('add-group-modal');
+    loadGroups();
+    loadMyGroups();
+    // Добавить учеников если выбраны
+    const studentSelects = modal.querySelectorAll('.student-to-add');
+    for (const s of studentSelects) {
+      if (s.value && group?.id) {
+        await api(`/api/groups/${group.id}/students/${s.value}`, {method:'POST'}).catch(()=>{});
+      }
+}
+    
+  } catch(e) {
+    // Показать читаемую ошибку
+    let msg = e.message;
+    try { const parsed = JSON.parse(msg); msg = JSON.stringify(parsed); } catch{}
+    showToast('Ошибка: ' + msg, 'error');
+    console.error('Group create error:', e);
+  }
+}
+
+// ══ CLASSROOMS ════════════════════════════════════════════════════
+async function loadClassrooms() {
+  const tbody = document.getElementById('classrooms-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/classrooms/');
+    if (!data?.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:16px">Нет кабинетов</td></tr>'; return;
+    }
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.branch||'—'}</td>
+        <td>
+          <div class="action-menu">
+            <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
+            <div class="action-dropdown">
+              <div class="action-dropdown-item danger" onclick="deleteClassroom(${c.id})">${icon('trash')} Удалить</div>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function submitAddClassroom() {
+  const modal = document.getElementById('add-classroom-modal');
+  const inputs = modal.querySelectorAll('.form-input');
+  const name = inputs[0]?.value?.trim();
+  const branch = modal.querySelector('.form-select')?.value || '';
+  if (!name) { showToast('Введите название','error'); return; }
+  try {
+    await api('/api/classrooms/', { method:'POST', body: JSON.stringify({ name, branch }) });
+    showToast('Кабинет добавлен!');
+    closeModal('add-classroom-modal');
+    inputs[0].value = '';
+    loadClassrooms();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteClassroom(id) {
+  if (!confirm('Удалить кабинет?')) return;
+  try { await api(`/api/classrooms/${id}`,{method:'DELETE'}); showToast('Удалено'); loadClassrooms(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ TASKS ═════════════════════════════════════════════════════════
+async function loadTasks(containerId, mine) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px">Загрузка...</div>';
+  try {
+    const data = await api('/api/tasks/' + (mine?'?mine=true':''));
+    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Задач нет</div>'; return; }
+    const statusLabel = {todo:'К выполнению', in_progress:'В процессе', done:'Готово'};
+    const statusColor = {todo:'#f59e0b', in_progress:'#3b82f6', done:'#22c55e'};
+    container.innerHTML = data.map(t => `
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${t.title}</div>
+          ${t.description ? `<div style="font-size:12px;color:#777;margin-top:3px">${t.description}</div>` : ''}
+          <div style="font-size:11px;color:#aaa;margin-top:4px">
+            ${t.assignee_name?'Кому: <b>'+t.assignee_name+'</b> · ':''}
+            ${t.due_date?'До: '+t.due_date+' · ':''}
+            От: ${t.creator_name||'—'}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <select style="font-size:12px;border:1px solid #e5e7eb;border-radius:6px;padding:5px 8px;color:${statusColor[t.status]};font-weight:600" onchange="updateTaskStatus(${t.id},this.value)">
+            <option value="todo" ${t.status==='todo'?'selected':''}>К выполнению</option>
+            <option value="in_progress" ${t.status==='in_progress'?'selected':''}>В процессе</option>
+            <option value="done" ${t.status==='done'?'selected':''}>Готово ✓</option>
+          </select>
+          <button onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:4px">${icon('trash')}</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+}
+
+async function updateTaskStatus(id, status) {
+  try { await api(`/api/tasks/${id}`,{method:'PUT',body:JSON.stringify({status})}); showToast('Статус обновлён'); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteTask(id) {
+  showConfirm('Удалить задачу?', 'Задача будет удалена навсегда', async () => {
+  try {
+    await api(`/api/tasks/${id}`,{method:'DELETE'});
+    showToast('Удалено');
+    loadTasks('my-tasks-body',true);
+    loadTasks('all-tasks-body',false);
+  } catch(e) { showToast(e.message,'error'); }
+});
+  return;
+  try { await api(`/api/tasks/${id}`,{method:'DELETE'}); showToast('Удалено'); loadTasks('my-tasks-body',true); loadTasks('all-tasks-body',false); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitAddTask() {
+  const title    = document.getElementById('task-title')?.value?.trim();
+  const desc     = document.getElementById('task-desc')?.value?.trim();
+  const assignee = document.getElementById('task-assignee')?.value;
+  const due      = document.getElementById('task-due')?.value;
+  if (!title) { showToast('Введите название задачи','error'); return; }
+  try {
+    await api('/api/tasks/', { method:'POST', body: JSON.stringify({
+      title, description: desc||null, assigned_to: assignee?parseInt(assignee):null, due_date: due||null
+    })});
+    showToast('Задача создана!');
+    closeModal('add-task-modal');
+    document.getElementById('task-title').value=''; document.getElementById('task-desc').value='';
+    loadTasks('my-tasks-body',true); loadTasks('all-tasks-body',false);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ MY GROUPS (Teacher) ═══════════════════════════════════════════
+async function loadMyGroups() {
+  const container = document.getElementById('my-groups-body');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px">Загрузка...</div>';
+  try {
+    const data = await api('/api/groups/');
+    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Групп нет</div>'; return; }
+    const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
+    container.innerHTML = data.map(g => {
+      const slots = g.schedule_slots||[];
+      const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'Нет расписания';
+      const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
+      return `
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;overflow:hidden">
+          <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            <div>
+              <b style="font-size:14px">${g.name}</b>
+              <span style="margin-left:10px;font-size:12px;color:#888">${g.teacher_name||''}</span>
+              <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:6px">${g.language}</span>
+            </div>
+            <div style="font-size:12px;color:#6366f1;font-weight:600">${daysStr} ${timeStr} · ${g.student_count} уч.</div>
+          </div>
+          <div style="display:none;padding:14px 18px;border-top:1px solid #f3f4f6;display:flex;gap:10px">
+            <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
+            <button class="btn btn-outline btn-sm" onclick="showAttendanceSummary(${g.id},'${g.name}')">📊 Статистика</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+}
+
+// ══ ATTENDANCE ════════════════════════════════════════════════════
+let attendanceGroupId = null;
+
+async function openAttendanceModal(groupId, groupName) {
+  attendanceGroupId = groupId;
+  const titleEl = document.getElementById('report-modal-title');
+  if (titleEl) titleEl.textContent = `Журнал — ${groupName} — ${new Date().toLocaleDateString('ru')}`;
+  openModal('report-modal');
+  const tbody = document.getElementById('report-tbody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:16px">Загрузка учеников...</td></tr>';
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const [students, existing] = await Promise.all([
+      api(`/api/groups/${groupId}/students`),
+      api(`/api/attendance/?group_id=${groupId}&date_from=${today}&date_to=${today}`)
+    ]);
+    const existMap = {};
+    (existing||[]).forEach(r => existMap[r.student_id] = r);
+    if (!students?.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:16px">В группе нет учеников</td></tr>'; return;
+    }
+    tbody.innerHTML = students.map(s => {
+      const rec = existMap[s.id];
+      const st = rec?.status||'none';
+      return `<tr data-student-id="${s.id}">
+        <td><b>${s.full_name}</b><div style="font-size:11px;color:#aaa">${s.grade} класс</div></td>
+        <td style="text-align:center">
+          <button class="attendance-btn ${st==='present'?'att-present':st==='absent'?'att-absent':'att-none'}" onclick="toggleAttendance(this)">${st==='present'?'✓':st==='absent'?'✗':'?'}</button>
+        </td>
+        <td style="text-align:center"><input class="score-input" type="number" min="0" max="10" step="0.5" placeholder="—" value="${rec?.score_1!=null?rec.score_1:''}"></td>
+        <td style="text-align:center"><input class="score-input" type="number" min="0" max="10" step="0.5" placeholder="—" value="${rec?.score_2!=null?rec.score_2:''}"></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:#ef4444;padding:16px">${e.message}</td></tr>`; }
+}
+
+async function saveAttendanceReport() {
+  if (!attendanceGroupId) return;
+  const today = new Date().toISOString().split('T')[0];
+  const rows = document.querySelectorAll('#report-tbody tr[data-student-id]');
+  const records = [];
+  rows.forEach(row => {
+    const studentId = parseInt(row.dataset.studentId);
+    const btn = row.querySelector('.attendance-btn');
+    const inputs = row.querySelectorAll('.score-input');
+    let status = 'none';
+    if (btn.classList.contains('att-present')) status = 'present';
+    else if (btn.classList.contains('att-absent')) status = 'absent';
+    records.push({
+      student_id: studentId, status,
+      score_1: inputs[0]?.value ? parseFloat(inputs[0].value) : null,
+      score_2: inputs[1]?.value ? parseFloat(inputs[1].value) : null,
+    });
+  });
+  try {
+    await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records }) });
+    showToast(`Отчёт сохранён! ${records.filter(r=>r.status==='present').length} присутствовали`);
+    closeModal('report-modal');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function showAttendanceSummary(groupId, groupName) {
+  try {
+    const data = await api(`/api/attendance/summary/${groupId}`);
+    if (!data?.length) { showToast('Нет данных посещаемости','warn'); return; }
+    const rows = data.map(s => `
+      <tr>
+        <td>${s.student_name}</td>
+        <td style="text-align:center">${s.total_lessons}</td>
+        <td style="text-align:center;color:#22c55e;font-weight:700">${s.present}</td>
+        <td style="text-align:center;color:#ef4444;font-weight:700">${s.absent}</td>
+        <td style="text-align:center;font-weight:700">${s.attendance_rate}%</td>
+        <td style="text-align:center">${s.avg_score!=null?s.avg_score:'—'}</td>
+      </tr>`).join('');
+    const w = window.open('','_blank','width=700,height=500');
+    w.document.write(`<html><head><title>Статистика — ${groupName}</title>
+      <style>body{font-family:Inter,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #e5e7eb;padding:8px 12px;font-size:13px}th{background:#f9fafb;font-weight:600}</style></head>
+      <body><h2 style="font-size:18px;margin-bottom:16px">📊 Статистика посещаемости — ${groupName}</h2>
+      <table><thead><tr><th>Ученик</th><th>Всего</th><th>✓ Был</th><th>✗ Отсутствовал</th><th>%</th><th>Ср. балл</th></tr></thead>
+      <tbody>${rows}</tbody></table></body></html>`);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ RETURNS ═══════════════════════════════════════════════════════
+async function loadReturns() {
+  const tbody = document.getElementById('returns-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/returns/');
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px">Возвратов нет</td></tr>'; return; }
+    const fmt = d => new Date(d).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td style="font-size:12px;white-space:nowrap">${fmt(r.created_at)}</td>
+        <td><b>${r.student_name}</b></td>
+        <td>${r.parent_name||'—'}</td>
+        <td>${r.parent_phone||'—'}</td>
+        <td><span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}">${r.language||'—'}</span></td>
+        <td style="font-size:12px;color:#555;max-width:280px">${r.reason||'—'}</td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadReturnFormPage() {
+  const searchInp = document.querySelector('#page-return-form .search-input');
+  if (!searchInp || searchInp.dataset.bound) return;
+  searchInp.dataset.bound = '1';
+
+  // Создать dropdown
+  let dropdown = document.getElementById('return-student-dropdown');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = 'return-student-dropdown';
+    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)';
+    searchInp.parentNode.style.position = 'relative';
+    searchInp.parentNode.appendChild(dropdown);
+  }
+
+  const students = await api('/api/students/');
+  let selectedStudent = null;
+
+  searchInp.oninput = function() {
+    const q = this.value.toLowerCase().trim();
+    if (!q) { dropdown.style.display='none'; return; }
+    const filtered = (students||[]).filter(s =>
+      s.full_name.toLowerCase().includes(q) ||
+      (s.phone||'').includes(q)
+    ).slice(0, 8);
+    if (!filtered.length) { dropdown.style.display='none'; return; }
+    dropdown.innerHTML = filtered.map(s => `
+      <div onclick="selectReturnStudent(${s.id},'${s.full_name.replace(/'/g,"\\'")}','${s.parent_name||''}','${s.parent_phone||''}')"
+        style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
+        onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+        <b>${s.full_name}</b>
+        <span style="font-size:11px;color:#888;margin-left:6px">${s.grade} кл · ${s.language} · ${s.branch||'—'}</span>
+      </div>`).join('');
+    dropdown.style.display = 'block';
+  };
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#page-return-form .search-wrap')) dropdown.style.display='none';
+  });
+}
+
+function selectReturnStudent(id, name, parentName, parentPhone) {
+  const searchInp = document.querySelector('#page-return-form .search-input');
+  if (searchInp) searchInp.value = name;
+  // Автозаполнить родителя
+  const inputs = document.querySelectorAll('#page-return-form .form-input');
+  if (inputs[0] && parentName) inputs[0].value = parentName;
+  if (inputs[1] && parentPhone) inputs[1].value = parentPhone;
+  const dropdown = document.getElementById('return-student-dropdown');
+  if (dropdown) dropdown.style.display = 'none';
+  // Сохранить для отправки
+  window._returnStudentId = id;
+  window._returnStudentName = name;
+}
+
+async function submitReturnForm() {
+  const inputs   = document.querySelectorAll('#page-return-form .form-input');
+  const sel      = document.querySelector('#page-return-form .form-select');
+  const textarea = document.querySelector('#page-return-form .form-textarea');
+  const searchInp = document.querySelector('#page-return-form .search-input');
+  const studentName = searchInp?.value?.trim() || 'Неизвестно';
+  const parentName  = inputs[0]?.value?.trim();
+  const parentPhone = inputs[1]?.value?.trim();
+  const language    = sel?.value || 'KAZ';
+  const reason      = textarea?.value?.trim();
+  if (!parentName) { showToast('Введите имя родителя','error'); return; }
+  if (!reason)     { showToast('Введите причину возврата','error'); return; }
+  try {
+    await api('/api/returns/', { method:'POST', body: JSON.stringify({ student_name:studentName, parent_name:parentName, parent_phone:parentPhone, language, reason }) });
+    showToast('Возврат оформлен!');
+    if(searchInp) searchInp.value='';
+    if(inputs[0]) inputs[0].value=''; if(inputs[1]) inputs[1].value='';
+    if(textarea) textarea.value='';
+    showPage('page-returns');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ FORM HISTORY ══════════════════════════════════════════════════
+async function loadFormHistory() {
+  const tbody = document.getElementById('form-history-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/forms/');
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#aaa;padding:16px">Истории нет</td></tr>'; return; }
+    const fmt = d => new Date(d).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    tbody.innerHTML = data.map(f => `
+      <tr>
+        <td style="font-size:12px;white-space:nowrap">${fmt(f.created_at)}</td>
+        <td>${f.manager_name||'—'}</td>
+        <td><b>${f.student_name}</b></td>
+        <td>${f.grade||'—'}</td>
+        <td><span class="badge ${f.language==='KAZ'?'badge-kaz':'badge-rus'}">${f.language||'—'}</span></td>
+        <td>${f.student_phone||'—'}</td>
+        <td>${f.parent_name||'—'}</td>
+        <td>${f.parent_phone||'—'}</td>
+        <td>${f.branch||'—'}</td>
+        <td>${f.start_date||'—'}</td>
+        <td><span class="filter-tag">${f.payment||'—'}</span></td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ══ ANALYTICS ═════════════════════════════════════════════════════
+async function loadAnalytics() {
+  try {
+    const [summary, dist] = await Promise.all([
+      api('/api/analytics/summary'),
+      api('/api/analytics/group-size-distribution'),
+    ]);
+    if (!summary) return;
+    const summaryEl = document.getElementById('analytics-summary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px">
+          ${[['👥 Учеников',summary.total_students,'#6366f1'],['✅ Активных',summary.active_students,'#22c55e'],
+             ['📚 Групп',summary.total_groups,'#f59e0b'],['🎓 Учителей',summary.total_teachers,'#3b82f6'],
+             ['🛡 Менторов',summary.total_mentors,'#8b5cf6'],['📊 Менеджеров',summary.total_managers,'#ec4899'],
+          ].map(([label,val,color])=>`
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px 12px;text-align:center">
+              <div style="font-size:26px;font-weight:800;color:${color}">${val}</div>
+              <div style="font-size:12px;color:#777;margin-top:4px">${label}</div>
+            </div>`).join('')}
+        </div>`;
+    }
+    if (!dist?.length) return;
+    const max = Math.max(...dist.map(d=>d.count), 1);
+    const chartEl = document.getElementById('analytics-chart');
+    if (chartEl) {
+      chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:220px;padding:10px 0">
+        ${dist.map(d=>`
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-val">${d.count}</div>
+            <div class="chart-bar" style="height:${Math.round((d.count/max)*180)}px"></div>
+            <div class="chart-bar-label">${d.size}</div>
+          </div>`).join('')}
+      </div>`;
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ══ ENT ═══════════════════════════════════════════════════════════
+async function loadENT() {
+  const tbody = document.getElementById('ent-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/ent/');
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:16px">Тестов нет</td></tr>'; return; }
+    tbody.innerHTML = data.map(e => `
+      <tr>
+        <td>${e.id}</td>
+        <td><b>${e.name}</b></td>
+        <td><span class="badge ${e.status==='ACTIVE'?'badge-active':'badge-inactive'}">${e.status}</span></td>
+        <td style="min-width:160px">
+          <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%"></div></div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${e.progress}%</div>
+        </td>
+        <td>
+          <div class="action-menu">
+            <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
+            <div class="action-dropdown">
+              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
+              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">${icon('trash')} Удалить</div>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function toggleENTStatus(id, status) {
+  try { await api(`/api/ent/${id}`,{method:'PUT',body:JSON.stringify({status:status==='ACTIVE'?'INACTIVE':'ACTIVE'})}); showToast('Обновлено'); loadENT(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+async function deleteENT(id) {
+  if (!confirm('Удалить тест?')) return;
+  try { await api(`/api/ent/${id}`,{method:'DELETE'}); showToast('Удалено'); loadENT(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitAddENT() {
+  const modal = document.getElementById('add-ent-modal');
+  const name   = modal.querySelector('.form-input')?.value?.trim();
+  const status = modal.querySelector('.form-select')?.value || 'ACTIVE';
+  if (!name) { showToast('Введите название теста','error'); return; }
+  try {
+    await api('/api/ent/', { method:'POST', body: JSON.stringify({ name, status, progress:0 }) });
+    showToast('Тест добавлен!');
+    closeModal('add-ent-modal');
+    modal.querySelector('.form-input').value = '';
+    loadENT();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ FORBIDDEN DATES ═══════════════════════════════════════════════
+async function loadForbiddenDates() {
+  const tbody = document.getElementById('forbidden-dates-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/forbidden-dates/');
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:16px">Дат нет</td></tr>'; return; }
+    const fmt = d => new Date(d.created_at).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric'});
+    tbody.innerHTML = data.map(d => `
+      <tr>
+        <td><b>${d.date}</b></td>
+        <td style="color:#888;font-size:13px">${fmt(d)}</td>
+        <td><button style="background:none;border:none;cursor:pointer;color:#ef4444" onclick="deleteForbiddenDate(${d.id})">${icon('trash')}</button></td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function submitAddDate() {
+  const modal = document.getElementById('add-date-modal');
+  const dateVal = modal.querySelector('input[type=date]')?.value;
+  if (!dateVal) { showToast('Выберите дату','error'); return; }
+  try {
+    await api('/api/forbidden-dates/', { method:'POST', body: JSON.stringify({ date: dateVal }) });
+    showToast('Дата добавлена!');
+    closeModal('add-date-modal');
+    modal.querySelector('input[type=date]').value='';
+    loadForbiddenDates();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteForbiddenDate(id) {
+  try { await api(`/api/forbidden-dates/${id}`,{method:'DELETE'}); showToast('Удалено'); loadForbiddenDates(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ SLOTS ════════════════════════════════════════════════════════
+async function loadSlots() {
+  const tbody = document.getElementById('slots-tbody');
+  if (!tbody) return;
+  try {
+    const data = await api('/api/analytics/slots');
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:16px">Данных нет</td></tr>'; return; }
+    const slotColor = (e,c) => { if(!c) return 'slot-gray'; if(e>c) return 'slot-red'; if(e===c) return 'slot-green'; if(e>c*0.7) return 'slot-blue'; return ''; };
+    const byGrade = {};
+    data.forEach(s => { if(!byGrade[s.grade]) byGrade[s.grade]={KAZ:[],RUS:[]}; byGrade[s.grade][s.language].push(s); });
+    tbody.innerHTML = Object.keys(byGrade).sort((a,b)=>+a-+b).map(grade => {
+      const kaz = byGrade[grade].KAZ; const rus = byGrade[grade].RUS;
+      return `
+        <tr>
+          <td rowspan="2" style="border:1px solid #e5e7eb;padding:8px 16px;font-weight:700;background:#f9fafb">${grade}</td>
+          <td style="border:1px solid #e5e7eb;padding:8px 16px;font-size:12px;font-weight:600">KAZ</td>
+          ${kaz.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid #e5e7eb;padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
+        </tr>
+        <tr>
+          <td style="border:1px solid #e5e7eb;padding:8px 16px;font-size:12px;font-weight:600">RUS</td>
+          ${rus.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid #e5e7eb;padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
+        </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ══ SCHEDULE ══════════════════════════════════════════════════════
+// ══ EDIT GROUP MODAL ══════════════════════════════════════════════
+let _editGroupId = null;
+
+async function openEditGroupModal(groupId) {
+  _editGroupId = groupId;
+  let modal = document.getElementById('edit-group-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'edit-group-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div class="modal modal-lg" style="max-height:90vh;overflow-y:auto;width:600px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <div class="modal-title" style="margin:0">Редактировать группу</div>
+          <button onclick="document.getElementById('edit-group-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">×</button>
+        </div>
+        <div id="edit-group-content">
+          <div style="text-align:center;padding:30px;color:#aaa">Загрузка...</div>
+        </div>
+      </div>`;
+    modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+
+  try {
+    const [group, students, teachers, allStudents, classrooms] = await Promise.all([
+      api(`/api/groups/${groupId}`),
+      api(`/api/groups/${groupId}/students`),
+      api('/api/users/?role=teacher'),
+      api('/api/students/?status=ACTIVE'),
+      api('/api/classrooms/'),
+    ]);
+
+    const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
+    const activeDays = (group.schedule_slots||[]).map(s => s.day_of_week);
+    const startTime = group.schedule_slots?.[0]?.start_time?.slice(0,5) || '09:00';
+    const endTime   = group.schedule_slots?.[0]?.end_time?.slice(0,5)   || '10:00';
+
+    document.getElementById('edit-group-content').innerHTML = `
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Название *</label>
+          <input class="form-input" id="eg-name" value="${group.name}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Класс</label>
+          <select class="form-select" id="eg-grade">
+            ${[0,1,2,3,4,5,6,7,8,9,10,11].map(g=>`<option value="${g}" ${group.grade===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Язык</label>
+          <select class="form-select" id="eg-lang">
+            <option value="KAZ" ${group.language==='KAZ'?'selected':''}>KAZ</option>
+            <option value="RUS" ${group.language==='RUS'?'selected':''}>RUS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Преподаватель</label>
+          <select class="form-select" id="eg-teacher">
+            <option value="">— Выберите —</option>
+            ${(teachers||[]).map(t=>`<option value="${t.id}" ${group.teacher_id===t.id?'selected':''}>${t.full_name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Филиал</label>
+          <input class="form-input" id="eg-branch" value="Мәңгілік Ел 36">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Кабинет</label>
+          <select class="form-select" id="eg-classroom">
+            <option value="">— Выберите кабинет —</option>
+            ${(classrooms||[]).map(c=>`<option value="${c.id}" ${group.classroom_id===c.id?'selected':''}>${c.name} (${c.branch||'—'})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Вместимость</label>
+          <input class="form-input" id="eg-capacity" type="number" value="${group.capacity||12}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Начало</label>
+          <input class="form-input" id="eg-start" type="time" value="${startTime}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Окончание</label>
+          <input class="form-input" id="eg-end" type="time" value="${endTime}">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label">Дни обучения</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          ${Object.entries(days).map(([k,v])=>`
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px">
+              <input type="checkbox" value="${k}" ${activeDays.includes(k)?'checked':''}> ${v}
+            </label>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Ученики (<span id="eg-student-count">${(students||[]).length}</span>)</div>
+        <div style="position:relative;margin-bottom:8px">
+          <input class="form-input" id="eg-student-search" placeholder="🔍 Начните вводить имя ученика..." autocomplete="off">
+          <div id="eg-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+        </div>
+        <div id="eg-students-list" style="max-height:220px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px">
+          ${(students||[]).length ? (students||[]).map(s=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6">
+              <div>
+                <b style="font-size:13px">${s.full_name}</b>
+                <span style="font-size:11px;color:#888;margin-left:8px">${s.grade} кл · ${s.language}</span>
+              </div>
+              <button onclick="removeStudentFromGroup(${groupId},${s.id},this)" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
+            </div>`).join('') :
+            '<div id="eg-empty" style="text-align:center;color:#aaa;padding:16px">Учеников нет</div>'}
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:20px">
+        <button class="btn btn-danger btn-sm" onclick="deleteGroupAndClose(${groupId})">Удалить группу</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="document.getElementById('edit-group-modal').style.display='none'">Отмена</button>
+          <button class="btn btn-primary" onclick="saveEditGroup(${groupId})">Сохранить</button>
+        </div>
+      </div>`;
+
+    // Поиск учеников
+    const currentIds = new Set((students||[]).map(s => s.id));
+    const searchInp = document.getElementById('eg-student-search');
+    const dropdown  = document.getElementById('eg-student-dropdown');
+
+    searchInp.oninput = function() {
+      const q = this.value.toLowerCase().trim();
+      if (!q) { dropdown.style.display='none'; return; }
+      const filtered = (allStudents||[]).filter(s =>
+        !currentIds.has(s.id) && s.full_name.toLowerCase().includes(q)
+      ).slice(0, 8);
+      if (!filtered.length) { dropdown.style.display='none'; return; }
+      dropdown.innerHTML = filtered.map(s => `
+        <div onclick="addStudentToEditGroup(${groupId},${s.id},'${s.full_name.replace(/'/g,"\\'")}',${s.grade},'${s.language}')"
+          style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center"
+          onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+          <b>${s.full_name}</b>
+          <span style="font-size:11px;color:#888">${s.grade} кл · ${s.language}</span>
+        </div>`).join('');
+      dropdown.style.display = 'block';
+    };
+
+    document.addEventListener('click', function hideEgDropdown(e) {
+      if (!e.target.closest('#eg-student-search') && !e.target.closest('#eg-student-dropdown')) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+  } catch(e) {
+    document.getElementById('edit-group-content').innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`;
+  }
+}
+
+async function saveEditGroup(groupId) {
+  const name     = document.getElementById('eg-name')?.value?.trim();
+  const grade    = parseInt(document.getElementById('eg-grade')?.value||5);
+  const lang     = document.getElementById('eg-lang')?.value||'KAZ';
+  const teacher  = document.getElementById('eg-teacher')?.value;
+  const branch   = document.getElementById('eg-branch')?.value?.trim();
+  const capacity = parseInt(document.getElementById('eg-capacity')?.value||15);
+  const tStart   = document.getElementById('eg-start')?.value||'09:00';
+  const tEnd     = document.getElementById('eg-end')?.value||'10:00';
+  const dayMap   = {ПН:'MON',ВТ:'TUE',СР:'WED',ЧТ:'THU',ПТ:'FRI',СБ:'SAT',ВС:'SUN'};
+  const modal    = document.getElementById('edit-group-content');
+  const checks   = modal.querySelectorAll('input[type=checkbox]:checked');
+  const newDays  = [...checks].map(c => c.value);
+
+  if (!name) { showToast('Введите название','error'); return; }
+  try {
+    await api(`/api/groups/${groupId}`, { method:'PUT', body: JSON.stringify({
+      name, grade, language: lang, branch, capacity,
+      teacher_id: teacher ? parseInt(teacher) : null,
+      classroom_id: document.getElementById('eg-classroom')?.value ? parseInt(document.getElementById('eg-classroom').value) : null,
+    })});
+    // Обновить расписание — удалить старые слоты и добавить новые
+    const group = await api(`/api/groups/${groupId}`);
+    for (const slot of (group.schedule_slots||[])) {
+      await api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{});
+    }
+    for (const day of newDays) {
+      await api(`/api/groups/${groupId}/schedule`, {
+        method:'POST',
+        body: JSON.stringify({ day_of_week: day, start_time: tStart+':00', end_time: tEnd+':00' })
+      }).catch(()=>{});
+    }
+    showToast('Группа обновлена!');
+    document.getElementById('edit-group-modal').style.display='none';
+    loadGroups();
+    buildSchedule();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ══ STUDENT PROFILE ═══════════════════════════════════════════════
+async function openStudentProfile(studentId) {
+  const modal = document.getElementById('student-profile-modal');
+  modal.style.display = 'flex';
+  document.getElementById('student-profile-content').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#aaa">Загрузка...</div>';
+  modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
+
+  try {
+    const student = await api(`/api/students/${studentId}`);
+    const statusColor = {ACTIVE:'#22c55e', INACTIVE:'#9ca3af', NOT_STARTED:'#f59e0b'};
+
+    document.getElementById('student-profile-content').innerHTML = `
+      <div style="background:linear-gradient(135deg,#f0f4ff,#faf5ff);border-radius:16px 16px 0 0;padding:24px 28px;display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="display:flex;gap:20px;align-items:flex-start">
+          <div style="width:80px;height:100px;border:2px dashed #93c5fd;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#93c5fd;font-size:12px;text-align:center;flex-shrink:0">
+            Место<br>для<br>фото
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <h2 style="margin:0;font-size:18px;font-weight:700">${student.full_name}</h2>
+              <span style="background:${statusColor[student.status]||'#9ca3af'};color:#fff;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600">${student.status}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 40px;font-size:13px">
+              <div><span style="color:#888;min-width:120px;display:inline-block">Фамилия</span> <b>${(student.full_name||'').split(' ')[0]||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">Имя родителя</span> <b>${student.parent_name||'—'}</b></div>
+              <div><span style="color:#888;min-width:120px;display:inline-block">Имя</span> <b>${(student.full_name||'').split(' ').slice(1).join(' ')||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">Телефон родителя</span> <b>${student.parent_phone||'—'}</b></div>
+              <div><span style="color:#888;min-width:120px;display:inline-block">Телефон</span> <b>${student.phone||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">Баланс</span> <b>0</b></div>
+              <div><span style="color:#888;min-width:120px;display:inline-block">Класс</span> <b>${student.grade||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">Менеджер</span> <b id="sp-manager-name">—</b></div>
+              <div><span style="color:#888;min-width:120px;display:inline-block">Язык</span> <b>${student.language||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">Ментор</span> <b id="sp-mentor-name">—</b></div>              <div><span style="color:#888;min-width:120px;display:inline-block">Филиал</span> <b>${student.branch||'—'}</b></div>
+              <div><span style="color:#888;min-width:140px;display:inline-block">ID</span> <b>${student.id}</b></div>
+            </div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('student-profile-modal').style.display='none'"
+          style="background:none;border:none;font-size:24px;cursor:pointer;color:#888">×</button>
+      </div>
+
+      <div style="padding:12px 28px;border-bottom:1px solid #e5e7eb;display:flex;gap:8px;flex-wrap:wrap;background:#fff">
+        <button onclick="openEditStudentModal(${student.id})" class="btn btn-outline btn-sm">✏️ Редактировать</button>
+        <button onclick="copyInvitationText(${student.id})" class="btn btn-outline btn-sm">📋 Скопировать приглашение</button>
+        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Ссылка скопирована!'))" class="btn btn-outline btn-sm">🔗 Ссылка заморозки</button>
+        <button onclick="toggleStudentStatus(${student.id},'${student.status}');document.getElementById('student-profile-modal').style.display='none'"
+          class="btn btn-sm" style="background:${student.status==='ACTIVE'?'#fee2e2':'#dcfce7'};color:${student.status==='ACTIVE'?'#dc2626':'#16a34a'};border:1px solid ${student.status==='ACTIVE'?'#fca5a5':'#86efac'}">
+          ${student.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}
+        </button>
+        <button onclick="showConfirm('Удалить ученика?','Это действие нельзя отменить',async()=>{await api(\`/api/students/${student.id}\`,{method:'DELETE'});document.getElementById('student-profile-modal').style.display='none';loadStudents();showToast('Удалено')})"
+          class="btn btn-danger btn-sm">🗑 Удалить</button>
+      </div>
+
+      <div style="margin:12px 28px;padding:10px 16px;background:#f8f9ff;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <div><b>Ссылка заморозки:</b> <a href="${window.location.origin}/freezing?id=${student.id}" target="_blank" style="color:#6366f1;margin-left:6px;text-decoration:underline">http://localhost:8000/freezing?id=${student.id}</a></div>        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Скопировано!'))"
+          style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:16px">📋</button>
+      </div>
+
+      <div style="background:#fff;border-radius:0 0 16px 16px">
+        <div style="display:flex;border-bottom:1px solid #e5e7eb;padding:0 28px;overflow-x:auto">
+          ${['Задачи','Комментарии','Группы','Результаты уроков','Абонементы','Заморозки'].map((tab,i) => `
+            <button onclick="switchStudentTab(this,'sp-tab-${i}',${studentId})"
+              class="sp-tab-btn"
+              style="padding:12px 16px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+              color:${i===0?'#6366f1':'#888'};border-bottom:${i===0?'2px solid #6366f1':'2px solid transparent'};margin-bottom:-1px">
+              ${tab}
+            </button>`).join('')}
+        </div>
+        <div style="padding:20px 28px;min-height:200px">
+          <div id="sp-tab-0">${renderStudentTasksTab(studentId)}</div>
+          <div id="sp-tab-1">${renderStudentCommentsTab(studentId)}</div>
+          <div id="sp-tab-2"><div style="text-align:center;color:#aaa;padding:20px">Загрузка групп...</div></div>
+          <div id="sp-tab-3">${renderStudentAttendanceTab(studentId)}</div>
+          <div id="sp-tab-4"><div style="text-align:center;color:#aaa;padding:20px">Нет абонементов</div></div>
+          <div id="sp-tab-5"><div style="text-align:center;color:#aaa;padding:20px">Нет заморозок</div></div>
+        </div>
+      </div>`;
+
+    loadStudentGroups(studentId);
+    loadStudentTasks(studentId);
+
+    // Загрузить ментора
+    api('/api/mentors/assignments').then(assignments => {
+      const a = (assignments||[]).find(x => x.student_id === studentId);
+      const el = document.getElementById('sp-mentor-name');
+      if (el && a) el.textContent = a.mentor_name;
+    });
+    // Загрузить менеджера из истории форм
+    api('/api/forms/').then(forms => {
+      const f = (forms||[]).find(x => x.student_name === student.full_name);
+      const el = document.getElementById('sp-manager-name');
+      if (el && f?.manager_name) el.textContent = f.manager_name;
+    });
+
+    setTimeout(() => {
+      for (let i = 1; i < 6; i++) {
+        const el = document.getElementById('sp-tab-' + i);
+        if (el) el.style.display = 'none';
+      }
+    }, 50);
+
+  } catch(e) {
+    document.getElementById('student-profile-content').innerHTML =
+      `<div style="color:#ef4444;padding:30px;text-align:center">${e.message}</div>`;
+  }
+}
+
+function renderStudentTasksTab(studentId) {
+  return `
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select class="form-select" style="flex:1;min-width:150px" id="sp-task-type"><option value="">Вид задачи</option><option>Дать регулярную ОС</option><option>Связаться с родителем</option><option>Отправить на продление</option><option>Другое</option></select>
+      <input class="form-input" style="flex:2;min-width:200px" id="sp-task-desc" placeholder="Описание">
+      <input type="date" class="form-input" style="flex:1;min-width:140px" id="sp-task-due">
+      <button class="btn btn-primary btn-sm" onclick="createStudentTask(${studentId})">Создать</button>
+    </div>
+    <div id="sp-tasks-list"><div style="text-align:center;color:#aaa;padding:20px">Загрузка задач...</div></div>`;
+}
+
+function renderStudentCommentsTab(studentId) {
+  return `
+    <div style="margin-bottom:16px">
+      <textarea id="sp-comment-input" style="width:100%;height:80px;border:1.5px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px;font-family:inherit;resize:vertical" placeholder="Новый комментарий"></textarea>
+      <div style="text-align:right;margin-top:6px">
+        <button class="btn btn-primary btn-sm" onclick="submitStudentComment(${studentId})">Отправить</button>
+      </div>
+    </div>
+    <div id="sp-comments-list"><div style="text-align:center;color:#aaa;padding:20px">Комментариев нет</div></div>`;
+}
+
+function renderStudentAttendanceTab(studentId) {
+  return `<div id="sp-attendance-list"><div style="text-align:center;color:#aaa;padding:20px">Загрузка результатов...</div></div>`;
+}
+
+// Полностью переписать переключение табов
+window.switchStudentTab = function(btn, tabId, studentId) {
+  // Сбросить все кнопки
+  document.querySelectorAll('.sp-tab-btn').forEach(b => {
+    b.style.color = '#888';
+    b.style.borderBottom = '2px solid transparent';
+    b.style.fontWeight = '500';
+  });
+  // Активировать нажатую
+  btn.style.color = '#6366f1';
+  btn.style.borderBottom = '2px solid #6366f1';
+  btn.style.fontWeight = '700';
+
+  // Скрыть/показать контент
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('sp-tab-' + i);
+    if (!el) continue;
+    el.style.display = ('sp-tab-' + i === tabId) ? 'block' : 'none';
+    el.removeAttribute('hidden');
+  }
+
+  // Загрузить данные
+  const n = parseInt(tabId.split('-').pop());
+  if (n === 0) loadStudentTasks(studentId);
+  if (n === 2) loadStudentGroups(studentId);
+  if (n === 3) loadStudentAttendance(studentId);
+};
+
+async function loadStudentTasks(studentId) {
+  const container = document.getElementById('sp-tasks-list');
+  if (!container) return;
+  try {
+    const tasks = await api('/api/tasks/');
+    if (!tasks?.length) {
+      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Задач нет</div>'; return;
+    }
+    const statusColor = {todo:'#f59e0b', in_progress:'#3b82f6', done:'#22c55e'};
+    const statusLabel = {todo:'Открыта', in_progress:'В процессе', done:'Сделано'};
+    container.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:1px solid #e5e7eb">
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Тип</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Описание</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Исполнитель</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Дедлайн</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Статус</th>
+          <th style="padding:8px"></th>
+        </tr></thead>
+        <tbody>
+          ${tasks.map(t=>`
+            <tr style="border-bottom:1px solid #f3f4f6">
+              <td style="padding:8px">${t.title}</td>
+              <td style="padding:8px;color:#888">${t.description||'—'}</td>
+              <td style="padding:8px">${t.assignee_name||'—'}</td>
+              <td style="padding:8px">${t.due_date||'—'}</td>
+              <td style="padding:8px">
+                <span style="background:${statusColor[t.status]||'#e5e7eb'};color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${statusLabel[t.status]||t.status}</span>
+              </td>
+              <td style="padding:8px">
+                ${t.status!=='done'?`<button onclick="updateTaskStatus(${t.id},'done');loadStudentTasks(${studentId})" style="background:#dcfce7;color:#16a34a;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">✓ Сделано</button>`:''}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`; }
+}
+
+async function createStudentTask(studentId) {
+  const type = document.getElementById('sp-task-type')?.value;
+  const desc = document.getElementById('sp-task-desc')?.value?.trim();
+  const due  = document.getElementById('sp-task-due')?.value;
+  if (!type) { showToast('Выберите вид задачи','error'); return; }
+  try {
+    await api('/api/tasks/', { method:'POST', body: JSON.stringify({
+      title: type, description: desc||null, due_date: due||null
+    })});
+    showToast('Задача создана!');
+    document.getElementById('sp-task-type').value='';
+    document.getElementById('sp-task-desc').value='';
+    loadStudentTasks(studentId);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+function submitStudentComment(studentId) {
+  const text = document.getElementById('sp-comment-input')?.value?.trim();
+  if (!text) { showToast('Введите комментарий','error'); return; }
+  // Добавить в список локально
+  const list = document.getElementById('sp-comments-list');
+  const now = new Date().toLocaleString('ru');
+  const div = document.createElement('div');
+  div.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px';
+  div.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:#888">
+      <span>${now}</span> · <b style="color:#333">${CURRENT_USER?.full_name||'Вы'}</b>
+    </div>
+    <div style="font-size:13px">${text}</div>`;
+  if (list.querySelector('[style*="text-align:center"]')) list.innerHTML = '';
+  list.prepend(div);
+  document.getElementById('sp-comment-input').value = '';
+  showToast('Комментарий добавлен!');
+}
+
+async function loadStudentAttendance(studentId) {
+  const container = document.getElementById('sp-attendance-list');
+  if (!container) return;
+  try {
+    const groups = await api('/api/groups/');
+    let allRecords = [];
+    let present = 0, absent = 0;
+    for (const g of groups) {
+      const members = await api(`/api/groups/${g.id}/students`);
+      if (!(members||[]).some(m => m.id === studentId)) continue;
+      const records = await api(`/api/attendance/?group_id=${g.id}`);
+      const studentRecs = (records||[]).filter(r => r.student_id === studentId);
+      studentRecs.forEach(r => {
+        r.group_name = g.name;
+        if (r.status==='present') present++;
+        if (r.status==='absent') absent++;
+      });
+      allRecords = allRecords.concat(studentRecs);
+    }
+    allRecords.sort((a,b) => b.date?.localeCompare(a.date));
+    if (!allRecords.length) {
+      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Нет данных посещаемости</div>'; return;
+    }
+    container.innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <div style="background:#dcfce7;color:#16a34a;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px">✓ ${present} посетил</div>
+        <div style="background:#fee2e2;color:#dc2626;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px">✗ ${absent} пропустил</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:1px solid #e5e7eb">
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Дата</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Посещение</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Группа</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">ДЗ</th>
+          <th style="text-align:left;padding:8px;color:#888;font-weight:600">КР</th>
+        </tr></thead>
+        <tbody>
+          ${allRecords.map(r=>`
+            <tr style="border-bottom:1px solid #f3f4f6">
+              <td style="padding:8px">${r.date}</td>
+              <td style="padding:8px">
+                <span style="background:${r.status==='present'?'#dcfce7':'#fee2e2'};color:${r.status==='present'?'#16a34a':'#dc2626'};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                  ${r.status==='present'?'Да':'Нет'}
+                </span>
+              </td>
+              <td style="padding:8px;color:#888">${r.group_name||'—'}</td>
+              <td style="padding:8px">${r.score_1!=null?r.score_1:'—'}</td>
+              <td style="padding:8px">${r.score_2!=null?r.score_2:'—'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`; }
+}
+
+function switchStudentTab(btn, tabId) {
+  document.querySelectorAll('.student-tab-btn').forEach(b => {
+    b.style.color = '#888';
+    b.style.borderBottom = '2px solid transparent';
+  });
+  btn.style.color = '#6366f1';
+  btn.style.borderBottom = '2px solid #6366f1';
+  ['st-tab-0','st-tab-1'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? 'block' : 'none';
+  });
+}
+
+async function loadStudentGroups(studentId) {
+  const container = document.getElementById('sp-tab-2');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Загрузка групп...</div>';
+  try {
+    const groups = await api('/api/groups/');
+    const studentGroups = [];
+    for (const g of (groups||[])) {
+      const members = await api(`/api/groups/${g.id}/students`);
+      if ((members||[]).some(m => m.id === studentId)) {
+        studentGroups.push(g);
+      }
+    }
+    if (!studentGroups.length) {
+      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Ученик не состоит ни в одной группе</div>';
+      return;
+    }
+    const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
+    container.innerHTML = studentGroups.map(g => {
+      const slots = g.schedule_slots||[];
+      const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'—';
+      const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'—';
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <b style="font-size:14px">${g.name}</b>
+            <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
+            <div style="font-size:12px;color:#888;margin-top:4px">
+              👤 ${g.teacher_name||'—'} · 🕐 ${timeStr} · 📅 ${daysStr}
+            </div>
+          </div>
+          <button onclick="showConfirm('Убрать из группы?','',async()=>{await api(\`/api/groups/${g.id}/students/${studentId}\`,{method:'DELETE'});loadStudentGroups(${studentId});showToast('Убран из группы')})"
+            style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px">✕ Убрать</button>
+        </div>`;
+    }).join('') + `
+      <div style="margin-top:8px">
+        <div style="position:relative">
+          <input class="form-input" id="sp-add-group-search" placeholder="+ Добавить в группу..." autocomplete="off">
+          <div id="sp-add-group-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+        </div>
+      </div>`;
+
+    // Поиск групп для добавления
+    const addedIds = new Set(studentGroups.map(g => g.id));
+    const searchInp = document.getElementById('sp-add-group-search');
+    const dropdown  = document.getElementById('sp-add-group-dropdown');
+    if (searchInp) {
+      searchInp.oninput = function() {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { dropdown.style.display='none'; return; }
+        const filtered = (groups||[]).filter(g => !addedIds.has(g.id) && g.name.toLowerCase().includes(q)).slice(0,6);
+        if (!filtered.length) { dropdown.style.display='none'; return; }
+        dropdown.innerHTML = filtered.map(g=>`
+          <div onclick="addStudentToGroupFromProfile(${studentId},${g.id},'${g.name}')"
+            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
+            onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+            <b>${g.name}</b> <span style="font-size:11px;color:#888">${g.language} · ${g.teacher_name||'—'}</span>
+          </div>`).join('');
+        dropdown.style.display = 'block';
+      };
+    }
+  } catch(e) {
+    container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`;
+  }
+}
+
+async function addStudentToGroupFromProfile(studentId, groupId, groupName) {
+  try {
+    await api(`/api/groups/${groupId}/students/${studentId}`, {method:'POST'});
+    showToast(`Добавлен в группу ${groupName}`);
+    loadStudentGroups(studentId);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+
+async function openEditStudentModal(studentId) {
+  document.getElementById('student-profile-modal').style.display = 'none';
+  try {
+    const s = await api(`/api/students/${studentId}`);
+    // Создать модал редактирования
+    let modal = document.getElementById('edit-student-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'edit-student-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10001;display:flex;align-items:center;justify-content:center';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h3 style="margin:0;font-size:17px;font-weight:700">Редактировать ученика</h3>
+          <button onclick="document.getElementById('edit-student-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Фамилия</label><input class="form-input" id="es-last" value="${(s.full_name||'').split(' ')[0]||''}"></div>
+          <div class="form-group"><label class="form-label">Имя</label><input class="form-input" id="es-first" value="${(s.full_name||'').split(' ').slice(1).join(' ')||''}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="es-phone" value="${s.phone||''}"></div>
+          <div class="form-group"><label class="form-label">Класс</label>
+            <select class="form-select" id="es-grade">
+              ${[0,1,2,3,4,5,6,7,8,9,10,11].map(g=>`<option value="${g}" ${s.grade===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Имя родителя</label><input class="form-input" id="es-parent-name" value="${s.parent_name||''}"></div>
+          <div class="form-group"><label class="form-label">Тел. родителя</label><input class="form-input" id="es-parent-phone" value="${s.parent_phone||''}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Язык</label>
+            <select class="form-select" id="es-lang">
+              <option value="KAZ" ${s.language==='KAZ'?'selected':''}>KAZ</option>
+              <option value="RUS" ${s.language==='RUS'?'selected':''}>RUS</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Филиал</label><input class="form-input" id="es-branch" value="${s.branch||''}"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px"><label class="form-label">Статус</label>
+          <select class="form-select" id="es-status">
+            <option value="ACTIVE" ${s.status==='ACTIVE'?'selected':''}>ACTIVE</option>
+            <option value="INACTIVE" ${s.status==='INACTIVE'?'selected':''}>INACTIVE</option>
+            <option value="NOT_STARTED" ${s.status==='NOT_STARTED'?'selected':''}>NOT_STARTED</option>
+          </select>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+          <button class="btn btn-outline" onclick="document.getElementById('edit-student-modal').style.display='none'">Отмена</button>
+          <button class="btn btn-primary" onclick="saveEditStudent(${studentId})">Сохранить</button>
+        </div>
+      </div>`;
+    modal.style.display = 'flex';
+    modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function saveEditStudent(studentId) {
+  const last  = document.getElementById('es-last')?.value?.trim();
+  const first = document.getElementById('es-first')?.value?.trim();
+  const fullName = [last, first].filter(Boolean).join(' ');
+  const data = {
+    full_name:    fullName || undefined,
+    phone:        document.getElementById('es-phone')?.value?.trim(),
+    grade:        parseInt(document.getElementById('es-grade')?.value),
+    parent_name:  document.getElementById('es-parent-name')?.value?.trim(),
+    parent_phone: document.getElementById('es-parent-phone')?.value?.trim(),
+    language:     document.getElementById('es-lang')?.value,
+    branch:       document.getElementById('es-branch')?.value?.trim(),
+    status:       document.getElementById('es-status')?.value,
+  };
+  try {
+    await api(`/api/students/${studentId}`, { method:'PUT', body: JSON.stringify(data) });
+    showToast('Ученик обновлён!');
+    document.getElementById('edit-student-modal').style.display = 'none';
+    loadStudents();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function copyInvitationText(studentId) {
+  try {
+    const student = await api(`/api/students/${studentId}`);
+    const groups = await api('/api/groups/');
+    
+    // Найти группы ученика
+    const studentGroups = [];
+    for (const g of (groups||[])) {
+      const members = await api(`/api/groups/${g.id}/students`);
+      if ((members||[]).some(m => m.id === studentId)) {
+        studentGroups.push(g);
+      }
+    }
+
+    // Получить ментора
+    const assignments = await api('/api/mentors/assignments');
+    const myAssign = (assignments||[]).find(a => a.student_id === studentId);
+    const mentorName = myAssign?.mentor_name || 'Ваш ментор';
+
+    // Первая дата начала (из групп)
+    const startDate = student.created_at 
+      ? new Date(student.created_at).toLocaleDateString('ru')
+      : '—';
+
+    // Построить расписание по дням
+    const dayNames = {MON:'Понедельник',TUE:'Вторник',WED:'Среда',THU:'Четверг',FRI:'Пятница',SAT:'Суббота',SUN:'Воскресенье'};
+    const byDay = {};
+    studentGroups.forEach(g => {
+      (g.schedule_slots||[]).forEach(s => {
+        if (!byDay[s.day_of_week]) byDay[s.day_of_week] = [];
+        byDay[s.day_of_week].push({
+          time: s.start_time?.slice(0,5) || '—',
+          subject: g.name,
+          teacher: g.teacher_name || '—',
+          classroom: g.classroom_name || '—',
+        });
+      });
+    });
+
+    const dayOrder = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    let scheduleText = '';
+    dayOrder.forEach(day => {
+      if (!byDay[day]) return;
+      scheduleText += `\n*${dayNames[day]}*\n`;
+      byDay[day].forEach(slot => {
+        scheduleText += `Время: ${slot.time}\nУрок: ${slot.subject}\nПреподаватель: ${slot.teacher}\nКабинет: ${slot.classroom}\n`;
+      });
+    });
+
+    const freezeLink = `${window.location.origin}/freezing?id=${studentId}`;
+    const parentName = student.parent_name || 'Родитель';
+    const branch = student.branch || 'наш филиал';
+
+    const text = `Здравствуйте ${parentName}! Добро пожаловать в Zein Academy! Меня зовут ${mentorName}, я ваш личный ментор, прошу обязательно сохранить мой номер телефона. Ждем вас ${startDate} у нас на филиале ${branch}.
+Если вы в процессе обучения захотите заморозить (приостановить) ваше обучение, вам нужно будет это сделать через специальную ссылку: ${freezeLink}
+Будем ждать на первом уроке!
+Ваше расписание:${scheduleText}`;
+
+    await navigator.clipboard.writeText(text);
+    showToast('Текст приглашения скопирован!');
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
+
+async function loadNewStudentPage() {
+  try {
+    const [managers, groups] = await Promise.all([
+      api('/api/users/?role=manager'),
+      api('/api/groups/'),
+    ]);
+    const mgrSel = document.getElementById('ns-manager');
+    if (mgrSel) {
+      mgrSel.innerHTML = '<option value="">Выберите менеджера</option>' +
+        (managers||[]).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
+    }
+    const grpSel = document.getElementById('ns-group');
+    if (grpSel) {
+      grpSel.innerHTML = '<option value="">Выберите группу</option>' +
+        (groups||[]).map(g=>`<option value="${g.id}">${g.name} (${g.language})</option>`).join('');
+    }
+  } catch(e) { console.error(e); }
+}
+
+function saveStudentComment(studentId) {
+  const text = document.getElementById('student-comment-text')?.value?.trim();
+  if (!text) { showToast('Введите комментарий','error'); return; }
+  showToast('Комментарий сохранён!');
+}
+
+async function addStudentToEditGroup(groupId, studentId, name, grade, lang) {
+  try {
+    await api(`/api/groups/${groupId}/students/${studentId}`, {method:'POST'});
+    showToast(`${name} добавлен в группу`);
+    // Добавить в список
+    const list = document.getElementById('eg-students-list');
+    const empty = document.getElementById('eg-empty');
+    if (empty) empty.remove();
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6';
+    div.innerHTML = `
+      <div>
+        <b style="font-size:13px">${name}</b>
+        <span style="font-size:11px;color:#888;margin-left:8px">${grade} кл · ${lang}</span>
+      </div>
+      <button onclick="removeStudentFromGroup(${groupId},${studentId},this)" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px;border-radius:4px" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background=''">✕ Убрать</button>`;
+    list.appendChild(div);
+    // Обновить счётчик
+    const cnt = document.getElementById('eg-student-count');
+    if (cnt) cnt.textContent = parseInt(cnt.textContent||0) + 1;
+    // Скрыть из поиска
+    const dropdown = document.getElementById('eg-student-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    document.getElementById('eg-student-search').value = '';
+  } catch(e) { showToast(e.message,'error'); }
+}   
+
+async function removeStudentFromGroup(groupId, studentId, btn) {
+  try {
+    await api(`/api/groups/${groupId}/students/${studentId}`, {method:'DELETE'});
+    btn.closest('div[style]').remove();
+    showToast('Ученик убран из группы');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function _doDeleteGroup(groupId) {
+  try {
+    await api(`/api/groups/${groupId}`, {method:'DELETE'});
+    showToast('Группа удалена');
+    document.getElementById('edit-group-modal').style.display='none';
+    loadGroups(); buildSchedule();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteGroupAndClose(groupId) {
+  showConfirm('Удалить группу?', 'Это действие нельзя отменить', () => _doDeleteGroup(groupId));
+  return;
+  try {
+    await api(`/api/groups/${groupId}`, {method:'DELETE'});
+    showToast('Группа удалена');
+    document.getElementById('edit-group-modal').style.display='none';
+    loadGroups();
+    buildSchedule();
+  } catch(e) { showToast(e.message,'error'); }
+}
+// ══ NAVIGATION ════════════════════════════════════════════════════
+const adminNav = [
+  {id:'students',label:'Ученики',icon:'users'},
+  {id:'staff',label:'Сотрудники',icon:'briefcase',children:[
+    {id:'mentors',label:'Менторы',icon:'shield'},
+    {id:'teachers',label:'Преподаватели',icon:'book-open'},
+    {id:'lidoruby',label:'Лидорубы',icon:'zap'},
+    {id:'managers',label:'Менеджеры',icon:'bar-chart'},
+  ]},
+  {id:'mentor-assign',label:'Назначение менторов',icon:'user-check'},
+  {id:'schedule',label:'Расписание',icon:'calendar'},
+  {id:'groups',label:'Группы',icon:'users-2'},
+  {id:'classrooms',label:'Кабинеты',icon:'door-open'},
+  {id:'my-tasks',label:'Мои задачи',icon:'check-circle'},
+  {id:'all-tasks',label:'Все задачи',icon:'list-checks'},
+  {divider:true},
+  {id:'my-groups',label:'Мои группы',icon:'users-round'},
+  {id:'returns',label:'Возвраты',icon:'rotate-ccw'},
+  {id:'return-form',label:'Форма возврата',icon:'clipboard'},
+  {id:'form-history',label:'История форм',icon:'history'},
+  {id:'new-student',label:'Новый ученик',icon:'user-plus'},
+  {id:'analytics',label:'Аналитика',icon:'trending-up'},
+  {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
+  {id:'forbidden-dates',label:'Недоступные даты',icon:'calendar-x'},
+  {id:'slots',label:'Слоты',icon:'grid'},
+];
+const teacherNav = [
+  {id:'my-groups',label:'Мои группы',icon:'users-round'},
+  {id:'my-reports',label:'Мои отчёты',icon:'file-text'},
+];
+
+function icon(name) {
+  const icons = {
+    'users':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>',
+    'briefcase':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>',
+    'shield':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    'book-open':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>',
+    'zap':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    'bar-chart':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+    'user-check':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>',
+    'calendar':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    'users-2':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M14 19a6 6 0 00-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 00-6-6 4 4 0 000-8"/></svg>',
+    'door-open':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M13 4h3a2 2 0 012 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4l-6 2v14l6 2V4z"/></svg>',
+    'check-circle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    'list-checks':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>',
+    'users-round':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M18 21a8 8 0 10-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 21a8 8 0 00-4.3-7.1"/><circle cx="20" cy="7" r="3"/></svg>',
+    'file-text':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    'rotate-ccw':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>',
+    'clipboard':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+    'history':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg>',
+    'user-plus':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',
+    'trending-up':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+    'help-circle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    'calendar-x':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="10" y1="14" x2="14" y2="18"/><line x1="14" y1="14" x2="10" y2="18"/></svg>',
+    'grid':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    'trash':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>',
+    'arrow-left-circle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 8 8 12 12 16"/><line x1="16" y1="12" x2="8" y2="12"/></svg>',
+    'arrow-right-left':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',
+    'refresh-cw':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>',
+  };
+  return icons[name]||'';
+}
+
+function renderNav(role) {
+  const nav = document.getElementById('nav');
+  const items = role === 'admin' ? adminNav : teacherNav;
+  nav.innerHTML = '';
+  items.forEach(item => {
+    if (item.divider) { nav.innerHTML += '<div class="nav-divider"></div>'; return; }
+    if (item.children) {
+      nav.innerHTML += `
+        <div class="nav-group-header" onclick="toggleGroup(this)" id="group-${item.id}">
+          ${icon(item.icon)}<span>${item.label}</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-sub" id="sub-${item.id}">
+          ${item.children.map(c=>`<div class="nav-sub-item" onclick="showPage('page-${c.id}')" id="nav-${c.id}">${icon(c.icon)}<span>${c.label}</span></div>`).join('')}
+        </div>`;
+    } else {
+      nav.innerHTML += `<div class="nav-item" onclick="showPage('page-${item.id}')" id="nav-${item.id}">${icon(item.icon)}<span>${item.label}</span></div>`;
+    }
+  });
+}
+
+function setRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderNav(role);
+  if(role==='teacher') showPage('page-my-groups');
+  else showPage('page-students');
+}
+
+async function buildSchedule() {
+  const grid = document.getElementById('schedule-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa">Загрузка...</div>';
+  try {
+    const groups = await api('/api/groups/');
+    if (!groups?.length) {
+      grid.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Расписания нет. Создайте группы.</div>';
+      return;
+    }
+    const DAYS = ['MON','TUE','WED','THU','FRI','SAT'];
+    const DLBL = {MON:'Понедельник',TUE:'Вторник',WED:'Среда',THU:'Четверг',FRI:'Пятница',SAT:'Суббота'};
+    const COLORS = ['#e3f2fd','#f3e5f5','#e8f5e9','#fff3e0','#fce4ec','#e0f7fa','#f9fbe7','#ede7f6'];
+    const BORDER = ['#1976d2','#7b1fa2','#388e3c','#f57c00','#c2185b','#0097a7','#827717','#4527a0'];
+    const byDay = {};
+    DAYS.forEach(d => byDay[d] = []);
+    groups.forEach(g => {
+      (g.schedule_slots||[]).forEach(s => {
+        if (byDay[s.day_of_week]) byDay[s.day_of_week].push({...s, group: g});
+      });
+    });
+    DAYS.forEach(d => byDay[d].sort((a,b) => a.start_time.localeCompare(b.start_time)));
+    grid.innerHTML = `
+      <div style="overflow-x:auto;padding:16px">
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;min-width:900px">
+          ${DAYS.map((d,i) => `
+            <div style="background:#f9fafb;border-radius:8px;padding:10px">
+              <div style="font-weight:700;font-size:13px;color:#444;text-align:center;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${BORDER[i]}">${DLBL[d]}</div>
+              ${byDay[d].length ? byDay[d].map((s,j) => `
+                <div onclick="openEditGroupModal(${s.group.id})"
+                  style="background:${COLORS[j%8]};border-left:3px solid ${BORDER[j%8]};border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:opacity .15s"
+                  onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                  <div style="font-weight:700;font-size:12px;color:#222">${s.group.name}</div>
+                  <div style="font-size:11px;color:#555;margin-top:2px">🕐 ${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)}</div>
+                  ${s.group.teacher_name ? `<div style="font-size:11px;color:#777">👤 ${s.group.teacher_name}</div>` : ''}
+                  ${s.group.classroom_name ? `<div style="font-size:11px;color:#777">🚪 ${s.group.classroom_name}</div>` : ''}
+                  <div style="font-size:11px;color:#888;margin-top:2px">${s.group.student_count} уч. · ${s.group.language}</div>
+                </div>`).join('') :
+                '<div style="text-align:center;color:#ccc;font-size:12px;padding:16px">Нет занятий</div>'}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  } catch(e) { grid.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+}
+
+const pageLoaders = {
+  'page-students':      loadStudents,
+  'page-new-student':   loadNewStudentPage,
+  'page-mentors':       ()=>loadStaff('mentor','mentors-tbody',false),
+  'page-teachers':      ()=>loadStaff('teacher','teachers-tbody',true),
+  'page-lidoruby':      ()=>loadStaff('lidoruby','lidoruby-tbody',false),
+  'page-managers':      ()=>loadStaff('manager','managers-tbody',false),
+  'page-mentor-assign': loadMentorAssignments,
+  'page-schedule':      buildSchedule,
+  'page-groups':        loadGroups,
+  'page-classrooms':    loadClassrooms,
+  'page-my-tasks':      ()=>loadTasks('my-tasks-body',true),
+  'page-all-tasks':     ()=>loadTasks('all-tasks-body',false),
+  'page-my-groups':     loadMyGroups,
+  'page-returns':       loadReturns,
+  'page-return-form':   loadReturnFormPage,
+  'page-form-history':  loadFormHistory,
+  'page-analytics':     loadAnalytics,
+  'page-ent':           loadENT,
+  'page-forbidden-dates': loadForbiddenDates,
+  'page-slots':         loadSlots,
+};
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .nav-sub-item').forEach(n=>n.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if(page) page.classList.add('active');
+  const navEl = document.getElementById(pageId.replace('page-','nav-'));
+  if(navEl) navEl.classList.add('active');
+  document.querySelectorAll('.action-dropdown').forEach(d=>d.classList.remove('open'));
+  if (pageLoaders[pageId]) pageLoaders[pageId]();
+}
+
+function toggleGroup(el) {
+  el.classList.toggle('open');
+  const sub = document.getElementById(el.id.replace('group-','sub-'));
+  if(sub) sub.classList.toggle('open');
+}
+
+function openAddStaffModal(role) {
+  openModal('add-staff-modal');
+  const titles = {
+    mentor:   'Добавить ментора',
+    teacher:  'Добавить преподавателя', 
+    lidoruby: 'Добавить лидоруба',
+    manager:  'Добавить менеджера',
+    admin:    'Добавить администратора'
+  };
+  // Установить роль и заблокировать
+  const roleSel = document.getElementById('staff-role');
+  if (roleSel) {
+    roleSel.value = role;
+    roleSel.closest('.form-group').style.display = 'none';
+  }
+  // Обновить заголовок
+  const titleEl = document.querySelector('#add-staff-modal .modal-title');
+  if (titleEl) titleEl.textContent = titles[role] || 'Добавить сотрудника';
+  // Сохранить роль
+  document.getElementById('add-staff-modal').dataset.role = role;
+}
+
+function openModal(id) {
+  document.getElementById(id)?.classList.add('open');
+  if (id === 'add-group-modal') {
+    Promise.all([
+      api('/api/users/?role=teacher'),
+      api('/api/students/?status=ACTIVE'),
+      api('/api/classrooms/'),
+    ]).then(([teachers, students, classrooms]) => {
+      // Заполнить преподавателей
+      document.querySelectorAll('#add-group-modal select').forEach(sel => {
+        if (sel.innerHTML.includes('преподавател')) {
+          sel.innerHTML = '<option value="">— Выберите преподавателя —</option>' +
+            (teachers||[]).map(t => `<option value="${t.id}">${t.full_name}</option>`).join('');
+        }
+        // Заполнить кабинеты
+        if (sel.innerHTML.includes('101') || sel.id === 'ag-classroom') {
+          sel.innerHTML = '<option value="">— Выберите кабинет —</option>' +
+            (classrooms||[]).map(c=>`<option value="${c.id}">${c.name} (${c.branch||'—'})</option>`).join('');
+        }
+      });
+
+      const modal = document.getElementById('add-group-modal');
+      let studentsDiv = document.getElementById('add-group-students');
+      if (!studentsDiv) {
+        studentsDiv = document.createElement('div');
+        studentsDiv.id = 'add-group-students';
+        studentsDiv.style.cssText = 'margin-bottom:14px';
+        studentsDiv.innerHTML = `
+          <label class="form-label">Ученики</label>
+          <div style="position:relative">
+            <input class="form-input" id="ag-student-search" placeholder="Поиск ученика..." autocomplete="off" style="margin-bottom:6px">
+            <div id="ag-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+          </div>
+          <div id="ag-selected-students" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>`;
+        const footer = modal.querySelector('.modal-footer');
+        if (footer) footer.parentNode.insertBefore(studentsDiv, footer);
+      }
+      const allStudents = students || [];
+      const selectedStudents = {};
+      const searchInput = document.getElementById('ag-student-search');
+      const dropdown = document.getElementById('ag-student-dropdown');
+      const selectedDiv = document.getElementById('ag-selected-students');
+      searchInput.oninput = function() {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { dropdown.style.display='none'; return; }
+        const filtered = allStudents.filter(s =>
+          s.full_name.toLowerCase().includes(q) && !selectedStudents[s.id]
+        ).slice(0, 8);
+        if (!filtered.length) { dropdown.style.display='none'; return; }
+        dropdown.innerHTML = filtered.map(s => `
+          <div onclick="addStudentToGroupForm(${s.id},'${s.full_name}')"
+            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
+            onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+            <b>${s.full_name}</b>
+            <span style="font-size:11px;color:#888;margin-left:6px">${s.grade} кл · ${s.language}</span>
+          </div>`).join('');
+        dropdown.style.display = 'block';
+      };
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#add-group-students')) dropdown.style.display='none';
+      });
+      window._agStudents = selectedStudents;
+      window._agStudentDiv = selectedDiv;
+      window._agDropdown = dropdown;
+      window._agSearchInput = searchInput;
+    });
+  }
+}
+
+function openAddStaffModal(role) {
+  openModal('add-staff-modal');
+  const titles = {
+    mentor:'Добавить ментора', teacher:'Добавить преподавателя',
+    lidoruby:'Добавить лидоруба', manager:'Добавить менеджера'
+  };
+  const roleSel = document.getElementById('staff-role');
+  if (roleSel) {
+    roleSel.value = role;
+    roleSel.closest('.form-group').style.display = 'none';
+  }
+  const titleEl = document.querySelector('#add-staff-modal .modal-title');
+  if (titleEl) titleEl.textContent = titles[role] || 'Добавить сотрудника';
+  document.getElementById('add-staff-modal').dataset.role = role;
+}
+
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.action-menu')) document.querySelectorAll('.action-dropdown').forEach(d=>d.classList.remove('open'));
+});
+function toggleMenu(btn) {
+  event.stopPropagation();
+  const d = btn.nextElementSibling;
+  const open = d.classList.contains('open');
+  document.querySelectorAll('.action-dropdown').forEach(x=>x.classList.remove('open'));
+  if(!open) d.classList.add('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+
+function toggleAttendance(btn) {
+  if(btn.classList.contains('att-none')) { btn.classList.replace('att-none','att-present'); btn.textContent='✓'; }
+  else if(btn.classList.contains('att-present')) { btn.classList.replace('att-present','att-absent'); btn.textContent='✗'; }
+  else { btn.classList.replace('att-absent','att-none'); btn.textContent='?'; }
+}
+function switchTab(btn) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+// ── Auto-login ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (TOKEN && CURRENT_USER) {
+    enterApp(CURRENT_USER.role, CURRENT_USER.full_name, CURRENT_USER.initials);
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) doLogin();
+});
+</script>
+</body>
+</html>
