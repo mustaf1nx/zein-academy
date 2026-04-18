@@ -248,44 +248,44 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
     scores = {}
     total = 0
 
-def calc_score(s_ans, c_ans_dict):
-    score = 0
-    for q_num, s_a in s_ans.items():
-        c_a = c_ans_dict.get(str(q_num))
-        if c_a is None:
-            continue
-
-        # Многовариантные вопросы (36-40) — список правильных
-        if isinstance(c_a, list):
-            if not isinstance(s_a, list):
-                s_a = [s_a]
-            correct_set = set(c_a)
-            selected_set = set(s_a)
-            # Есть ли неверные ответы
-            wrong = selected_set - correct_set
-            if wrong:
-                # Если выбран хотя бы один неверный — 0 баллов
-                score += 0
-            else:
-                correct_count = len(correct_set)
-                selected_count = len(selected_set & correct_set)
-                missing = correct_count - selected_count
-                if missing == 0:
-                    # Все правильные выбраны: 3/3, 2/2, 1/1 → 2 балла
-                    score += 2
-                elif missing == 1 and correct_count >= 2:
-                    # Не хватает одного: 2/3, 1/2 → 1 балл
-                    score += 1
-                else:
-                    # 1/3, 0/anything → 0 баллов
+    def calc_score(s_ans, c_ans_dict):
+        score = 0
+        for q_num, s_a in s_ans.items():
+            c_a = c_ans_dict.get(str(q_num))
+            if c_a is None:
+                continue
+    
+            # Многовариантные вопросы (36-40) — список правильных
+            if isinstance(c_a, list):
+                if not isinstance(s_a, list):
+                    s_a = [s_a]
+                correct_set = set(c_a)
+                selected_set = set(s_a)
+                # Есть ли неверные ответы
+                wrong = selected_set - correct_set
+                if wrong:
+                    # Если выбран хотя бы один неверный — 0 баллов
                     score += 0
-
-        # Одиночные вопросы (1-30, и части 31-35)
-        else:
-            if isinstance(s_a, str) and s_a == c_a:
-                score += 1
-
-    return score
+                else:
+                    correct_count = len(correct_set)
+                    selected_count = len(selected_set & correct_set)
+                    missing = correct_count - selected_count
+                    if missing == 0:
+                        # Все правильные выбраны: 3/3, 2/2, 1/1 → 2 балла
+                        score += 2
+                    elif missing == 1 and correct_count >= 2:
+                        # Не хватает одного: 2/3, 1/2 → 1 балл
+                        score += 1
+                    else:
+                        # 1/3, 0/anything → 0 баллов
+                        score += 0
+    
+            # Одиночные вопросы (1-30, и части 31-35)
+            else:
+                if isinstance(s_a, str) and s_a == c_a:
+                    score += 1
+    
+        return score
 
     # Base subjects
     for key in ['history', 'reading', 'math']:
