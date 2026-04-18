@@ -77,6 +77,13 @@ def serve_freezing():
         return FileResponse(path)
     return {"error": "freezing.html не найден"}
 
+@app.get("/ent-test", include_in_schema=False)
+def serve_ent_test():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ent_test.html")
+    if os.path.exists(path):
+        return FileResponse(path)
+    return {"error": "ent_test.html не найден"}
+
 @app.get("/api/public/student/{student_id}")
 def get_student_public(student_id: int, db: Session = Depends(get_db)):
     from sqlalchemy.orm import Session
