@@ -475,7 +475,7 @@ function showResult(data) {
   // Max score
   const maxScores = {
     history: 20, reading: 10, math: 10,
-    subject1: 40, subject2: 40
+    subject1: 50, subject2: 50
   };
   const maxTotal = Object.values(maxScores).reduce((a,b)=>a+b,0);
   document.getElementById('result-max').textContent = `из ${maxTotal} баллов`;
