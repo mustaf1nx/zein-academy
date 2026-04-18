@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЕНТ — Zein Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
+.header { background:#fff; padding:14px 20px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:100; }
+.header-logo { font-weight:800; font-size:18px; color:#6366f1; }
+.header-test { font-size:14px; color:#888; }
+.progress-bar-wrap { height:4px; background:#e5e7eb; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .4s; }
+.container { max-width:680px; margin:0 auto; padding:20px 16px 80px; }
+
+/* Step indicator */
+.steps { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.step-dot { width:28px; height:28px; border-radius:50%; border:2px solid #e5e7eb; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#aaa; cursor:pointer; transition:all .2s; }
+.step-dot.active { border-color:#6366f1; background:#6366f1; color:#fff; }
+.step-dot.done { border-color:#22c55e; background:#22c55e; color:#fff; }
+
+/* Cards */
+.card { background:#fff; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.card-title { font-size:17px; font-weight:700; margin-bottom:4px; }
+.card-sub { font-size:13px; color:#888; margin-bottom:16px; }
+.section-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+.section-divider { height:1px; background:#f3f4f6; margin:12px 0; }
+
+/* Form */
+.form-label { font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block; }
+.form-input { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; transition:border .2s; }
+.form-input:focus { border-color:#6366f1; }
+.form-select { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; background:#fff; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+@media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
+
+/* Answer buttons */
+.question-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:8px; border-radius:10px; transition:background .15s; }
+.question-row:hover { background:#f9fafb; }
+.q-num { font-size:14px; color:#888; min-width:28px; font-weight:600; }
+.answer-btns { display:flex; gap:6px; flex-wrap:wrap; }
+.ans-btn { width:40px; height:40px; border-radius:10px; border:2px solid #e5e7eb; background:#fff; font-weight:700; font-size:14px; cursor:pointer; transition:all .15s; color:#555; }
+.ans-btn:hover { border-color:#6366f1; color:#6366f1; }
+.ans-btn.selected { background:#6366f1; border-color:#6366f1; color:#fff; }
+.ans-btn.selected-multi { background:#10b981; border-color:#10b981; color:#fff; }
+.q-score { font-size:12px; color:#aaa; margin-left:4px; }
+
+/* Section header */
+.section-header { background:linear-gradient(135deg,#eef0ff,#f5f0ff); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+.section-header h3 { font-size:15px; font-weight:700; color:#4338ca; }
+.section-header p { font-size:12px; color:#7c6ed0; margin-top:2px; }
+
+/* Nav buttons */
+.nav-bar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #e5e7eb; padding:12px 16px; display:flex; gap:10px; z-index:100; }
+.btn { padding:12px 24px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; border:none; transition:all .2s; }
+.btn-outline { background:#fff; border:2px solid #e5e7eb; color:#555; flex:1; }
+.btn-primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; flex:2; }
+.btn-primary:hover { opacity:.9; }
+.btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; flex:2; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Result page */
+.result-header { text-align:center; padding:30px 20px 20px; }
+.result-total { font-size:64px; font-weight:900; color:#6366f1; line-height:1; }
+.result-max { font-size:16px; color:#aaa; margin-top:4px; }
+.result-emoji { font-size:48px; margin-bottom:12px; }
+.score-card { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:10px; background:#f9fafb; margin-bottom:8px; }
+.score-label { font-size:14px; color:#444; font-weight:500; }
+.score-val { font-size:18px; font-weight:800; color:#6366f1; }
+
+/* Info page */
+.info-section { margin-bottom:20px; }
+
+.loading { text-align:center; padding:40px; color:#aaa; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">Zein Academy</div>
+  <div class="header-test" id="header-test-name">ЕНТ</div>
+</div>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+</div>
+
+<div class="container">
+  <div id="loading-state" class="loading">Загрузка теста...</div>
+  <div id="error-state" class="hidden" style="text-align:center;padding:40px;color:#ef4444">Тест не найден или недоступен</div>
+
+  <!-- Step 1: Данные ученика -->
+  <div id="step-info" class="hidden">
+    <div class="card">
+      <div class="card-title" id="test-name-title">ЕНТ Тест</div>
+      <div class="card-sub">Введите свои данные перед началом</div>
+      <div class="info-section">
+        <div class="form-row">
+          <div>
+            <label class="form-label">Имя *</label>
+            <input class="form-input" id="st-name" placeholder="Алматы Бекова" maxlength="60">
+          </div>
+          <div>
+            <label class="form-label">Класс *</label>
+            <select class="form-select" id="st-grade">
+              <option value="11">11</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="form-label">Язык обучения *</label>
+            <select class="form-select" id="st-lang">
+              <option value="KAZ">Казахский</option>
+              <option value="RUS">Русский</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Телефон (необязательно)</label>
+            <input class="form-input" id="st-phone" placeholder="+7..." maxlength="12" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)">
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">Профильный предмет 1 *</label>
+          <select class="form-select" id="st-subj1">
+            <option value="">— Выберите —</option>
+            <option>Математика</option>
+            <option>Физика</option>
+            <option>Химия</option>
+            <option>Биология</option>
+            <option>География</option>
+            <option>История Казахстана (профиль)</option>
+            <option>Всемирная история</option>
+            <option>Информатика</option>
+            <option>Английский язык</option>
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
+            <option>Основы права</option>
+            <option>Творческий экзамен</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Профильный предмет 2 *</label>
+          <select class="form-select" id="st-subj2">
+            <option value="">— Выберите —</option>
+            <option>Математика</option>
+            <option>Физика</option>
+            <option>Химия</option>
+            <option>Биология</option>
+            <option>География</option>
+            <option>История Казахстана (профиль)</option>
+            <option>Всемирная история</option>
+            <option>Информатика</option>
+            <option>Английский язык</option>
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
+            <option>Основы права</option>
+            <option>Творческий экзамен</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps: Вопросы -->
+  <div id="step-questions" class="hidden">
+    <div class="steps" id="steps-nav"></div>
+    <div id="question-content"></div>
+  </div>
+
+  <!-- Result -->
+  <div id="step-result" class="hidden">
+    <div class="result-header">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <div class="result-total" id="result-total">—</div>
+      <div class="result-max" id="result-max">из — баллов</div>
+      <div style="margin-top:12px;font-size:15px;color:#555" id="result-name"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Результаты по предметам</div>
+      <div id="result-breakdown"></div>
+    </div>
+    <div style="text-align:center;color:#aaa;font-size:13px;margin-top:16px">
+      Результаты отправлены в Zein Academy
+    </div>
+  </div>
+</div>
+
+<!-- Nav bar -->
+<div class="nav-bar" id="nav-bar" style="display:none">
+  <button class="btn btn-outline" id="btn-back" onclick="goBack()">← Назад</button>
+  <button class="btn btn-primary" id="btn-next" onclick="goNext()">Далее →</button>
+</div>
+
+<script>
+const API = window.location.origin;
+const params = new URLSearchParams(window.location.search);
+const TEST_ID = params.get('id');
+
+let testData = null;
+let studentInfo = {};
+let answers = {}; // { subject: { "1": "A", "2": ["A","B"] } }
+let currentStep = 0;
+let sections = [];
+
+const SUBJECTS = ['history', 'reading', 'math', 'subject1', 'subject2'];
+const SUBJECT_NAMES = {
+  history: 'История Казахстана',
+  reading: 'Грамотность чтения',
+  math: 'Математическая грамотность',
+  subject1: '',
+  subject2: '',
+};
+
+// Question structure
+const STRUCTURE = {
+  history: [
+    { type: 'single', count: 20, options: ['A','B','C','D'], label: '1–20: один вариант (A–D)' }
+  ],
+  reading: [
+    { type: 'single', count: 10, options: ['A','B','C','D'], label: '1–10: один вариант (A–D)' }
+  ],
+  math: [
+    { type: 'single', count: 10, options: ['A','B','C','D'], label: '1–10: один вариант (A–D)' }
+  ],
+  profile: [
+    { type: 'single', count: 30, options: ['A','B','C','D'], label: '1–30: один вариант (A–D)' },
+    { type: 'double', count: 5, startNum: 31, options: ['A','B','C','D'], label: '31–35: по две части (A–D)' },
+    { type: 'multi', count: 5, startNum: 36, options: ['A','B','C','D','E','F'], maxSelect: 3, label: '36–40: до трёх вариантов (A–F)' }
+  ]
+};
+
+async function init() {
+  if (!TEST_ID) { showError(); return; }
+  try {
+    const res = await fetch(`${API}/api/ent/${TEST_ID}/public`);
+    if (!res.ok) throw new Error();
+    testData = await res.json();
+    document.getElementById('header-test-name').textContent = testData.name;
+    document.getElementById('test-name-title').textContent = testData.name;
+    document.getElementById('loading-state').classList.add('hidden');
+    document.getElementById('step-info').classList.remove('hidden');
+    document.getElementById('nav-bar').style.display = 'flex';
+    document.getElementById('btn-back').style.display = 'none';
+    updateProgress(0, 6);
+  } catch(e) { showError(); }
+}
+
+function showError() {
+  document.getElementById('loading-state').classList.add('hidden');
+  document.getElementById('error-state').classList.remove('hidden');
+}
+
+function updateProgress(step, total) {
+  document.getElementById('progress-fill').style.width = `${(step/total)*100}%`;
+}
+
+function goNext() {
+  if (currentStep === 0) {
+    // Validate info
+    const name = document.getElementById('st-name').value.trim();
+    const subj1 = document.getElementById('st-subj1').value;
+    const subj2 = document.getElementById('st-subj2').value;
+    if (!name) { alert('Введите имя'); return; }
+    if (!subj1 || !subj2) { alert('Выберите профильные предметы'); return; }
+    if (subj1 === subj2) { alert('Профильные предметы должны быть разными'); return; }
+    studentInfo = {
+      name, grade: document.getElementById('st-grade').value,
+      language: document.getElementById('st-lang').value,
+      phone: document.getElementById('st-phone').value,
+      subj1, subj2
+    };
+    SUBJECT_NAMES.subject1 = subj1;
+    SUBJECT_NAMES.subject2 = subj2;
+    // Build sections
+    sections = [
+      { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
+      { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
+      { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math },
+      { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
+      { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
+    ];
+    // Init answers
+    sections.forEach(s => { answers[s.key] = {}; });
+    currentStep = 1;
+    showQuestionsStep();
+  } else if (currentStep <= sections.length) {
+    currentStep++;
+    if (currentStep > sections.length) {
+      submitAnswers();
+    } else {
+      showQuestionsStep();
+    }
+  }
+}
+
+function goBack() {
+  if (currentStep <= 1) {
+    currentStep = 0;
+    document.getElementById('step-questions').classList.add('hidden');
+    document.getElementById('step-info').classList.remove('hidden');
+    document.getElementById('btn-back').style.display = 'none';
+    updateProgress(0, 6);
+  } else {
+    currentStep--;
+    showQuestionsStep();
+  }
+}
+
+function showQuestionsStep() {
+  document.getElementById('step-info').classList.add('hidden');
+  document.getElementById('step-result').classList.add('hidden');
+  document.getElementById('step-questions').classList.remove('hidden');
+  document.getElementById('btn-back').style.display = '';
+  const isLast = currentStep === sections.length;
+  document.getElementById('btn-next').textContent = isLast ? '✓ Отправить' : 'Далее →';
+  document.getElementById('btn-next').className = isLast ? 'btn btn-success' : 'btn btn-primary';
+  updateProgress(currentStep, sections.length + 1);
+
+  // Steps nav
+  const nav = document.getElementById('steps-nav');
+  nav.innerHTML = sections.map((s, i) => {
+    const idx = i + 1;
+    const cls = idx < currentStep ? 'done' : idx === currentStep ? 'active' : '';
+    return `<div class="step-dot ${cls}" onclick="jumpToStep(${idx})">${idx}</div>`;
+  }).join('');
+
+  // Content
+  const section = sections[currentStep - 1];
+  renderSection(section);
+}
+
+function jumpToStep(idx) {
+  if (idx < currentStep) {
+    currentStep = idx;
+    showQuestionsStep();
+  }
+}
+
+function renderSection(section) {
+  const content = document.getElementById('question-content');
+  let html = `<div class="section-header"><h3>${section.name}</h3></div>`;
+  let qNum = 0;
+
+  section.structure.forEach(block => {
+    html += `<div class="card">`;
+    html += `<div class="section-title">${block.label}</div><div class="section-divider"></div>`;
+
+    if (block.type === 'single') {
+      for (let i = 1; i <= block.count; i++) {
+        qNum++;
+        const saved = answers[section.key][String(qNum)] || '';
+        html += `<div class="question-row">
+          <span class="q-num">${qNum}.</span>
+          <div class="answer-btns">
+            ${block.options.map(opt => `
+              <button class="ans-btn ${saved===opt?'selected':''}"
+                onclick="selectAnswer('${section.key}',${qNum},'${opt}','single',this)">${opt}</button>
+            `).join('')}
+          </div>
+        </div>`;
+      }
+    } else if (block.type === 'double') {
+      for (let i = 0; i < block.count; i++) {
+        const n = block.startNum + i;
+        const saved1 = (answers[section.key][`${n}_1`]) || '';
+        const saved2 = (answers[section.key][`${n}_2`]) || '';
+        html += `<div style="margin-bottom:14px">
+          <div style="text-align:center;font-weight:600;font-size:14px;margin-bottom:8px;color:#555">${n}.</div>
+          <div class="question-row">
+            <div class="answer-btns">
+              ${block.options.map(opt => `
+                <button class="ans-btn ${saved1===opt?'selected':''}"
+                  onclick="selectAnswer('${section.key}','${n}_1','${opt}','single',this)">${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+          <div class="question-row">
+            <div class="answer-btns">
+              ${block.options.map(opt => `
+                <button class="ans-btn ${saved2===opt?'selected':''}"
+                  onclick="selectAnswer('${section.key}','${n}_2','${opt}','single',this)">${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+      }
+    } else if (block.type === 'multi') {
+      for (let i = 0; i < block.count; i++) {
+        const n = block.startNum + i;
+        const saved = answers[section.key][String(n)] || [];
+        html += `<div class="question-row">
+          <span class="q-num">${n}.</span>
+          <div class="answer-btns">
+            ${block.options.map(opt => `
+              <button class="ans-btn ${saved.includes(opt)?'selected-multi':''}"
+                onclick="selectAnswer('${section.key}',${n},'${opt}','multi',this)">${opt}</button>
+            `).join('')}
+          </div>
+          <span class="q-score">${saved.length}/${block.maxSelect}</span>
+        </div>`;
+      }
+    }
+    html += `</div>`;
+  });
+
+  content.innerHTML = html;
+  content.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function selectAnswer(subjectKey, qNum, option, type, btn) {
+  const key = String(qNum);
+  if (type === 'single') {
+    answers[subjectKey][key] = option;
+    // Update UI
+    const row = btn.closest('.question-row');
+    row.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else if (type === 'multi') {
+    if (!Array.isArray(answers[subjectKey][key])) answers[subjectKey][key] = [];
+    const arr = answers[subjectKey][key];
+    const idx = arr.indexOf(option);
+    if (idx >= 0) {
+      arr.splice(idx, 1);
+      btn.classList.remove('selected-multi');
+    } else if (arr.length < 3) {
+      arr.push(option);
+      btn.classList.add('selected-multi');
+    }
+    // Update score display
+    const row = btn.closest('.question-row');
+    const scoreEl = row.querySelector('.q-score');
+    if (scoreEl) scoreEl.textContent = `${arr.length}/3`;
+  }
+}
+
+async function submitAnswers() {
+  document.getElementById('btn-next').disabled = true;
+  document.getElementById('btn-next').textContent = 'Отправка...';
+  try {
+    const res = await fetch(`${API}/api/ent/${TEST_ID}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_name: studentInfo.name,
+        student_phone: studentInfo.phone,
+        grade: parseInt(studentInfo.grade),
+        language: studentInfo.language,
+        subject1: studentInfo.subj1,
+        subject2: studentInfo.subj2,
+        answers: answers,
+      })
+    });
+    const data = await res.json();
+    showResult(data);
+  } catch(e) {
+    alert('Ошибка отправки. Проверьте соединение.');
+    document.getElementById('btn-next').disabled = false;
+    document.getElementById('btn-next').textContent = '✓ Отправить';
+  }
+}
+
+function showResult(data) {
+  document.getElementById('step-questions').classList.add('hidden');
+  document.getElementById('step-result').classList.remove('hidden');
+  document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const total = data.total || 0;
+  const scores = data.scores || {};
+  document.getElementById('result-total').textContent = total;
+  document.getElementById('result-name').textContent = studentInfo.name;
+
+  // Max score
+  const maxScores = {
+    history: 20, reading: 10, math: 10,
+    subject1: 40, subject2: 40
+  };
+  const maxTotal = Object.values(maxScores).reduce((a,b)=>a+b,0);
+  document.getElementById('result-max').textContent = `из ${maxTotal} баллов`;
+
+  // Emoji
+  const pct = total / maxTotal;
+  document.getElementById('result-emoji').textContent = pct >= 0.8 ? '🏆' : pct >= 0.6 ? '🎉' : pct >= 0.4 ? '👍' : '📚';
+
+  // Breakdown
+  const breakdown = document.getElementById('result-breakdown');
+  const subjectLabels = {
+    history: 'История Казахстана',
+    reading: 'Грамотность чтения',
+    math: 'Математическая грамотность',
+    subject1: studentInfo.subj1,
+    subject2: studentInfo.subj2,
+  };
+  breakdown.innerHTML = Object.entries(subjectLabels).map(([key, label]) => {
+    const score = scores[key] !== undefined ? scores[key] : '—';
+    const max = maxScores[key];
+    return `<div class="score-card">
+      <span class="score-label">${label}</span>
+      <span class="score-val">${score}<span style="font-size:13px;color:#aaa;font-weight:400">/${max}</span></span>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
