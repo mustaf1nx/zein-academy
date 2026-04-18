@@ -220,6 +220,25 @@ class ENTTest(Base):
     status = Column(SAEnum(StatusEnum), default=StatusEnum.ACTIVE)
     progress = Column(Integer, default=0)   # 0–100
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    correct_answers = Column(JSON, default={})
+
+
+
+# ─── ENT results ────────────────────────────────────────────────────────────────
+class ENTStudentResult(Base):
+    __tablename__ = "ent_student_results"
+    id = Column(Integer, primary_key=True, index=True)
+    test_id = Column(Integer, ForeignKey("ent_tests.id"))
+    student_name = Column(String)
+    student_phone = Column(String, nullable=True)
+    grade = Column(Integer)
+    language = Column(String, default="RUS")
+    subject1 = Column(String, nullable=True)
+    subject2 = Column(String, nullable=True)
+    answers = Column(JSON, default={})
+    scores = Column(JSON, default={})
+    total_score = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 # ─── Returns (Возвраты) ───────────────────────────────────────────────────────
