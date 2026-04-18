@@ -216,6 +216,72 @@ def delete_ent(ent_id: int, db: Session = Depends(get_db), _: models.User = Depe
     db.delete(t)
     db.commit()
 
+@ent_router.get("/{test_id}/public")
+def get_ent_public(test_id: int, db: Session = Depends(get_db)):
+    t = db.query(models.ENTTest).filter(models.ENTTest.id == test_id).first()
+    if not t:
+        raise HTTPException(404, "Тест не найден")
+    return {"id": t.id, "name": t.name, "status": t.status}
+
+@ent_router.post("/{test_id}/submit")
+def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
+    t = db.query(models.ENTTest).filter(models.ENTTest.id == test_id).first()
+    if not t:
+        raise HTTPException(404, "Тест не найден")
+    
+    correct = t.correct_answers or {}
+    student_answers = data.get("answers", {})
+    scores = {}
+    total = 0
+    
+    for subject, s_answers in student_answers.items():
+        c_answers = correct.get(subject, {})
+        score = 0
+        for q_num, s_ans in s_answers.items():
+            c_ans = c_answers.get(q_num, [])
+            if isinstance(c_ans, list):
+                if isinstance(s_ans, list):
+                    score += len(set(s_ans) & set(c_ans))
+                elif s_ans in c_ans:
+                    score += 1
+            else:
+                if s_ans == c_ans:
+                    score += 1
+        scores[subject] = score
+        total += score
+    
+    result = models.ENTStudentResult(
+        test_id=test_id,
+        student_name=data.get("student_name"),
+        student_phone=data.get("student_phone"),
+        grade=data.get("grade", 11),
+        language=data.get("language", "RUS"),
+        subject1=data.get("subject1"),
+        subject2=data.get("subject2"),
+        answers=student_answers,
+        scores=scores,
+        total_score=total,
+    )
+    db.add(result)
+    db.commit()
+    db.refresh(result)
+    return {"scores": scores, "total": total, "id": result.id}
+
+@ent_router.get("/{test_id}/results")
+def get_ent_results(test_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
+    results = db.query(models.ENTStudentResult).filter(
+        models.ENTStudentResult.test_id == test_id
+    ).order_by(models.ENTStudentResult.created_at.desc()).all()
+    return results
+
+@ent_router.put("/{test_id}/answers")
+def save_ent_answers(test_id: int, data: dict, db: Session = Depends(get_db), _=Depends(require_admin)):
+    t = db.query(models.ENTTest).filter(models.ENTTest.id == test_id).first()
+    if not t:
+        raise HTTPException(404)
+    t.correct_answers = data.get("answers", {})
+    db.commit()
+    return {"ok": True}
 
 # ══════════════════════════════════════════════════════
 # FORBIDDEN DATES (Запрещённые даты)
