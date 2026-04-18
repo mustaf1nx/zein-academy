@@ -231,33 +231,51 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
     
     correct = t.correct_answers or {}
     student_answers = data.get("answers", {})
+    subject1 = data.get("subject1", "")
+    subject2 = data.get("subject2", "")
     scores = {}
     total = 0
-    
-    for subject, s_answers in student_answers.items():
-        c_answers = correct.get(subject, {})
+
+    def calc_score(s_ans, c_ans_dict):
         score = 0
-        for q_num, s_ans in s_answers.items():
-            c_ans = c_answers.get(q_num, [])
-            if isinstance(c_ans, list):
-                if isinstance(s_ans, list):
-                    score += len(set(s_ans) & set(c_ans))
-                elif s_ans in c_ans:
-                    score += 1
-            else:
-                if s_ans == c_ans:
-                    score += 1
-        scores[subject] = score
-        total += score
-    
+        for q_num, s_a in s_ans.items():
+            c_a = c_ans_dict.get(str(q_num))
+            if c_a is None:
+                continue
+            if isinstance(c_a, list) and isinstance(s_a, list):
+                score += len(set(s_a) & set(c_a))
+            elif isinstance(c_a, list) and s_a in c_a:
+                score += 1
+            elif s_a == c_a:
+                score += 1
+        return score
+
+    # Base subjects
+    for key in ['history', 'reading', 'math']:
+        s_ans = student_answers.get(key, {})
+        c_ans = correct.get(key, {})
+        scores[key] = calc_score(s_ans, c_ans)
+        total += scores[key]
+
+    # Profile subjects - match by student's chosen subject name
+    s1_ans = student_answers.get('subject1', {})
+    c1_ans = correct.get(subject1, {})
+    scores['subject1'] = calc_score(s1_ans, c1_ans)
+    total += scores['subject1']
+
+    s2_ans = student_answers.get('subject2', {})
+    c2_ans = correct.get(subject2, {})
+    scores['subject2'] = calc_score(s2_ans, c2_ans)
+    total += scores['subject2']
+
     result = models.ENTStudentResult(
         test_id=test_id,
         student_name=data.get("student_name"),
         student_phone=data.get("student_phone"),
         grade=data.get("grade", 11),
         language=data.get("language", "RUS"),
-        subject1=data.get("subject1"),
-        subject2=data.get("subject2"),
+        subject1=subject1,
+        subject2=subject2,
         answers=student_answers,
         scores=scores,
         total_score=total,
@@ -266,7 +284,6 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(result)
     return {"scores": scores, "total": total, "id": result.id}
-
 @ent_router.get("/{test_id}/results")
 def get_ent_results(test_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
     results = db.query(models.ENTStudentResult).filter(
