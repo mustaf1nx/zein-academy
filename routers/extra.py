@@ -186,6 +186,18 @@ ent_router = APIRouter(prefix="/api/ent", tags=["ENT Tests"])
 def list_ent(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
     return db.query(models.ENTTest).order_by(models.ENTTest.created_at.desc()).all()
 
+@ent_router.get("/{test_id}")
+def get_ent_one(test_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
+    t = db.query(models.ENTTest).filter(models.ENTTest.id == test_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Тест не найден")
+    return {
+        "id": t.id,
+        "name": t.name,
+        "status": str(t.status.value) if hasattr(t.status, 'value') else str(t.status),
+        "correct_answers": t.correct_answers or {},
+    }
+
 
 @ent_router.post("/", response_model=schemas.ENTTestOut, status_code=201)
 def create_ent(data: schemas.ENTTestCreate, db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
