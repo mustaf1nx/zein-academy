@@ -320,10 +320,13 @@ def get_ent_results(test_id: int, db: Session = Depends(get_db), _=Depends(requi
 def save_ent_answers(test_id: int, data: dict, db: Session = Depends(get_db), _=Depends(require_admin)):
     t = db.query(models.ENTTest).filter(models.ENTTest.id == test_id).first()
     if not t:
-        raise HTTPException(404)
+        raise HTTPException(status_code=404, detail="Тест не найден")
     t.correct_answers = data.get("answers", {})
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(t, "correct_answers")
     db.commit()
-    return {"ok": True}
+    db.refresh(t)
+    return {"ok": True, "saved": t.correct_answers}
 
 # ══════════════════════════════════════════════════════
 # FORBIDDEN DATES (Запрещённые даты)
