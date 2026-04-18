@@ -2518,141 +2518,214 @@ async function openENTEditor(testId, testName) {
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
     document.body.appendChild(modal);
   }
-  modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto">
-      <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1">
-        <h3 style="font-size:16px;font-weight:700">✏️ Ответы — ${testName}</h3>
-        <button onclick="document.getElementById('ent-editor-modal').style.display='none'"
-          style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
-      </div>
-      <div id="ent-editor-content" style="padding:20px 24px">
-        <div style="text-align:center;color:#aaa;padding:20px">Загрузка...</div>
-      </div>
-    </div>`;
-  modal.style.display = 'flex';
-  modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
 
-  // Load existing answers
+  const PROFILE_SUBJECTS = ['Математика','Физика','Химия','Биология','География',
+    'Всемирная история','Информатика','Английский язык','Русский язык (профиль)',
+    'Казахский язык (профиль)','Основы права','История Казахстана (профиль)'];
+
+  const BASE_SECTIONS = [
+    { key:'history', name:'История КЗ', type:'single', count:20, opts:['A','B','C','D'] },
+    { key:'reading', name:'Грамотность чтения', type:'single', count:10, opts:['A','B','C','D'] },
+    { key:'math', name:'Матем. грамотность', type:'single', count:10, opts:['A','B','C','D'] },
+  ];
+
   let savedAnswers = {};
   try {
     const t = await api(`/api/ent/${testId}`);
     savedAnswers = t?.correct_answers || {};
   } catch(e) {}
 
-  const SUBJECTS = [
-    { key:'history', name:'История Казахстана', sections:[
-      { type:'single', count:20, opts:['A','B','C','D'], label:'1–20' }
-    ]},
-    { key:'reading', name:'Грамотность чтения', sections:[
-      { type:'single', count:10, opts:['A','B','C','D'], label:'1–10' }
-    ]},
-    { key:'math', name:'Математическая грамотность', sections:[
-      { type:'single', count:10, opts:['A','B','C','D'], label:'1–10' }
-    ]},
-    { key:'subject1', name:'Профильный предмет 1', sections:[
-      { type:'single', count:30, opts:['A','B','C','D'], label:'1–30' },
-      { type:'double', count:5, start:31, opts:['A','B','C','D'], label:'31–35 (два варианта)' },
-      { type:'multi', count:5, start:36, opts:['A','B','C','D','E','F'], label:'36–40 (до 3 вариантов)' },
-    ]},
-    { key:'subject2', name:'Профильный предмет 2', sections:[
-      { type:'single', count:30, opts:['A','B','C','D'], label:'1–30' },
-      { type:'double', count:5, start:31, opts:['A','B','C','D'], label:'31–35 (два варианта)' },
-      { type:'multi', count:5, start:36, opts:['A','B','C','D','E','F'], label:'36–40 (до 3 вариантов)' },
-    ]},
-  ];
-
   let editorAnswers = JSON.parse(JSON.stringify(savedAnswers));
-  SUBJECTS.forEach(s => { if(!editorAnswers[s.key]) editorAnswers[s.key]={}; });
+  BASE_SECTIONS.forEach(s => { if(!editorAnswers[s.key]) editorAnswers[s.key]={}; });
+  PROFILE_SUBJECTS.forEach(s => { if(!editorAnswers[s]) editorAnswers[s]={}; });
 
-  function renderEditor() {
-    const content = document.getElementById('ent-editor-content');
-    let html = '';
-    SUBJECTS.forEach(subj => {
-      html += `<div style="margin-bottom:20px">
-        <div style="font-weight:700;font-size:14px;color:#6366f1;margin-bottom:10px;padding:8px 12px;background:#eef0ff;border-radius:8px">${subj.name}</div>`;
-      let qNum = 0;
-      subj.sections.forEach(sec => {
-        html += `<div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:600">${sec.label}</div>`;
-        if (sec.type === 'single') {
-          for (let i = 1; i <= sec.count; i++) {
-            qNum++;
-            const saved = editorAnswers[subj.key][String(qNum)] || '';
-            html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span style="min-width:30px;font-size:13px;color:#888;font-weight:600">${qNum}.</span>
-              <div style="display:flex;gap:4px">
-                ${sec.opts.map(o => `
-                  <button onclick="setEAns('${subj.key}','${qNum}','${o}','single',this)"
-                    style="width:36px;height:36px;border-radius:8px;border:2px solid ${saved===o?'#6366f1':'#e5e7eb'};background:${saved===o?'#6366f1':'#fff'};color:${saved===o?'#fff':'#555'};font-weight:700;font-size:13px;cursor:pointer">${o}</button>
-                `).join('')}
-              </div>
-            </div>`;
-          }
-        } else if (sec.type === 'double') {
-          for (let i = 0; i < sec.count; i++) {
-            const n = sec.start + i;
-            const s1 = editorAnswers[subj.key][`${n}_1`] || '';
-            const s2 = editorAnswers[subj.key][`${n}_2`] || '';
-            html += `<div style="margin-bottom:10px;padding:8px;background:#f9fafb;border-radius:8px">
-              <div style="font-size:13px;font-weight:600;margin-bottom:6px">${n}.</div>
-              <div style="display:flex;gap:4px;margin-bottom:6px">
-                ${sec.opts.map(o=>`<button onclick="setEAns('${subj.key}','${n}_1','${o}','single',this)"
-                  style="width:36px;height:36px;border-radius:8px;border:2px solid ${s1===o?'#6366f1':'#e5e7eb'};background:${s1===o?'#6366f1':'#fff'};color:${s1===o?'#fff':'#555'};font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
-              </div>
-              <div style="display:flex;gap:4px">
-                ${sec.opts.map(o=>`<button onclick="setEAns('${subj.key}','${n}_2','${o}','single',this)"
-                  style="width:36px;height:36px;border-radius:8px;border:2px solid ${s2===o?'#6366f1':'#e5e7eb'};background:${s2===o?'#6366f1':'#fff'};color:${s2===o?'#fff':'#555'};font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
-              </div>
-            </div>`;
-          }
-        } else if (sec.type === 'multi') {
-          for (let i = 0; i < sec.count; i++) {
-            const n = sec.start + i;
-            const saved = editorAnswers[subj.key][String(n)] || [];
-            html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span style="min-width:30px;font-size:13px;color:#888;font-weight:600">${n}.</span>
-              <div style="display:flex;gap:4px;flex-wrap:wrap">
-                ${sec.opts.map(o=>`<button onclick="setEAns('${subj.key}','${n}','${o}','multi',this)"
-                  style="width:36px;height:36px;border-radius:8px;border:2px solid ${saved.includes(o)?'#10b981':'#e5e7eb'};background:${saved.includes(o)?'#10b981':'#fff'};color:${saved.includes(o)?'#fff':'#555'};font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
-              </div>
-            </div>`;
-          }
-        }
-      });
-      html += `</div>`;
-    });
-    html += `<div style="display:flex;gap:10px;margin-top:16px;position:sticky;bottom:0;background:#fff;padding:12px 0">
-      <button onclick="saveENTAnswers(${testId})" class="btn btn-primary" style="flex:1">💾 Сохранить ответы</button>
+  let activeTab = 'history';
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:750px;max-width:95vw;max-height:92vh;display:flex;flex-direction:column">
+      <div style="padding:16px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center">
+        <h3 style="font-size:16px;font-weight:700">✏️ Правильные ответы — ${testName}</h3>
+        <button onclick="document.getElementById('ent-editor-modal').style.display='none'"
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;overflow-x:auto;flex-shrink:0">
+        ${BASE_SECTIONS.map(s => `
+          <button onclick="switchENTTab('${s.key}')" id="enttab-${s.key}"
+            style="padding:10px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+            color:${activeTab===s.key?'#6366f1':'#888'};border-bottom:${activeTab===s.key?'2px solid #6366f1':'2px solid transparent'};margin-bottom:-1px">
+            ${s.name}
+          </button>`).join('')}
+        <button onclick="switchENTTab('profile')" id="enttab-profile"
+          style="padding:10px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+          color:#888;border-bottom:2px solid transparent;margin-bottom:-1px">
+          Профильные предметы
+        </button>
+      </div>
+      <div id="ent-editor-body" style="overflow-y:auto;padding:16px 24px;flex:1"></div>
+      <div style="padding:12px 24px;border-top:1px solid #e5e7eb">
+        <button onclick="saveENTAnswers(${testId})" class="btn btn-primary" style="width:100%">💾 Сохранить все ответы</button>
+      </div>
     </div>`;
-    content.innerHTML = html;
+  modal.style.display = 'flex';
+  modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
+
+  function renderSingleBlock(subjectKey, count, opts, startNum=1) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      const n = startNum + i;
+      const saved = editorAnswers[subjectKey][String(n)] || '';
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="min-width:32px;font-size:13px;color:#888;font-weight:600">${n}.</span>
+        <div style="display:flex;gap:5px">
+          ${opts.map(o => `
+            <button onclick="setEAns2('${subjectKey}','${n}','${o}','single',this)"
+              style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved===o?'#6366f1':'#e5e7eb'};
+              background:${saved===o?'#6366f1':'#fff'};color:${saved===o?'#fff':'#555'};
+              font-weight:700;font-size:13px;cursor:pointer;transition:all .15s">${o}</button>
+          `).join('')}
+        </div>
+        ${saved ? `<span style="font-size:12px;color:#22c55e;font-weight:600">✓ ${saved}</span>` : ''}
+      </div>`;
+    }
+    return html;
   }
 
-  window.setEAns = function(subjKey, qNum, option, type, btn) {
+  function renderDoubleBlock(subjectKey, count, opts, startNum) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      const n = startNum + i;
+      const s1 = editorAnswers[subjectKey][`${n}_1`] || '';
+      const s2 = editorAnswers[subjectKey][`${n}_2`] || '';
+      html += `<div style="margin-bottom:12px;padding:10px;background:#f9fafb;border-radius:10px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#555">${n}.</div>
+        <div style="display:flex;gap:5px;margin-bottom:6px">
+          ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}_1','${o}','single',this)"
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s1===o?'#6366f1':'#e5e7eb'};
+            background:${s1===o?'#6366f1':'#fff'};color:${s1===o?'#fff':'#555'};
+            font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
+          ${s1?`<span style="font-size:12px;color:#22c55e;font-weight:600;margin-left:4px">✓${s1}</span>`:''}
+        </div>
+        <div style="display:flex;gap:5px">
+          ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}_2','${o}','single',this)"
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s2===o?'#6366f1':'#e5e7eb'};
+            background:${s2===o?'#6366f1':'#fff'};color:${s2===o?'#fff':'#555'};
+            font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
+          ${s2?`<span style="font-size:12px;color:#22c55e;font-weight:600;margin-left:4px">✓${s2}</span>`:''}
+        </div>
+      </div>`;
+    }
+    return html;
+  }
+
+  function renderMultiBlock(subjectKey, count, opts, startNum) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      const n = startNum + i;
+      const saved = editorAnswers[subjectKey][String(n)] || [];
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="min-width:32px;font-size:13px;color:#888;font-weight:600">${n}.</span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}','${o}','multi',this)"
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved.includes(o)?'#10b981':'#e5e7eb'};
+            background:${saved.includes(o)?'#10b981':'#fff'};color:${saved.includes(o)?'#fff':'#555'};
+            font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
+        </div>
+        ${saved.length?`<span style="font-size:12px;color:#10b981;font-weight:600">${saved.join(',')}</span>`:''}
+      </div>`;
+    }
+    return html;
+  }
+
+  function renderProfileSubject(subjName) {
+    const key = subjName;
+    return `
+      <div style="background:#eef0ff;border-radius:10px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#6366f1">1–30: один вариант (A–D)</div>
+      </div>
+      ${renderSingleBlock(key, 30, ['A','B','C','D'])}
+      <div style="background:#fff3e0;border-radius:10px;padding:10px 14px;margin:16px 0 14px">
+        <div style="font-size:13px;font-weight:700;color:#f57c00">31–35: по две части (A–D)</div>
+      </div>
+      ${renderDoubleBlock(key, 5, ['A','B','C','D'], 31)}
+      <div style="background:#e8f5e9;border-radius:10px;padding:10px 14px;margin:16px 0 14px">
+        <div style="font-size:13px;font-weight:700;color:#388e3c">36–40: до трёх вариантов (A–F)</div>
+      </div>
+      ${renderMultiBlock(key, 5, ['A','B','C','D','E','F'], 36)}`;
+  }
+
+  let activeProfileSubj = PROFILE_SUBJECTS[0];
+
+  window.switchENTTab = function(tab) {
+    activeTab = tab;
+    document.querySelectorAll('[id^="enttab-"]').forEach(b => {
+      b.style.color = '#888';
+      b.style.borderBottom = '2px solid transparent';
+    });
+    const activeBtn = document.getElementById(`enttab-${tab}`);
+    if (activeBtn) { activeBtn.style.color = '#6366f1'; activeBtn.style.borderBottom = '2px solid #6366f1'; }
+    renderTabContent();
+  };
+
+  function renderTabContent() {
+    const body = document.getElementById('ent-editor-body');
+    if (activeTab === 'profile') {
+      body.innerHTML = `
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:600">Выберите предмет:</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${PROFILE_SUBJECTS.map(s => `
+              <button onclick="switchProfileSubj('${s}')" id="psubj-${s.replace(/\s+/g,'_')}"
+                style="padding:6px 12px;border-radius:20px;border:2px solid ${activeProfileSubj===s?'#6366f1':'#e5e7eb'};
+                background:${activeProfileSubj===s?'#6366f1':'#fff'};color:${activeProfileSubj===s?'#fff':'#555'};
+                font-size:12px;font-weight:600;cursor:pointer">${s}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div id="profile-subj-content">${renderProfileSubject(activeProfileSubj)}</div>`;
+    } else {
+      const sec = BASE_SECTIONS.find(s => s.key === activeTab);
+      if (sec) {
+        body.innerHTML = `
+          <div style="background:#eef0ff;border-radius:10px;padding:10px 14px;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;color:#6366f1">${sec.name} — ${sec.count} вопросов (A–D)</div>
+          </div>
+          ${renderSingleBlock(sec.key, sec.count, sec.opts)}`;
+      }
+    }
+  }
+
+  window.switchProfileSubj = function(subj) {
+    activeProfileSubj = subj;
+    document.querySelectorAll('[id^="psubj-"]').forEach(b => {
+      b.style.background = '#fff'; b.style.borderColor = '#e5e7eb'; b.style.color = '#555';
+    });
+    const btn = document.getElementById(`psubj-${subj.replace(/\s+/g,'_')}`);
+    if (btn) { btn.style.background = '#6366f1'; btn.style.borderColor = '#6366f1'; btn.style.color = '#fff'; }
+    document.getElementById('profile-subj-content').innerHTML = renderProfileSubject(subj);
+  };
+
+  window.setEAns2 = function(subjKey, qNum, option, type, btn) {
     if (type === 'single') {
       editorAnswers[subjKey][String(qNum)] = option;
-      // Update buttons in same row
       const row = btn.parentElement;
       row.querySelectorAll('button').forEach(b => {
-        b.style.background = '#fff';
-        b.style.borderColor = '#e5e7eb';
-        b.style.color = '#555';
+        b.style.background = '#fff'; b.style.borderColor = '#e5e7eb'; b.style.color = '#555';
       });
-      btn.style.background = '#6366f1';
-      btn.style.borderColor = '#6366f1';
-      btn.style.color = '#fff';
+      btn.style.background = '#6366f1'; btn.style.borderColor = '#6366f1'; btn.style.color = '#fff';
+      // Update checkmark
+      const check = row.nextElementSibling;
+      if (check && check.tagName === 'SPAN') { check.textContent = '✓ ' + option; check.style.display = ''; }
     } else {
       if (!Array.isArray(editorAnswers[subjKey][String(qNum)])) editorAnswers[subjKey][String(qNum)] = [];
       const arr = editorAnswers[subjKey][String(qNum)];
       const idx = arr.indexOf(option);
       if (idx >= 0) {
         arr.splice(idx, 1);
-        btn.style.background = '#fff';
-        btn.style.borderColor = '#e5e7eb';
-        btn.style.color = '#555';
+        btn.style.background = '#fff'; btn.style.borderColor = '#e5e7eb'; btn.style.color = '#555';
       } else if (arr.length < 3) {
         arr.push(option);
-        btn.style.background = '#10b981';
-        btn.style.borderColor = '#10b981';
-        btn.style.color = '#fff';
+        btn.style.background = '#10b981'; btn.style.borderColor = '#10b981'; btn.style.color = '#fff';
       }
     }
   };
@@ -2668,7 +2741,7 @@ async function openENTEditor(testId, testName) {
     } catch(e) { showToast(e.message, 'error'); }
   };
 
-  renderEditor();
+  renderTabContent();
 }
   
 function showENTLink(testId, testName) {
