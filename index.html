@@ -2488,6 +2488,7 @@ async function loadENT() {
           <div class="action-menu">
             <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
             <div class="action-dropdown">
+              <div class="action-dropdown-item" onclick="openENTEditor(${e.id},'${e.name}')">✏️ Ввести ответы</div>
               <div class="action-dropdown-item" onclick="showENTLink(${e.id},'${e.name}')">🔗 Ссылка и QR</div>
               <div class="action-dropdown-item" onclick="showENTResults(${e.id},'${e.name}')">📊 Результаты</div>
               <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
