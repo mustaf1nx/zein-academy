@@ -15,6 +15,84 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 .progress-bar-fill { height:100%; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .4s; }
 .container { max-width:680px; margin:0 auto; padding:20px 16px 80px; }
 
+/* === TOAST NOTIFICATIONS === */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  min-width: 320px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transform: translateX(400px);
+  transition: all 0.4s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.toast.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.toast-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.toast-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+  }
+  .toast {
+    min-width: auto;
+    width: 100%;
+  }
+}
+  
 /* Step indicator */
 .steps { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .step-dot { width:28px; height:28px; border-radius:50%; border:2px solid #e5e7eb; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#aaa; cursor:pointer; transition:all .2s; }
@@ -77,6 +155,10 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 .hidden { display:none !important; }
 </style>
 </head>
+
+<div class="toast-container" id="toast-container"></div>
+
+  
 <body>
 
 <div class="header">
@@ -230,6 +312,44 @@ const STRUCTURE = {
   ]
 };
 
+// === TOAST SYSTEM ===
+function showToast(message, type = 'error', duration = 4000) {
+  const container = document.getElementById('toast-container');
+  
+  const icons = {
+    error: '❌',
+    success: '✅', 
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type]}</span>
+    <span>${message}</span>
+    <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Анимация появления
+  setTimeout(() => toast.classList.add('show'), 100);
+  
+  // Автоудаление
+  setTimeout(() => removeToast(toast), duration);
+}
+
+function removeToast(toast) {
+  if (!toast) return;
+  toast.classList.remove('show');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 400);
+}
+  
 async function init() {
   if (!TEST_ID) { showError(); return; }
   try {
@@ -261,9 +381,9 @@ function goNext() {
     const name = document.getElementById('st-name').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
-    if (!name) { alert('Введите имя'); return; }
-    if (!subj1 || !subj2) { alert('Выберите профильные предметы'); return; }
-    if (subj1 === subj2) { alert('Профильные предметы должны быть разными'); return; }
+    if (!name) { showToast('Введите имя'); return; }
+    if (!subj1 || !subj2) { showToast('Выберите профильные предметы'); return; }
+    if (subj1 === subj2) { showToast('Профильные предметы должны быть разными'); return; }
     studentInfo = {
       name, grade: document.getElementById('st-grade').value,
       language: document.getElementById('st-lang').value,
@@ -455,7 +575,7 @@ async function submitAnswers() {
     const data = await res.json();
     showResult(data);
   } catch(e) {
-    alert('Ошибка отправки. Проверьте соединение.');
+    showToast('Ошибка отправки. Проверьте соединение.');
     document.getElementById('btn-next').disabled = false;
     document.getElementById('btn-next').textContent = '✓ Отправить';
   }
