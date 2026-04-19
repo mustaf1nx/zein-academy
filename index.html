@@ -1756,7 +1756,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.querySelector('.mobile-overlay'); // ДОБАВИТЬ ЭТУ СТРОКУ
     if (sidebar && overlay) {
       const observer = new MutationObserver(() => {
-    overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
   });
   observer.observe(sidebar, {attributes: true, attributeFilter: ['class']});
 }
