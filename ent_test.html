@@ -108,8 +108,37 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 
 /* Form */
 .form-label { font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block; }
-.form-input { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; transition:border .2s; }
-.form-input:focus { border-color:#6366f1; }
+.form-input {
+  width: 100%; 
+  padding: 12px 14px; 
+  border: 1.5px solid #e5e7eb; 
+  border-radius: 10px; 
+  font-size: 15px; 
+  font-family: inherit; 
+  outline: none; 
+  transition: border .2s;
+  background: #fff; /* ДОБАВИТЬ */
+}
+
+.form-input:focus {
+  border-color: #6366f1;
+  background: #fff; /* ДОБАВИТЬ */
+}
+
+/* ДОБАВИТЬ - убрать автозаполнение стили */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px #fff inset !important;
+  -webkit-text-fill-color: #000 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* ДОБАВИТЬ - нормальное состояние после заполнения */
+.form-input:not(:focus):valid {
+  border-color: #e5e7eb;
+  background: #fff;
+}
 .form-select { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; background:#fff; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 @media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
@@ -182,21 +211,14 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
         <div class="form-row">
           <div>
             <label class="form-label">Имя *</label>
-            <input class="form-input" id="st-name" placeholder="Алматы Бекова" maxlength="60">
+            <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
           </div>
           <div>
             <label class="form-label">Класс *</label>
-            <input class="form-input" id="st-grade" placeholder="11" maxlength="5" value="11">
+            <input class="form-input" id="st-grade" placeholder="10" maxlength="5" value="11">
           </div>
         </div>
         <div class="form-row">
-          <div>
-            <label class="form-label">Язык обучения *</label>
-            <select class="form-select" id="st-lang">
-              <option value="KAZ">Казахский</option>
-              <option value="RUS">Русский</option>
-            </select>
-          </div>
           <div>
             <label class="form-label">Номера телефона родителя *</label>
             <input class="form-input" id="st-phone" placeholder="+7..." maxlength="12" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)">
