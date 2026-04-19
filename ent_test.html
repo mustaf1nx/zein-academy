@@ -429,10 +429,10 @@ function goNext() {
     // Успешное уведомление
     showToast('Данные сохранены!', 'success', 2000);
     
+    // === ЧИСТЫЙ studentInfo без удалённых полей ===
     studentInfo = {
       name, 
-      grade: document.getElementById('st-grade').value,
-      phone: phone,  // ← ИСПОЛЬЗУЕМ ПРАВИЛЬНУЮ ПЕРЕМЕННУЮ
+      phone: phone,
       subj1, 
       subj2
     };
@@ -615,7 +615,6 @@ async function submitAnswers() {
         student_name: studentInfo.name,
         student_phone: studentInfo.phone,
         grade: parseInt(studentInfo.grade),
-        language: studentInfo.language,
         subject1: studentInfo.subj1,
         subject2: studentInfo.subj2,
         answers: answers,
