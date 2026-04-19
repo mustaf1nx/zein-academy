@@ -197,6 +197,56 @@ const API = window.location.origin;
 const params = new URLSearchParams(window.location.search);
 const TEST_ID = params.get('id');
 
+// === ПЕРЕВОДЫ ===
+const LANG_TEXTS = {
+  RUS: {
+    title: "ЕНТ — Zein Academy",
+    headerTest: "ЕНТ",
+    testTitle: "ЕНТ Тест", 
+    loading: "Загрузка теста...",
+    error: "Тест не найден или недоступен",
+    enterData: "Введите свои данные перед началом",
+    name: "Имя и фамилия",
+    grade: "Класс",
+    phone: "Телефон",
+    profileSubjects: "Профильные предметы",
+    subject1: "Первый предмет",
+    subject2: "Второй предмет",
+    enterName: "Введите имя",
+    selectSubjects: "Выберите профильные предметы",
+    subjectsDifferent: "Профильные предметы должны быть разными",
+    history: "История Казахстана",
+    reading: "Грамотность чтения", 
+    math: "Математическая грамотность",
+    next: "Далее",
+    back: "Назад",
+    submit: "Завершить тест"
+  },
+  KAZ: {
+    title: "ҰБТ — Zein Academy",
+    headerTest: "ҰБТ",
+    testTitle: "ҰБТ Тест",
+    loading: "Тест жүктелуде...",
+    error: "Тест табылмады немесе қол жетімсіз",
+    enterData: "Басталмас бұрын деректеріңізді енгізіңіз",
+    name: "Аты-жөні",
+    grade: "Сынып",
+    phone: "Телефон",
+    profileSubjects: "Бейін пәндері",
+    subject1: "Бірінші пән",
+    subject2: "Екінші пән",
+    enterName: "Атыңызды енгізіңіз",
+    selectSubjects: "Бейін пәндерін таңдаңыз",
+    subjectsDifferent: "Бейін пәндері әртүрлі болуы керек",
+    history: "Қазақстан тарихы",
+    reading: "Оқу сауаттылығы",
+    math: "Математикалық сауаттылық",
+    next: "Әрі қарай",
+    back: "Артқа",
+    submit: "Тестті аяқтау"
+  }
+};
+  
 const LANG_TEXTS = {
   RUS: {
     title: "ЕНТ — Zein Academy",
@@ -221,24 +271,6 @@ const LANG_TEXTS = {
     loading: "Жүктелуде..."
   }
 };
-
-// В init() функции после получения данных теста:
-fetch(`${API}/api/ent/${TEST_ID}/public`)
-  .then(r => r.json())
-  .then(data => {
-    const lang = data.language || 'RUS';  // Получаем язык теста
-    const texts = LANG_TEXTS[lang];       // Берём переводы
-    
-    // Применяем переводы к интерфейсу
-    document.title = texts.title;
-    document.querySelector('.header-test').textContent = texts.headerTest;
-    
-    // Если есть кнопка "Начать тест"
-    const startBtn = document.querySelector('.start-btn');
-    if (startBtn) startBtn.textContent = texts.startTest;
-    
-    // ... остальная логика теста
-  });
   
 let testData = null;
 let studentInfo = {};
@@ -279,8 +311,27 @@ async function init() {
     const res = await fetch(`${API}/api/ent/${TEST_ID}/public`);
     if (!res.ok) throw new Error();
     testData = await res.json();
-    document.getElementById('header-test-name').textContent = testData.name;
+    
+    // === ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ===
+    const testLang = testData.language || 'RUS';
+    const texts = LANG_TEXTS[testLang];
+    
+    // Применяем переводы
+    document.title = texts.title;
+    document.getElementById('header-test-name').textContent = texts.headerTest;
     document.getElementById('test-name-title').textContent = testData.name;
+    document.getElementById('loading-state').textContent = texts.loading;
+    document.getElementById('error-state').textContent = texts.error;
+    
+    // Обновляем названия предметов
+    SUBJECT_NAMES.history = texts.history;
+    SUBJECT_NAMES.reading = texts.reading; 
+    SUBJECT_NAMES.math = texts.math;
+    
+    // Обновляем UI элементы
+    const enterDataEl = document.querySelector('.card-sub');
+    if (enterDataEl) enterDataEl.textContent = texts.enterData;
+    
     document.getElementById('loading-state').classList.add('hidden');
     document.getElementById('step-info').classList.remove('hidden');
     document.getElementById('nav-bar').style.display = 'flex';
@@ -304,9 +355,15 @@ function goNext() {
     const name = document.getElementById('st-name').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
-    if (!name) { alert('Введите имя'); return; }
-    if (!subj1 || !subj2) { alert('Выберите профильные предметы'); return; }
-    if (subj1 === subj2) { alert('Профильные предметы должны быть разными'); return; }
+    
+    // === ОБНОВЛЁННЫЕ ALERT'Ы С ПЕРЕВОДАМИ ===
+    const testLang = testData.language || 'RUS';
+    const texts = LANG_TEXTS[testLang];
+    
+    if (!name) { alert(texts.enterName); return; }
+    if (!subj1 || !subj2) { alert(texts.selectSubjects); return; }
+    if (subj1 === subj2) { alert(texts.subjectsDifferent); return; }
+    
     studentInfo = {
       name, grade: document.getElementById('st-grade').value,
       language: document.getElementById('st-lang').value,
@@ -315,14 +372,16 @@ function goNext() {
     };
     SUBJECT_NAMES.subject1 = subj1;
     SUBJECT_NAMES.subject2 = subj2;
-    // Build sections
+    
+    // Build sections — ИСПОЛЬЗУЕМ ПЕРЕВЕДЁННЫЕ НАЗВАНИЯ
     sections = [
-      { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
-      { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
-      { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math },
+      { key: 'history', name: SUBJECT_NAMES.history, structure: STRUCTURE.history },
+      { key: 'reading', name: SUBJECT_NAMES.reading, structure: STRUCTURE.reading },
+      { key: 'math', name: SUBJECT_NAMES.math, structure: STRUCTURE.math },
       { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
       { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
     ];
+    
     // Init answers
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
