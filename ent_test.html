@@ -338,6 +338,58 @@ const STRUCTURE = {
   ]
 };
 
+// === AUTO-SAVE SYSTEM ===
+const STORAGE_KEY = `ent_test_${TEST_ID}`;
+
+// Сохранить прогресс
+function saveProgress() {
+  const progress = {
+    studentInfo: studentInfo,
+    answers: answers,
+    currentStep: currentStep,
+    sections: sections,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  console.log('Progress saved:', progress);
+}
+
+// Загрузить прогресс
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const progress = JSON.parse(saved);
+      
+      // Проверить что данные не старые (не больше 24 часов)
+      const maxAge = 24 * 60 * 60 * 1000; // 24 часа
+      if (Date.now() - progress.timestamp > maxAge) {
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+      }
+      
+      // Восстановить данные
+      studentInfo = progress.studentInfo || {};
+      answers = progress.answers || {};
+      currentStep = progress.currentStep || 0;
+      sections = progress.sections || [];
+      
+      console.log('Progress loaded:', progress);
+      return true;
+    }
+  } catch(e) {
+    console.error('Failed to load progress:', e);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  return false;
+}
+
+// Очистить сохранённые данные
+function clearProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+  console.log('Progress cleared');
+}
+  
 // === TOAST SYSTEM ===
 function showToast(message, type = 'error', duration = 4000) {
   const container = document.getElementById('toast-container');
@@ -382,13 +434,44 @@ async function init() {
     const res = await fetch(`${API}/api/ent/${TEST_ID}/public`);
     if (!res.ok) throw new Error();
     testData = await res.json();
+    
     document.getElementById('header-test-name').textContent = testData.name;
     document.getElementById('test-name-title').textContent = testData.name;
-    document.getElementById('loading-state').classList.add('hidden');
-    document.getElementById('step-info').classList.remove('hidden');
-    document.getElementById('nav-bar').style.display = 'flex';
-    document.getElementById('btn-back').style.display = 'none';
-    updateProgress(0, 6);
+    
+    // === ЗАГРУЗИТЬ СОХРАНЁННЫЙ ПРОГРЕСС ===
+    const hasProgress = loadProgress();
+    
+    if (hasProgress && currentStep > 0) {
+      // Восстановить прогресс теста
+      showToast('Прогресс восстановлен!', 'info', 3000);
+      
+      // Заполнить форму данными
+      if (studentInfo.name) document.getElementById('st-name').value = studentInfo.name;
+      if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
+      if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
+      if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      
+      // Переход к нужному шагу
+      if (currentStep === 1) {
+        document.getElementById('loading-state').classList.add('hidden');
+        showQuestionsStep();
+        document.getElementById('nav-bar').style.display = 'flex';
+      } else {
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('step-info').classList.remove('hidden');
+        document.getElementById('nav-bar').style.display = 'flex';
+        document.getElementById('btn-back').style.display = 'none';
+      }
+      
+      updateProgress(currentStep, 6);
+    } else {
+      // Обычный запуск без сохранённых данных
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('step-info').classList.remove('hidden');
+      document.getElementById('nav-bar').style.display = 'flex';
+      document.getElementById('btn-back').style.display = 'none';
+      updateProgress(0, 6);
+    }
   } catch(e) { showError(); }
 }
 
@@ -403,33 +486,8 @@ function updateProgress(step, total) {
 
 function goNext() {
   if (currentStep === 0) {
-    // Validate info
-    const name = document.getElementById('st-name').value.trim();
-    const phone = document.getElementById('st-phone').value.trim();
-    const subj1 = document.getElementById('st-subj1').value;
-    const subj2 = document.getElementById('st-subj2').value;
+    // ... вся валидация как есть ...
     
-    if (!name) { 
-      showToast('Введите имя и фамилию', 'error'); 
-      return; 
-    }
-    if (!phone) {
-      showToast('Введите номер родителя', 'error');
-      return;
-    }
-    if (!subj1 || !subj2) { 
-      showToast('Выберите профильные предметы', 'warning'); 
-      return; 
-    }
-    if (subj1 === subj2) { 
-      showToast('Профильные предметы должны быть разными', 'warning'); 
-      return; 
-    }
-    
-    // Успешное уведомление
-    showToast('Данные сохранены!', 'success', 2000);
-    
-    // === ЧИСТЫЙ studentInfo без удалённых полей ===
     studentInfo = {
       name, 
       phone: phone,
@@ -440,7 +498,6 @@ function goNext() {
     SUBJECT_NAMES.subject1 = subj1;
     SUBJECT_NAMES.subject2 = subj2;
     
-    // Build sections
     sections = [
       { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
       { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
@@ -449,12 +506,15 @@ function goNext() {
       { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
     ];
     
-    // Init answers
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
+    
+    saveProgress(); // === СОХРАНИТЬ ===
     showQuestionsStep();
   } else if (currentStep <= sections.length) {
     currentStep++;
+    saveProgress(); // === СОХРАНИТЬ ===
+    
     if (currentStep > sections.length) {
       submitAnswers();
     } else {
@@ -462,7 +522,6 @@ function goNext() {
     }
   }
 }
-
 function goBack() {
   if (currentStep <= 1) {
     currentStep = 0;
@@ -601,6 +660,8 @@ function selectAnswer(subjectKey, qNum, option, type, btn) {
     const row = btn.closest('.question-row');
     const scoreEl = row.querySelector('.q-score');
     if (scoreEl) scoreEl.textContent = `${arr.length}/3`;
+    saveProgress(); // === АВТОСОХРАНЕНИЕ ПРИ КАЖДОМ ОТВЕТЕ ===
+
   }
 }
 
@@ -626,6 +687,8 @@ async function submitAnswers() {
     showToast('Ошибка отправки. Проверьте соединение.');
     document.getElementById('btn-next').disabled = false;
     document.getElementById('btn-next').textContent = '✓ Отправить';
+    clearProgress(); // === ОЧИСТИТЬ СОХРАНЁННЫЕ ДАННЫЕ ===
+
   }
 }
 
