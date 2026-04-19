@@ -197,9 +197,21 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
       <div class="card-title" id="test-name-title">ЕНТ Тест</div>
       <div class="card-sub">Введите свои данные перед началом</div>
       <div class="info-section">
-        <div style="margin-bottom:14px">
-          <label class="form-label">Имя и фамилия *</label>
-          <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
+        <div class="form-row">
+          <div>
+            <label class="form-label">Имя и фамилия *</label>
+            <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
+          </div>
+          <div>
+            <label class="form-label">Класс *</label>
+            <select class="form-select" id="st-grade">
+              <option value="">— Класс —</option>
+              <option>9</option>
+              <option>10</option>
+              <option>11</option>
+              <option>12</option>
+            </select>
+          </div>
         </div>
         <div style="margin-bottom:14px">
           <label class="form-label">Номер родителя *</label>
@@ -422,6 +434,7 @@ async function init() {
       
       // Заполнить форму данными
       if (studentInfo.name) document.getElementById('st-name').value = studentInfo.name;
+      if (studentInfo.grade) document.getElementById('st-grade').value = studentInfo.grade;
       if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
       if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
       if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
@@ -463,6 +476,7 @@ function goNext() {
   if (currentStep === 0) {
     // Validate info
     const name = document.getElementById('st-name').value.trim();
+    const grade = document.getElementById('st-grade').value;
     const phone = document.getElementById('st-phone').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
@@ -470,6 +484,10 @@ function goNext() {
     if (!name) { 
       showToast('Введите имя и фамилию', 'error'); 
       return; 
+    }
+    if (!grade) {
+      showToast('Выберите класс', 'error');
+      return;
     }
     if (!phone) {
       showToast('Введите номер родителя', 'error');
@@ -489,6 +507,7 @@ function goNext() {
     
     studentInfo = {
       name, 
+      grade,
       phone: phone,
       subj1, 
       subj2
@@ -677,6 +696,7 @@ async function submitAnswers() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         student_name: studentInfo.name,
+        grade: parseInt(studentInfo.grade),
         student_phone: studentInfo.phone,
         subject1: studentInfo.subj1,
         subject2: studentInfo.subj2,
@@ -702,16 +722,35 @@ async function submitAnswers() {
         <div style="font-size:16px; color:#666; margin-bottom:8px;">
           Спасибо, ${studentInfo.name}
         </div>
-        <div style="font-size:14px; color:#aaa;">
+        <div style="font-size:14px; color:#aaa; margin-bottom:16px;">
           Результаты отправлены в Zein Academy
         </div>
         <div style="margin-top:40px;">
-          <button onclick="window.close()" style="padding:12px 24px; background:#6366f1; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer;">
+          <button onclick="tryClose()" style="padding:12px 24px; background:#6366f1; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer; margin-right:10px;">
             Закрыть
           </button>
+          <button onclick="window.location.reload()" style="padding:12px 24px; background:#6b7280; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer;">
+            Пройти ещё раз
+          </button>
+        </div>
+        <div style="font-size:12px; color:#999; margin-top:20px;">
+          Если кнопка "Закрыть" не работает, просто закройте эту вкладку
         </div>
       </div>
     `;
+    
+    // Функция для попытки закрытия
+    window.tryClose = function() {
+      try {
+        window.close();
+        // Если не закрылось через 500ms, показать сообщение
+        setTimeout(() => {
+          showToast('Пожалуйста, закройте вкладку вручную', 'info', 5000);
+        }, 500);
+      } catch(e) {
+        showToast('Пожалуйста, закройте вкладку вручную', 'info', 5000);
+      }
+    };
     
   } catch(e) {
     showToast('Ошибка отправки. Проверьте соединение.', 'error');
