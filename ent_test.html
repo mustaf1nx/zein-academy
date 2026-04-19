@@ -486,11 +486,36 @@ function updateProgress(step, total) {
 
 function goNext() {
   if (currentStep === 0) {
-    // ... вся валидация как есть ...
+    // Validate info
+    const name = document.getElementById('st-name').value.trim();
+    const phone = document.getElementById('st-phone').value.trim();  // ← ЗДЕСЬ ОПРЕДЕЛЯЕМ PHONE
+    const subj1 = document.getElementById('st-subj1').value;
+    const subj2 = document.getElementById('st-subj2').value;
     
+    if (!name) { 
+      showToast('Введите имя и фамилию', 'error'); 
+      return; 
+    }
+    if (!phone) {
+      showToast('Введите номер родителя', 'error');
+      return;
+    }
+    if (!subj1 || !subj2) { 
+      showToast('Выберите профильные предметы', 'warning'); 
+      return; 
+    }
+    if (subj1 === subj2) { 
+      showToast('Профильные предметы должны быть разными', 'warning'); 
+      return; 
+    }
+    
+    // Успешное уведомление
+    showToast('Данные сохранены!', 'success', 2000);
+    
+    // === ИСПОЛЬЗУЕМ ПРАВИЛЬНО ОПРЕДЕЛЁННУЮ ПЕРЕМЕННУЮ PHONE ===
     studentInfo = {
       name, 
-      phone: phone,
+      phone: phone,  // ← phone УЖЕ ОПРЕДЕЛЁН ВЫШЕ
       subj1, 
       subj2
     };
@@ -509,11 +534,11 @@ function goNext() {
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
     
-    saveProgress(); // === СОХРАНИТЬ ===
+    saveProgress(); // Сохранить прогресс
     showQuestionsStep();
   } else if (currentStep <= sections.length) {
     currentStep++;
-    saveProgress(); // === СОХРАНИТЬ ===
+    saveProgress(); // Сохранить прогресс
     
     if (currentStep > sections.length) {
       submitAnswers();
@@ -522,6 +547,7 @@ function goNext() {
     }
   }
 }
+  
 function goBack() {
   if (currentStep <= 1) {
     currentStep = 0;
