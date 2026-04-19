@@ -197,6 +197,49 @@ const API = window.location.origin;
 const params = new URLSearchParams(window.location.search);
 const TEST_ID = params.get('id');
 
+const LANG_TEXTS = {
+  RUS: {
+    title: "ЕНТ — Zein Academy",
+    headerTest: "ЕНТ",
+    startTest: "Начать тест",
+    question: "Вопрос",
+    timeLeft: "Осталось времени",
+    submit: "Завершить тест",
+    results: "Результаты теста",
+    score: "Ваш результат",
+    loading: "Загрузка..."
+  },
+  KAZ: {
+    title: "ҰБТ — Zein Academy", 
+    headerTest: "ҰБТ",
+    startTest: "Тестті бастау",
+    question: "Сұрақ",
+    timeLeft: "Қалған уақыт",
+    submit: "Тестті аяқтау",
+    results: "Тест нәтижелері",
+    score: "Сіздің нәтижеңіз",
+    loading: "Жүктелуде..."
+  }
+};
+
+// В init() функции после получения данных теста:
+fetch(`${API}/api/ent/${TEST_ID}/public`)
+  .then(r => r.json())
+  .then(data => {
+    const lang = data.language || 'RUS';  // Получаем язык теста
+    const texts = LANG_TEXTS[lang];       // Берём переводы
+    
+    // Применяем переводы к интерфейсу
+    document.title = texts.title;
+    document.querySelector('.header-test').textContent = texts.headerTest;
+    
+    // Если есть кнопка "Начать тест"
+    const startBtn = document.querySelector('.start-btn');
+    if (startBtn) startBtn.textContent = texts.startTest;
+    
+    // ... остальная логика теста
+  });
+  
 let testData = null;
 let studentInfo = {};
 let answers = {}; // { subject: { "1": "A", "2": ["A","B"] } }
