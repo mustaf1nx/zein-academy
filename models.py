@@ -1,13 +1,37 @@
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Date, Time,
-    ForeignKey, Text, Float, Enum as SAEnum, JSON
+    ForeignKey, Text, Float, Enum as SAEnum
 )
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
 from database import Base
 from datetime import datetime
 
+
+class UniversalJSON(TypeDecorator):
+    """JSON тип который работает с PostgreSQL и SQLite"""
+    impl = Text
+    
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(JSON())
+        else:
+            return dialect.type_descriptor(Text())
+    
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        import json
+        return json.dumps(value)
+    
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        import json
+        return json.loads(value)
 
 
 # ─── Enums ───────────────────────────────────────────────────────────────────
@@ -222,7 +246,7 @@ class ENTTest(Base):
     status = Column(SAEnum(StatusEnum), default=StatusEnum.ACTIVE)
     progress = Column(Integer, default=0)   # 0–100
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    correct_answers = Column(JSON, default={})
+    correct_answers = Column(UniversalJSON, default={})
 
 
 
@@ -237,8 +261,8 @@ class ENTStudentResult(Base):
     language = Column(String, default="RUS")
     subject1 = Column(String, nullable=True)
     subject2 = Column(String, nullable=True)
-    answers = Column(JSON, default={})
-    scores = Column(JSON, default={})
+    answers = Column(UniversalJSON, default={})
+    scores = Column(UniversalJSON, default={})
     total_score = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
