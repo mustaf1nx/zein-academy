@@ -92,7 +92,7 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
     width: 100%;
   }
 }
-  
+
 /* Step indicator */
 .steps { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .step-dot { width:28px; height:28px; border-radius:50%; border:2px solid #e5e7eb; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#aaa; cursor:pointer; transition:all .2s; }
@@ -108,24 +108,23 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 
 /* Form */
 .form-label { font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block; }
-.form-input {
-  width: 100%; 
-  padding: 12px 14px; 
-  border: 1.5px solid #e5e7eb; 
-  border-radius: 10px; 
-  font-size: 15px; 
-  font-family: inherit; 
-  outline: none; 
-  transition: border .2s;
-  background: #fff; /* ДОБАВИТЬ */
+.form-input { 
+  width:100%; 
+  padding:12px 14px; 
+  border:1.5px solid #e5e7eb; 
+  border-radius:10px; 
+  font-size:15px; 
+  font-family:inherit; 
+  outline:none; 
+  transition:border .2s;
+  background:#fff;
+}
+.form-input:focus { 
+  border-color:#6366f1; 
+  background:#fff;
 }
 
-.form-input:focus {
-  border-color: #6366f1;
-  background: #fff; /* ДОБАВИТЬ */
-}
-
-/* ДОБАВИТЬ - убрать автозаполнение стили */
+/* Fix autofill styling */
 .form-input:-webkit-autofill,
 .form-input:-webkit-autofill:hover,
 .form-input:-webkit-autofill:focus {
@@ -134,11 +133,11 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
   border-color: #e5e7eb !important;
 }
 
-/* ДОБАВИТЬ - нормальное состояние после заполнения */
 .form-input:not(:focus):valid {
   border-color: #e5e7eb;
   background: #fff;
 }
+
 .form-select { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; background:#fff; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 @media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
@@ -168,15 +167,6 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; flex:2; }
 .btn:disabled { opacity:.5; cursor:not-allowed; }
 
-/* Result page */
-.result-header { text-align:center; padding:30px 20px 20px; }
-.result-total { font-size:64px; font-weight:900; color:#6366f1; line-height:1; }
-.result-max { font-size:16px; color:#aaa; margin-top:4px; }
-.result-emoji { font-size:48px; margin-bottom:12px; }
-.score-card { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:10px; background:#f9fafb; margin-bottom:8px; }
-.score-label { font-size:14px; color:#444; font-weight:500; }
-.score-val { font-size:18px; font-weight:800; color:#6366f1; }
-
 /* Info page */
 .info-section { margin-bottom:20px; }
 
@@ -184,11 +174,10 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 .hidden { display:none !important; }
 </style>
 </head>
-
-<div class="toast-container" id="toast-container"></div>
-
-  
 <body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
 
 <div class="header">
   <div class="header-logo">Zein Academy</div>
@@ -208,21 +197,13 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
       <div class="card-title" id="test-name-title">ЕНТ Тест</div>
       <div class="card-sub">Введите свои данные перед началом</div>
       <div class="info-section">
-        <div class="form-row">
-          <div>
-            <label class="form-label">Имя *</label>
-            <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
-          </div>
-          <div>
-            <label class="form-label">Класс *</label>
-            <input class="form-input" id="st-grade" placeholder="10" maxlength="5" value="11">
-          </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">Имя и фамилия *</label>
+          <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
         </div>
-        <div class="form-row">
-          <div>
-            <label class="form-label">Номера телефона родителя *</label>
-            <input class="form-input" id="st-phone" placeholder="+7..." maxlength="12" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)">
-          </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">Номер родителя *</label>
+          <input class="form-input" id="st-phone" placeholder="+7 777 123 45 67" maxlength="15" oninput="this.value=this.value.replace(/[^\d+\s]/g,'').slice(0,15)">
         </div>
         <div style="margin-bottom:14px">
           <label class="form-label">Профильный предмет 1 *</label>
@@ -235,12 +216,12 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
             <option>География</option>
             <option>История Казахстана (профиль)</option>
             <option>Всемирная история</option>
+            <option>Русская литература</option>
+            <option>Казахская литература</option>
             <option>Информатика</option>
             <option>Английский язык</option>
-            <option>Русский язык</option>
-            <option>Казахский язык</option>
-            <option>Русская литература</option>
-            <option>Казахская литература</option>  
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
             <option>Основы права</option>
             <option>Творческий экзамен</option>
           </select>
@@ -256,12 +237,12 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
             <option>География</option>
             <option>История Казахстана (профиль)</option>
             <option>Всемирная история</option>
+            <option>Русская литература</option>
+            <option>Казахская литература</option>
             <option>Информатика</option>
             <option>Английский язык</option>
-            <option>Русский язык</option>
-            <option>Казахский язык</option>
-            <option>Русская литература</option>
-            <option>Казахская литература</option>              
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
             <option>Основы права</option>
             <option>Творческий экзамен</option>
           </select>
@@ -274,23 +255,6 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
   <div id="step-questions" class="hidden">
     <div class="steps" id="steps-nav"></div>
     <div id="question-content"></div>
-  </div>
-
-  <!-- Result -->
-  <div id="step-result" class="hidden">
-    <div class="result-header">
-      <div class="result-emoji" id="result-emoji">🎉</div>
-      <div class="result-total" id="result-total">—</div>
-      <div class="result-max" id="result-max">из — баллов</div>
-      <div style="margin-top:12px;font-size:15px;color:#555" id="result-name"></div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="margin-bottom:14px">Результаты по предметам</div>
-      <div id="result-breakdown"></div>
-    </div>
-    <div style="text-align:center;color:#aaa;font-size:13px;margin-top:16px">
-      Результаты отправлены в Zein Academy
-    </div>
   </div>
 </div>
 
@@ -427,6 +391,17 @@ function removeToast(toast) {
     }
   }, 400);
 }
+
+// Remove focus styling after blur
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('.form-input');
+  inputs.forEach(input => {
+    input.addEventListener('blur', () => {
+      input.style.borderColor = '#e5e7eb';
+      input.style.backgroundColor = '#fff';
+    });
+  });
+});
   
 async function init() {
   if (!TEST_ID) { showError(); return; }
@@ -452,7 +427,7 @@ async function init() {
       if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
       
       // Переход к нужному шагу
-      if (currentStep === 1) {
+      if (currentStep >= 1) {
         document.getElementById('loading-state').classList.add('hidden');
         showQuestionsStep();
         document.getElementById('nav-bar').style.display = 'flex';
@@ -488,7 +463,7 @@ function goNext() {
   if (currentStep === 0) {
     // Validate info
     const name = document.getElementById('st-name').value.trim();
-    const phone = document.getElementById('st-phone').value.trim();  // ← ЗДЕСЬ ОПРЕДЕЛЯЕМ PHONE
+    const phone = document.getElementById('st-phone').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
     
@@ -512,10 +487,9 @@ function goNext() {
     // Успешное уведомление
     showToast('Данные сохранены!', 'success', 2000);
     
-    // === ИСПОЛЬЗУЕМ ПРАВИЛЬНО ОПРЕДЕЛЁННУЮ ПЕРЕМЕННУЮ PHONE ===
     studentInfo = {
       name, 
-      phone: phone,  // ← phone УЖЕ ОПРЕДЕЛЁН ВЫШЕ
+      phone: phone,
       subj1, 
       subj2
     };
@@ -555,15 +529,16 @@ function goBack() {
     document.getElementById('step-info').classList.remove('hidden');
     document.getElementById('btn-back').style.display = 'none';
     updateProgress(0, 6);
+    saveProgress();
   } else {
     currentStep--;
+    saveProgress();
     showQuestionsStep();
   }
 }
 
 function showQuestionsStep() {
   document.getElementById('step-info').classList.add('hidden');
-  document.getElementById('step-result').classList.add('hidden');
   document.getElementById('step-questions').classList.remove('hidden');
   document.getElementById('btn-back').style.display = '';
   const isLast = currentStep === sections.length;
@@ -587,6 +562,7 @@ function showQuestionsStep() {
 function jumpToStep(idx) {
   if (idx < currentStep) {
     currentStep = idx;
+    saveProgress();
     showQuestionsStep();
   }
 }
@@ -686,9 +662,10 @@ function selectAnswer(subjectKey, qNum, option, type, btn) {
     const row = btn.closest('.question-row');
     const scoreEl = row.querySelector('.q-score');
     if (scoreEl) scoreEl.textContent = `${arr.length}/3`;
-    saveProgress(); // === АВТОСОХРАНЕНИЕ ПРИ КАЖДОМ ОТВЕТЕ ===
-
   }
+  
+  // Автосохранение при каждом ответе
+  saveProgress();
 }
 
 async function submitAnswers() {
@@ -701,63 +678,46 @@ async function submitAnswers() {
       body: JSON.stringify({
         student_name: studentInfo.name,
         student_phone: studentInfo.phone,
-        grade: parseInt(studentInfo.grade),
         subject1: studentInfo.subj1,
         subject2: studentInfo.subj2,
         answers: answers,
       })
     });
     const data = await res.json();
-    showResult(data);
+    
+    // Показать успешное завершение без результатов
+    document.getElementById('step-questions').classList.add('hidden');
+    document.getElementById('nav-bar').style.display = 'none';
+    document.getElementById('progress-fill').style.width = '100%';
+    clearProgress(); // Очистить сохранённые данные
+
+    // Показать простое сообщение об успехе
+    const container = document.querySelector('.container');
+    container.innerHTML = `
+      <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:64px; margin-bottom:20px;">✅</div>
+        <div style="font-size:24px; font-weight:700; color:#22c55e; margin-bottom:12px;">
+          Тест успешно завершён!
+        </div>
+        <div style="font-size:16px; color:#666; margin-bottom:8px;">
+          Спасибо, ${studentInfo.name}
+        </div>
+        <div style="font-size:14px; color:#aaa;">
+          Результаты отправлены в Zein Academy
+        </div>
+        <div style="margin-top:40px;">
+          <button onclick="window.close()" style="padding:12px 24px; background:#6366f1; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer;">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    `;
+    
   } catch(e) {
-    showToast('Ошибка отправки. Проверьте соединение.');
+    showToast('Ошибка отправки. Проверьте соединение.', 'error');
     document.getElementById('btn-next').disabled = false;
     document.getElementById('btn-next').textContent = '✓ Отправить';
-    clearProgress(); // === ОЧИСТИТЬ СОХРАНЁННЫЕ ДАННЫЕ ===
-
   }
-}
-
-function showResult(data) {
-  document.getElementById('step-questions').classList.add('hidden');
-  document.getElementById('step-result').classList.remove('hidden');
-  document.getElementById('nav-bar').style.display = 'none';
-  document.getElementById('progress-fill').style.width = '100%';
-
-  const total = data.total || 0;
-  const scores = data.scores || {};
-  document.getElementById('result-total').textContent = total;
-  document.getElementById('result-name').textContent = studentInfo.name;
-
-  // Max score
-  const maxScores = {
-    history: 20, reading: 10, math: 10,
-    subject1: 50, subject2: 50
-  };
-  const maxTotal = Object.values(maxScores).reduce((a,b)=>a+b,0);
-  document.getElementById('result-max').textContent = `из ${maxTotal} баллов`;
-
-  // Emoji
-  const pct = total / maxTotal;
-  document.getElementById('result-emoji').textContent = pct >= 0.8 ? '🏆' : pct >= 0.6 ? '🎉' : pct >= 0.4 ? '👍' : '📚';
-
-  // Breakdown
-  const breakdown = document.getElementById('result-breakdown');
-  const subjectLabels = {
-    history: 'История Казахстана',
-    reading: 'Грамотность чтения',
-    math: 'Математическая грамотность',
-    subject1: studentInfo.subj1,
-    subject2: studentInfo.subj2,
-  };
-  breakdown.innerHTML = Object.entries(subjectLabels).map(([key, label]) => {
-    const score = scores[key] !== undefined ? scores[key] : '—';
-    const max = maxScores[key];
-    return `<div class="score-card">
-      <span class="score-label">${label}</span>
-      <span class="score-val">${score}<span style="font-size:13px;color:#aaa;font-weight:400">/${max}</span></span>
-    </div>`;
-  }).join('');
 }
 
 init();
