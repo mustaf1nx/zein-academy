@@ -383,27 +383,42 @@ function goNext() {
   if (currentStep === 0) {
     // Validate info
     const name = document.getElementById('st-name').value.trim();
+    const phone = document.getElementById('st-phone').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
-    if (!name) { showToast('Введите имя'); return; }
+    
+    if (!name) { 
+      showToast('Введите имя и фамилию', 'error'); 
+      return; 
+    }
     if (!phone) {
       showToast('Введите номер родителя', 'error');
       return;
     }
-    if (phone.length < 10) {
-      showToast('Номер слишком короткий', 'warning');
-      return;
+    if (!subj1 || !subj2) { 
+      showToast('Выберите профильные предметы', 'warning'); 
+      return; 
     }
-    if (!subj1 || !subj2) { showToast('Выберите профильные предметы'); return; }
-    if (subj1 === subj2) { showToast('Профильные предметы должны быть разными'); return; }
+    if (subj1 === subj2) { 
+      showToast('Профильные предметы должны быть разными', 'warning'); 
+      return; 
+    }
+    
+    // Успешное уведомление
+    showToast('Данные сохранены!', 'success', 2000);
+    
     studentInfo = {
-      name, grade: document.getElementById('st-grade').value,
+      name, 
+      grade: document.getElementById('st-grade').value,
       language: document.getElementById('st-lang').value,
-      phone: document.getElementById('st-phone').value,
-      subj1, subj2
+      phone: phone,  // ← ИСПОЛЬЗУЕМ ПРАВИЛЬНУЮ ПЕРЕМЕННУЮ
+      subj1, 
+      subj2
     };
+    
     SUBJECT_NAMES.subject1 = subj1;
     SUBJECT_NAMES.subject2 = subj2;
+    
     // Build sections
     sections = [
       { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
@@ -412,6 +427,7 @@ function goNext() {
       { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
       { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
     ];
+    
     // Init answers
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
