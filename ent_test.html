@@ -684,20 +684,37 @@ function selectAnswer(subjectKey, qNum, option, type, btn) {
 async function submitAnswers() {
   document.getElementById('btn-next').disabled = true;
   document.getElementById('btn-next').textContent = 'Отправка...';
+  
+  // === ДОБАВЬ ОТЛАДКУ ===
+  const submitData = {
+    student_name: studentInfo.name,
+    grade: studentInfo.grade,
+    student_phone: studentInfo.phone,
+    subject1: studentInfo.subj1,
+    subject2: studentInfo.subj2,
+    answers: answers,
+  };
+  
+  console.log('Отправляем данные:', submitData);
+  console.log('URL:', `${API}/api/ent/${TEST_ID}/submit`);
+  
   try {
     const res = await fetch(`${API}/api/ent/${TEST_ID}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        student_name: studentInfo.name,
-        grade: studentInfo.grade,
-        student_phone: studentInfo.phone,
-        subject1: studentInfo.subj1,
-        subject2: studentInfo.subj2,
-        answers: answers,
-      })
+      body: JSON.stringify(submitData)
     });
+    
+    console.log('Статус ответа:', res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Ошибка сервера:', errorText);
+      throw new Error(`Server error: ${res.status}`);
+    }
+    
     const data = await res.json();
+    console.log('Ответ сервера:', data);
     
     // Показать успешное завершение без результатов
     document.getElementById('step-questions').classList.add('hidden');
