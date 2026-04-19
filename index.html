@@ -1453,7 +1453,6 @@ tbody td { padding: 11px 14px; color: #333; }
     <div class="modal-title">Добавить тест ЕНТ</div>
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">Название *</label><input class="form-input" placeholder="Вариант 1 КО"></div>
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">Статус</label><select class="form-select"><option>ACTIVE</option><option>INACTIVE</option></select></div>
-    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Язык *</label><select class="form-select" id="ent-language"><option value="RUS">Русский</option><option value="KAZ">Казахский</option></select></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('add-ent-modal')">Отмена</button>
       <button class="btn btn-primary" onclick="submitAddENT()">Добавить</button>
@@ -2859,12 +2858,11 @@ async function showENTResults(testId, testName) {
   
 async function submitAddENT() {
   const modal = document.getElementById('add-ent-modal');
-  const name     = modal.querySelector('.form-input')?.value?.trim();
-  const status   = modal.querySelector('.form-select')?.value || 'ACTIVE';
-  const language = document.getElementById('ent-language')?.value || 'RUS';  
+  const name   = modal.querySelector('.form-input')?.value?.trim();
+  const status = modal.querySelector('.form-select')?.value || 'ACTIVE';
   if (!name) { showToast('Введите название теста','error'); return; }
   try {
-    await api('/api/ent/', { method:'POST', body: JSON.stringify({ name, status, progress:0, language }) }); 
+    await api('/api/ent/', { method:'POST', body: JSON.stringify({ name, status, progress:0 }) });
     showToast('Тест добавлен!');
     closeModal('add-ent-modal');
     modal.querySelector('.form-input').value = '';
