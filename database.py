@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("postgresql://postgres:McBetRQQyWupqAsOMnXFCCxovBPsGgkT@roundhouse.proxy.rlwy.net:15617/railway", "sqlite:///./zein.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./zein.db")
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
