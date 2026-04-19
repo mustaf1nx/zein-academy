@@ -686,14 +686,17 @@ async function submitAnswers() {
   document.getElementById('btn-next').textContent = 'Отправка...';
   
   // === ДОБАВЬ ОТЛАДКУ ===
-  const submitData = {
-    student_name: studentInfo.name,
-    grade: studentInfo.grade,
-    student_phone: studentInfo.phone,
-    subject1: studentInfo.subj1,
-    subject2: studentInfo.subj2,
-    answers: answers,
-  };
+const submitData = {
+  student_name: studentInfo.name,
+  student_phone: studentInfo.phone,
+  grade: parseInt(studentInfo.grade) || 11,         // ЧИСЛО
+  language: "RUS",                                  // ДОБАВИТЬ
+  subject1: studentInfo.subj1,
+  subject2: studentInfo.subj2,
+  answers: answers,
+  progress: 100,                                    // ДОБАВИТЬ
+  status: "COMPLETED"                               // ДОБАВИТЬ
+};
   
   console.log('Отправляем данные:', submitData);
   console.log('URL:', `${API}/api/ent/${TEST_ID}/submit`);
