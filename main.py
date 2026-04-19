@@ -111,3 +111,39 @@ def serve_app():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+@app.get("/api/debug/tables")
+def debug_tables(db: Session = Depends(get_db)):
+    try:
+        from sqlalchemy import text
+        result = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"))
+        tables = [row[0] for row in result.fetchall()]
+        return {
+            "status": "connected",
+            "database_type": "postgresql" if "postgresql" in str(db.bind.url) else "sqlite",
+            "tables": tables,
+            "table_count": len(tables)
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/debug/users")  
+def debug_users(db: Session = Depends(get_db)):
+    try:
+        users = db.query(models.User).all()
+        return {
+            "status": "connected", 
+            "user_count": len(users),
+            "users": [{"id": u.id, "iin": u.iin, "name": u.full_name, "role": u.role} for u in users]
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/debug/connection")
+def debug_connection():
+    return {
+        "status": "app_running",
+        "message": "FastAPI работает",
+        "database_url_type": "postgresql" if os.getenv("DATABASE_URL", "").startswith("postgresql") else "sqlite"
+    }
