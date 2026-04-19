@@ -196,56 +196,6 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 const API = window.location.origin;
 const params = new URLSearchParams(window.location.search);
 const TEST_ID = params.get('id');
-
-// === ПЕРЕВОДЫ ===
-const LANG_TEXTS = {
-  RUS: {
-    title: "ЕНТ — Zein Academy",
-    headerTest: "ЕНТ",
-    testTitle: "ЕНТ Тест", 
-    loading: "Загрузка теста...",
-    error: "Тест не найден или недоступен",
-    enterData: "Введите свои данные перед началом",
-    name: "Имя и фамилия",
-    grade: "Класс",
-    phone: "Телефон",
-    profileSubjects: "Профильные предметы",
-    subject1: "Первый предмет",
-    subject2: "Второй предмет",
-    enterName: "Введите имя",
-    selectSubjects: "Выберите профильные предметы",
-    subjectsDifferent: "Профильные предметы должны быть разными",
-    history: "История Казахстана",
-    reading: "Грамотность чтения", 
-    math: "Математическая грамотность",
-    next: "Далее",
-    back: "Назад",
-    submit: "Завершить тест"
-  },
-  KAZ: {
-    title: "ҰБТ — Zein Academy",
-    headerTest: "ҰБТ",
-    testTitle: "ҰБТ Тест",
-    loading: "Тест жүктелуде...",
-    error: "Тест табылмады немесе қол жетімсіз",
-    enterData: "Басталмас бұрын деректеріңізді енгізіңіз",
-    name: "Аты-жөні",
-    grade: "Сынып",
-    phone: "Телефон",
-    profileSubjects: "Бейін пәндері",
-    subject1: "Бірінші пән",
-    subject2: "Екінші пән",
-    enterName: "Атыңызды енгізіңіз",
-    selectSubjects: "Бейін пәндерін таңдаңыз",
-    subjectsDifferent: "Бейін пәндері әртүрлі болуы керек",
-    history: "Қазақстан тарихы",
-    reading: "Оқу сауаттылығы",
-    math: "Математикалық сауаттылық",
-    next: "Әрі қарай",
-    back: "Артқа",
-    submit: "Тестті аяқтау"
-  }
-};
   
 let testData = null;
 let studentInfo = {};
@@ -286,27 +236,8 @@ async function init() {
     const res = await fetch(`${API}/api/ent/${TEST_ID}/public`);
     if (!res.ok) throw new Error();
     testData = await res.json();
-    
-    // === ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ===
-    const testLang = testData.language || 'RUS';
-    const texts = LANG_TEXTS[testLang];
-    
-    // Применяем переводы
-    document.title = texts.title;
-    document.getElementById('header-test-name').textContent = texts.headerTest;
+    document.getElementById('header-test-name').textContent = testData.name;
     document.getElementById('test-name-title').textContent = testData.name;
-    document.getElementById('loading-state').textContent = texts.loading;
-    document.getElementById('error-state').textContent = texts.error;
-    
-    // Обновляем названия предметов
-    SUBJECT_NAMES.history = texts.history;
-    SUBJECT_NAMES.reading = texts.reading; 
-    SUBJECT_NAMES.math = texts.math;
-    
-    // Обновляем UI элементы
-    const enterDataEl = document.querySelector('.card-sub');
-    if (enterDataEl) enterDataEl.textContent = texts.enterData;
-    
     document.getElementById('loading-state').classList.add('hidden');
     document.getElementById('step-info').classList.remove('hidden');
     document.getElementById('nav-bar').style.display = 'flex';
