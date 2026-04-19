@@ -1753,6 +1753,7 @@ async function deleteStudent(id) {
 document.addEventListener('DOMContentLoaded', () => {
       // Мобильное меню
     const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay'); // ДОБАВИТЬ ЭТУ СТРОКУ
     if (sidebar && overlay) {
       const observer = new MutationObserver(() => {
     overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
