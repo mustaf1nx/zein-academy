@@ -261,15 +261,9 @@ function goNext() {
     const name = document.getElementById('st-name').value.trim();
     const subj1 = document.getElementById('st-subj1').value;
     const subj2 = document.getElementById('st-subj2').value;
-    
-    // === ОБНОВЛЁННЫЕ ALERT'Ы С ПЕРЕВОДАМИ ===
-    const testLang = testData.language || 'RUS';
-    const texts = LANG_TEXTS[testLang];
-    
-    if (!name) { alert(texts.enterName); return; }
-    if (!subj1 || !subj2) { alert(texts.selectSubjects); return; }
-    if (subj1 === subj2) { alert(texts.subjectsDifferent); return; }
-    
+    if (!name) { alert('Введите имя'); return; }
+    if (!subj1 || !subj2) { alert('Выберите профильные предметы'); return; }
+    if (subj1 === subj2) { alert('Профильные предметы должны быть разными'); return; }
     studentInfo = {
       name, grade: document.getElementById('st-grade').value,
       language: document.getElementById('st-lang').value,
@@ -278,16 +272,14 @@ function goNext() {
     };
     SUBJECT_NAMES.subject1 = subj1;
     SUBJECT_NAMES.subject2 = subj2;
-    
-    // Build sections — ИСПОЛЬЗУЕМ ПЕРЕВЕДЁННЫЕ НАЗВАНИЯ
+    // Build sections
     sections = [
-      { key: 'history', name: SUBJECT_NAMES.history, structure: STRUCTURE.history },
-      { key: 'reading', name: SUBJECT_NAMES.reading, structure: STRUCTURE.reading },
-      { key: 'math', name: SUBJECT_NAMES.math, structure: STRUCTURE.math },
+      { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
+      { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
+      { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math },
       { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
       { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
     ];
-    
     // Init answers
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
