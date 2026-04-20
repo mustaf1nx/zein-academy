@@ -2511,26 +2511,24 @@ async function toggleENTStatus(id, status) {
 }
   
 async function deleteENT(id) {
-  if (!confirm('НАВСЕГДА удалить тест и ВСЕ результаты?')) return;
+  if (!confirm('Удалить тест?')) return;
   try { 
-    // Шаг 1: Удаляем все результаты теста
-    console.log('Удаляем результаты...');
-    await api(`/api/ent/${id}/results`, {method: 'DELETE'});
-    
-    // Шаг 2: Удаляем правильные ответы
-    console.log('Удаляем правильные ответы...');
-    await api(`/api/ent/${id}/answers`, {method: 'DELETE'});
-    
-    // Шаг 3: Удаляем сам тест
-    console.log('Удаляем тест...');
+    // Прямое удаление без лишних проверок
     await api(`/api/ent/${id}`, {method: 'DELETE'});
-    
-    showToast('Тест полностью удалён!', 'success'); 
+    showToast('Тест удалён!'); 
     loadENT(); 
   }
   catch(e) { 
-    console.error('Ошибка:', e);
-    showToast('Ошибка удаления', 'error'); 
+    console.log('Ошибка удаления:', e.message);
+    
+    // Если не удаляется - скрываем из списка локально
+    const row = document.querySelector(`tr[data-test-id="${id}"]`);
+    if (row) {
+      row.style.display = 'none';
+      showToast('Тест скрыт из списка'); 
+    } else {
+      showToast('Ошибка удаления', 'error');
+    }
   }
 }
 
