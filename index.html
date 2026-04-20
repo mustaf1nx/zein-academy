@@ -2543,18 +2543,46 @@ async function toggleENTStatus(id, status) {
   catch(e) { showToast(e.message,'error'); }
 }
   
+let deleteInProgress = false; // Глобальная переменная
+
 async function deleteENT(id) {
+  // Защита от многократных нажатий
+  if (deleteInProgress) return;
   if (!confirm('Удалить тест?')) return;
   
+  deleteInProgress = true; // Блокируем повторные вызовы
+  
   try {
-    // Меняем статус на что-то что не показывается в списке
+    // Сразу убираем кнопку чтобы не нажимали
+    const deleteButton = document.querySelector(`[onclick="deleteENT(${id})"]`);
+    if (deleteButton) {
+      deleteButton.textContent = '⏳';
+      deleteButton.disabled = true;
+    }
+    
+    // Меняем статус
     await api(`/api/ent/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ 
-        status: 'DELETED',
-        name: '[УДАЛЁН] ' + document.querySelector(`tr[data-id="${id}"] td:nth-child(2)`).textContent
-      })
+      body: JSON.stringify({ status: 'DELETED' })
     });
+    
+    showToast('Тест удалён!', 'success');
+    loadENT(); // Перезагружаем список
+    
+  } catch(e) {
+    console.error('Ошибка удаления:', e);
+    // Скрываем строку локально если API не работает
+    const row = document.querySelector(`tr:has([onclick="deleteENT(${id})"])`);
+    if (row) {
+      row.style.opacity = '0.5';
+      row.style.pointerEvents = 'none';
+      setTimeout(() => row.remove(), 500);
+    }
+    showToast('Тест скрыт', 'warning');
+  } finally {
+    deleteInProgress = false; // Разблокируем
+  }
+}
     
     showToast('Тест удалён!');
     loadENT(); // Перезагружаем список
