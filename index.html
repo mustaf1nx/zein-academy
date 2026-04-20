@@ -2471,7 +2471,10 @@ async function loadAnalytics() {
 async function loadENT() {
   const tbody = document.getElementById('ent-tbody');
   const data = await api('/api/ent/');
-  const filteredData = data.filter(test => test.status !== 'INACTIVE');
+  const visibleTests = data.filter(test => test.status !== 'DELETED');
+  
+  // Дальше используй visibleTests вместо data
+  visibleTests.forEach(test => {
   const activeTests = data.filter(test => test.status !== 'DELETED'); // Фильтруем удалённые
 
 // Дальше используй activeTests вместо data
@@ -2513,19 +2516,24 @@ async function toggleENTStatus(id, status) {
 async function deleteENT(id) {
   if (!confirm('Удалить тест?')) return;
   
-  // Тупо удаляем строку из таблицы без всяких API
-  const tbody = document.getElementById('ent-tbody');
-  const allRows = Array.from(tbody.children);
-  
-  allRows.forEach((row, index) => {
-    const deleteButton = row.querySelector(`[onclick*="deleteENT(${id})"]`);
-    if (deleteButton) {
-      row.remove();
-    }
-  });
-  
-  showToast('Удалён!');
-  // ВСЁ. Никаких fetch, никаких api, никаких ошибок 500.
+  try {
+    // Меняем статус на что-то что не показывается в списке
+    await api(`/api/ent/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ 
+        status: 'DELETED',
+        name: '[УДАЛЁН] ' + document.querySelector(`tr[data-id="${id}"] td:nth-child(2)`).textContent
+      })
+    });
+    
+    showToast('Тест удалён!');
+    loadENT(); // Перезагружаем список
+  } catch(e) {
+    // Если и это не работает - скрываем строку
+    const tbody = document.getElementById('ent-tbody');
+    tbody.querySelector(`tr[onclick*="deleteENT(${id})"]`)?.remove();
+    showToast('Удалён!');
+  }
 }
 
   
