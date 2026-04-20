@@ -2470,6 +2470,10 @@ async function loadAnalytics() {
 // ══ ENT ═══════════════════════════════════════════════════════════
 async function loadENT() {
   const tbody = document.getElementById('ent-tbody');
+  const data = await api('/api/ent/');
+  const activeTests = data.filter(test => test.status !== 'DELETED'); // Фильтруем удалённые
+
+// Дальше используй activeTests вместо data
   if (!tbody) return;
   try {
     const data = await api('/api/ent/');
@@ -2504,10 +2508,32 @@ async function toggleENTStatus(id, status) {
   try { await api(`/api/ent/${id}`,{method:'PUT',body:JSON.stringify({status:status==='ACTIVE'?'INACTIVE':'ACTIVE'})}); showToast('Обновлено'); loadENT(); }
   catch(e) { showToast(e.message,'error'); }
 }
+  
 async function deleteENT(id) {
-  if (!confirm('Удалить тест?')) return;
-  try { await api(`/api/ent/${id}`,{method:'DELETE'}); showToast('Удалено'); loadENT(); }
-  catch(e) { showToast(e.message,'error'); }
+  if (!confirm('Удалить тест? (будет помечен как неактивный)')) return;
+  try { 
+    // Проверим есть ли результаты у теста
+    const results = await api(`/api/ent/${id}/results`);
+    
+    if (results && results.length > 0) {
+      if (!confirm(`У теста ${results.length} результатов. Всё равно удалить?`)) {
+        return;
+      }
+    }
+    
+    // Мягкое удаление - меняем статус вместо DELETE
+    await api(`/api/ent/${id}`, {
+      method: 'PUT', 
+      body: JSON.stringify({ status: 'DELETED' })
+    });
+    
+    showToast('Тест помечен как удалённый'); 
+    loadENT(); 
+  }
+  catch(e) { 
+    console.error('Ошибка удаления:', e);
+    showToast(`Ошибка: ${e.message}`, 'error'); 
+  }
 }
 
 async function openENTEditor(testId, testName) {
