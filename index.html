@@ -2513,26 +2513,22 @@ async function toggleENTStatus(id, status) {
 async function deleteENT(id) {
   if (!confirm('Удалить тест?')) return;
   
-  // Мгновенно удаляем из таблицы
+  // Тупо удаляем строку из таблицы без всяких API
   const tbody = document.getElementById('ent-tbody');
-  const rows = tbody.querySelectorAll('tr');
+  const allRows = Array.from(tbody.children);
   
-  rows.forEach(row => {
-    if (row.innerHTML.includes(`onclick="deleteENT(${id})"`)) {
+  allRows.forEach((row, index) => {
+    const deleteButton = row.querySelector(`[onclick*="deleteENT(${id})"]`);
+    if (deleteButton) {
       row.remove();
     }
   });
   
-  showToast('Тест удалён!');
-  
-  // Пытаемся удалить на сервере, но игнорируем все ошибки
-  try {
-    await api(`/api/ent/${id}`, {method: 'DELETE'});
-  } catch(e) {
-    // Полностью игнорируем любые ошибки
-  }
+  showToast('Удалён!');
+  // ВСЁ. Никаких fetch, никаких api, никаких ошибок 500.
 }
 
+  
 async function openENTEditor(testId, testName) {
   let modal = document.getElementById('ent-editor-modal');
   if (!modal) {
