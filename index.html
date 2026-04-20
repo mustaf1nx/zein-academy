@@ -2511,19 +2511,26 @@ async function toggleENTStatus(id, status) {
 }
   
 async function deleteENT(id) {
-  if (!confirm('Удалить тест?')) return;
+  if (!confirm('НАВСЕГДА удалить тест и ВСЕ результаты?')) return;
   try { 
-    // Простое изменение статуса - ВСЕГДА работает
-    await api(`/api/ent/${id}`, {
-      method: 'PUT', 
-      body: JSON.stringify({ status: 'INACTIVE' })
-    });
-    showToast('Удалено'); 
+    // Шаг 1: Удаляем все результаты теста
+    console.log('Удаляем результаты...');
+    await api(`/api/ent/${id}/results`, {method: 'DELETE'});
+    
+    // Шаг 2: Удаляем правильные ответы
+    console.log('Удаляем правильные ответы...');
+    await api(`/api/ent/${id}/answers`, {method: 'DELETE'});
+    
+    // Шаг 3: Удаляем сам тест
+    console.log('Удаляем тест...');
+    await api(`/api/ent/${id}`, {method: 'DELETE'});
+    
+    showToast('Тест полностью удалён!', 'success'); 
     loadENT(); 
   }
   catch(e) { 
-    showToast('Удалено', 'success'); // Просто считаем что удалилось
-    loadENT(); // И перезагружаем список
+    console.error('Ошибка:', e);
+    showToast('Ошибка удаления', 'error'); 
   }
 }
 
