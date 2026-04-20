@@ -1486,102 +1486,6 @@ tbody td { padding: 11px 14px; color: #333; }
 // ZEIN ACADEMY — Полная интеграция с API
 // ══════════════════════════════════════════════════════════════════
 
-
-<script>
-// === ПОЛНЫЙ ФИКС ВСЕХ ПРОБЛЕМ ===
-(function() {
-  'use strict';
-  
-  // Предотвращаем дублирование
-  if (window.FIXES_APPLIED) return;
-  window.FIXES_APPLIED = true;
-  
-  // 1. Фикс quickLogin
-  window.quickLogin = function(role) {
-    try {
-      const iin = role === 'admin' ? '900101350123' : '950215450234';
-      const pwd = role === 'admin' ? 'zein2024' : 'teacher123';
-      
-      const iinField = document.getElementById('iin-input');
-      const passField = document.getElementById('pass-input');
-      
-      if (iinField && passField) {
-        iinField.value = iin;
-        passField.value = pwd;
-        
-        // Автоматический вход
-        setTimeout(() => {
-          if (window.doLogin) {
-            window.doLogin();
-          } else {
-            document.getElementById('login-btn')?.click();
-          }
-        }, 200);
-      }
-    } catch(e) {
-      console.error('quickLogin error:', e);
-    }
-  };
-  
-  // 2. Фикс deleteENT
-  let deleteInProgress = false;
-  
-  window.deleteENT = function(id) {
-    if (deleteInProgress) return;
-    if (!confirm('Удалить тест?')) return;
-    
-    deleteInProgress = true;
-    
-    try {
-      // Мгновенно убираем из таблицы
-      const tbody = document.getElementById('ent-tbody');
-      if (tbody) {
-        const rows = Array.from(tbody.children);
-        rows.forEach(row => {
-          if (row.innerHTML.includes(`deleteENT(${id})`)) {
-            row.style.opacity = '0.3';
-            row.style.transition = 'opacity 0.3s';
-            setTimeout(() => row.remove(), 300);
-          }
-        });
-      }
-      
-      if (window.showToast) {
-        window.showToast('Тест удалён!');
-      }
-      
-      // Пытаемся удалить на сервере в фоне
-      if (window.api) {
-        window.api(`/api/ent/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify({ status: 'DELETED' })
-        }).catch(() => {});
-      }
-      
-    } catch(e) {
-      console.error('deleteENT error:', e);
-    } finally {
-      setTimeout(() => {
-        deleteInProgress = false;
-      }, 1000);
-    }
-  };
-  
-  // 3. Перехват ошибок
-  window.addEventListener('error', function(e) {
-    if (e.message.includes('quickLogin') || e.message.includes('deleteENT')) {
-      e.preventDefault();
-      return false;
-    }
-  });
-  
-  console.log('✅ Все фиксы применены!');
-})();
-
-// === ОРИГИНАЛЬНЫЙ КОД НИЖЕ ===
-
-
-  
 const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : window.location.origin;
 let TOKEN = localStorage.getItem('zein_token');
 let CURRENT_USER = JSON.parse(localStorage.getItem('zein_user') || 'null');
@@ -1691,13 +1595,25 @@ async function quickLogin(role) {
   const btn = document.getElementById('login-btn');
   btn.classList.add('loading'); btn.textContent = 'Вход...';
   try {
+    // Правильные учетные данные для разных ролей
+    const credentials = {
+      admin: { iin: '900101350123', password: 'zein2024' },
+      teacher: { iin: '950215450234', password: 'teacher123' }
+    };
+    
+    const creds = credentials[role] || credentials.admin;
+    
     const data = await api('/api/auth/login', {
-      method:'POST', body: JSON.stringify({ iin:'900101350123', password:'zein2024' })
+      method:'POST', body: JSON.stringify(creds)
     });
-    if (!data) { showToast('Войдите через форму', 'error'); return; }
+    
+    if (!data) { showToast('Ошибка входа', 'error'); return; }
     _saveSession(data);
     enterApp(data.role, data.full_name, data.initials);
-  } catch(e) { showToast(e.message, 'error'); }
+  } catch(e) { 
+    console.error('quickLogin error:', e);
+    showToast('Ошибка входа: ' + e.message, 'error'); 
+  }
   finally { btn.classList.remove('loading'); btn.textContent = 'Войти в систему'; }
 }
 
@@ -1875,9 +1791,9 @@ async function removeStudentFromGroup(groupId, studentId) {
 document.addEventListener('DOMContentLoaded', () => {
       // Мобильное меню
     const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.mobile-overlay'); // ДОБАВИТЬ ЭТУ СТРОКУ
     if (sidebar && overlay) {
       const observer = new MutationObserver(() => {
+    overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
   });
   observer.observe(sidebar, {attributes: true, attributeFilter: ['class']});
 }
@@ -2594,7 +2510,6 @@ async function loadAnalytics() {
 async function loadENT() {
   const tbody = document.getElementById('ent-tbody');
   if (!tbody) return;
-  
   try {
     const data = await api('/api/ent/');
     
@@ -2607,7 +2522,7 @@ async function loadENT() {
     }
     
     tbody.innerHTML = activeTests.map(e => `
-      <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+    <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
         <td>${e.id}</td>
         <td><b>${e.name}</b></td>
         <td><span class="badge ${e.status==='ACTIVE'?'badge-active':'badge-inactive'}">${e.status}</span></td>
@@ -2622,75 +2537,63 @@ async function loadENT() {
               <div class="action-dropdown-item" onclick="openENTEditor(${e.id},'${e.name}')">✏️ Ввести ответы</div>
               <div class="action-dropdown-item" onclick="showENTLink(${e.id},'${e.name}')">🔗 Ссылка и QR</div>
               <div class="action-dropdown-item" onclick="showENTResults(${e.id},'${e.name}')">📊 Результаты</div>
-              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}</div>
-              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">🗑 Удалить</div>
+              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
+              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">${icon('trash')} Удалить</div>
             </div>
           </div>
         </td>
       </tr>`).join('');
-  } catch(e) { 
-    console.error('Ошибка загрузки ЕНТ тестов:', e);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ef4444;padding:16px">Ошибка загрузки</td></tr>';
-  }
+  } catch(e) { console.error(e); }
 }
 
 async function toggleENTStatus(id, status) {
   try { await api(`/api/ent/${id}`,{method:'PUT',body:JSON.stringify({status:status==='ACTIVE'?'INACTIVE':'ACTIVE'})}); showToast('Обновлено'); loadENT(); }
   catch(e) { showToast(e.message,'error'); }
 }
-  
-let deleteInProgress = false; // Глобальная переменная
-
 async function deleteENT(id) {
-  // Защита от многократных нажатий
-  if (deleteInProgress) return;
   if (!confirm('Удалить тест?')) return;
   
-  deleteInProgress = true; // Блокируем повторные вызовы
-  
   try {
-    // Сразу убираем кнопку чтобы не нажимали
-    const deleteButton = document.querySelector(`[onclick="deleteENT(${id})"]`);
-    if (deleteButton) {
-      deleteButton.textContent = '⏳';
-      deleteButton.disabled = true;
-    }
-    
-    // Меняем статус
+    // Попытка мягкого удаления (изменение статуса)
     await api(`/api/ent/${id}`, {
-      method: 'PUT',
+      method: 'PUT', 
       body: JSON.stringify({ status: 'DELETED' })
     });
     
-    showToast('Тест удалён!', 'success');
-    loadENT(); // Перезагружаем список
+    showToast('Тест удалён!', 'success'); 
+    loadENT();
     
   } catch(e) {
-    console.error('Ошибка удаления:', e);
-    // Скрываем строку локально если API не работает
-    const row = document.querySelector(`tr:has([onclick="deleteENT(${id})"])`);
-    if (row) {
-      row.style.opacity = '0.5';
-      row.style.pointerEvents = 'none';
-      setTimeout(() => row.remove(), 500);
+    console.error('deleteENT error:', e);
+    
+    try {
+      // Fallback: попытка обычного DELETE
+      await api(`/api/ent/${id}`, {method: 'DELETE'});
+      showToast('Тест удалён!', 'success');
+      loadENT();
+      
+    } catch(e2) {
+      console.error('deleteENT fallback error:', e2);
+      
+      // Последний fallback: скрыть из интерфейса
+      const tbody = document.getElementById('ent-tbody');
+      if (tbody) {
+        const rows = Array.from(tbody.children);
+        rows.forEach(row => {
+          if (row.innerHTML.includes(`deleteENT(${id})`)) {
+            row.style.transition = 'opacity 0.3s';
+            row.style.opacity = '0.5';
+            setTimeout(() => row.remove(), 300);
+          }
+        });
+        showToast('Тест скрыт из списка', 'warning');
+      } else {
+        showToast('Ошибка удаления: ' + e2.message, 'error');
+      }
     }
-    showToast('Тест скрыт', 'warning');
-  } finally {
-    deleteInProgress = false; // Разблокируем
-  }
-}
-    
-    showToast('Тест удалён!');
-    loadENT(); // Перезагружаем список
-  } catch(e) {
-    // Если и это не работает - скрываем строку
-    const tbody = document.getElementById('ent-tbody');
-    tbody.querySelector(`tr[onclick*="deleteENT(${id})"]`)?.remove();
-    showToast('Удалён!');
   }
 }
 
-  
 async function openENTEditor(testId, testName) {
   let modal = document.getElementById('ent-editor-modal');
   if (!modal) {
@@ -2701,8 +2604,8 @@ async function openENTEditor(testId, testName) {
   }
 
   const PROFILE_SUBJECTS = ['Математика','Физика','Химия','Биология','География',
-    'Всемирная история','Информатика','Английский язык','Русский язык',
-    'Казахский язык', 'Русская литература', 'Казахская литература', 'Основы права','История Казахстана (профиль)'];
+    'Всемирная история','Информатика','Английский язык','Русский язык (профиль)',
+    'Казахский язык (профиль)','Основы права','История Казахстана (профиль)'];
 
   const BASE_SECTIONS = [
     { key:'history', name:'История КЗ', type:'single', count:20, opts:['A','B','C','D'] },
