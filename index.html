@@ -1748,6 +1748,33 @@ async function deleteStudent(id) {
   } catch(e) { showToast(e.message,'error'); }
 }
 
+// Helper function for deleting student from modal
+async function deleteStudentFromModal(studentId) {
+  showConfirm('Удалить ученика?', 'Это действие нельзя отменить', async () => {
+    try {
+      await api(`/api/students/${studentId}`, {method: 'DELETE'});
+      document.getElementById('student-profile-modal').style.display = 'none';
+      loadStudents();
+      showToast('Удалено');
+    } catch(e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
+// Helper function for removing student from group
+async function removeStudentFromGroup(groupId, studentId) {
+  showConfirm('Убрать из группы?', '', async () => {
+    try {
+      await api(`/api/groups/${groupId}/students/${studentId}`, {method: 'DELETE'});
+      loadStudentGroups(studentId);
+      showToast('Убран из группы');
+    } catch(e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
 // Search
 document.addEventListener('DOMContentLoaded', () => {
       // Мобильное меню
@@ -2470,21 +2497,21 @@ async function loadAnalytics() {
 // ══ ENT ═══════════════════════════════════════════════════════════
 async function loadENT() {
   const tbody = document.getElementById('ent-tbody');
-  const data = await api('/api/ent/');
-  const visibleTests = data.filter(test => test.status !== 'DELETED');
-  
-  // Дальше используй visibleTests вместо data
-  visibleTests.forEach(test => {
-  const activeTests = data.filter(test => test.status !== 'DELETED'); // Фильтруем удалённые
-
-// Дальше используй activeTests вместо data
   if (!tbody) return;
+  
   try {
     const data = await api('/api/ent/');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:16px">Тестов нет</td></tr>'; return; }
-    tbody.innerHTML = data.map(e => `
-    <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
-      <tr>
+    
+    // Filter out deleted tests
+    const activeTests = data.filter(test => test.status !== 'DELETED');
+    
+    if (!activeTests?.length) { 
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:16px">Тестов нет</td></tr>'; 
+      return; 
+    }
+    
+    tbody.innerHTML = activeTests.map(e => `
+      <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
         <td>${e.id}</td>
         <td><b>${e.name}</b></td>
         <td><span class="badge ${e.status==='ACTIVE'?'badge-active':'badge-inactive'}">${e.status}</span></td>
@@ -2499,13 +2526,16 @@ async function loadENT() {
               <div class="action-dropdown-item" onclick="openENTEditor(${e.id},'${e.name}')">✏️ Ввести ответы</div>
               <div class="action-dropdown-item" onclick="showENTLink(${e.id},'${e.name}')">🔗 Ссылка и QR</div>
               <div class="action-dropdown-item" onclick="showENTResults(${e.id},'${e.name}')">📊 Результаты</div>
-              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
-              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">${icon('trash')} Удалить</div>
+              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}</div>
+              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">🗑 Удалить</div>
             </div>
           </div>
         </td>
       </tr>`).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) { 
+    console.error('Ошибка загрузки ЕНТ тестов:', e);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ef4444;padding:16px">Ошибка загрузки</td></tr>';
+  }
 }
 
 async function toggleENTStatus(id, status) {
@@ -3212,7 +3242,7 @@ async function openStudentProfile(studentId) {
           class="btn btn-sm" style="background:${student.status==='ACTIVE'?'#fee2e2':'#dcfce7'};color:${student.status==='ACTIVE'?'#dc2626':'#16a34a'};border:1px solid ${student.status==='ACTIVE'?'#fca5a5':'#86efac'}">
           ${student.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}
         </button>
-        <button onclick="showConfirm('Удалить ученика?','Это действие нельзя отменить',async()=>{await api(\`/api/students/${student.id}\`,{method:'DELETE'});document.getElementById('student-profile-modal').style.display='none';loadStudents();showToast('Удалено')})"
+        <button onclick="deleteStudentFromModal(${student.id})"
           class="btn btn-danger btn-sm">🗑 Удалить</button>
       </div>
 
@@ -3496,7 +3526,7 @@ async function loadStudentGroups(studentId) {
               👤 ${g.teacher_name||'—'} · 🕐 ${timeStr} · 📅 ${daysStr}
             </div>
           </div>
-          <button onclick="showConfirm('Убрать из группы?','',async()=>{await api(\`/api/groups/${g.id}/students/${studentId}\`,{method:'DELETE'});loadStudentGroups(${studentId});showToast('Убран из группы')})"
+          <button onclick="removeStudentFromGroup(${g.id}, ${studentId})"
             style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px">✕ Убрать</button>
         </div>`;
     }).join('') + `
