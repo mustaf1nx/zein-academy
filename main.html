@@ -454,11 +454,16 @@ tbody td { padding: 11px 14px; color: #333; }
   </div>
 
   <!-- Role switcher -->
-  {% if user.role == role_enum.admin %}
+{% if user.role == role_enum.admin %}
   <div class="role-bar">
     <button class="role-btn active" onclick="setRole('admin')">Ст. тренер</button>
     <button class="role-btn" onclick="setRole('teacher')">Учитель</button>
   </div>
+  {% else %}
+  <div class="role-bar" style="border-bottom: none; padding-bottom: 0;">
+    <span style="font-size: 11px; font-weight: 600; color: #6366f1; background: #eef0ff; padding: 4px 12px; border-radius: 20px;">Преподаватель</span>
+  </div>
+  {% endif %}
 
   <nav class="nav" id="nav">
     <!-- populated by JS -->
@@ -1177,6 +1182,10 @@ tbody td { padding: 11px 14px; color: #333; }
 
 <script>
 // ===================== DATA =====================
+// Передаем роль из FastAPI/Jinja2 напрямую в JS
+const CURRENT_USER_ROLE = "{{ user.role.value if hasattr(user.role, 'value') else user.role }}";
+const ADMIN_ROLE_VALUE = "admin"; // Строковое значение роли админа в твоей БД
+  
 const students = [
   {id:'3...',name:'? Ангелина',phone:'+8778779...',parent:'Руслан',parentPhone:'+8778779...',branch:'Сыгана...',mentor:'Елубай...',grade:11,lang:'RUS',status:'INACTIVE',groups:0},
   {id:'3...',name:'+77477034635...',phone:'+7747703...',parent:'Мархаба',parentPhone:'+7747703...',branch:'Керей ...',mentor:'Серікба...',grade:10,lang:'KAZ',status:'ACTIVE',groups:2},
@@ -1707,15 +1716,45 @@ function populateSlots() {
 }
 
 // ===================== INTERACTIONS =====================
-let currentRole = 'admin';
-
+// При загрузке проверяем роль из базы данных
+if (REAL_DATABASE_ROLE === ADMIN_VALUE) {
+    setRole('admin');
+} else {
+    setRole('teacher');
+}
 function setRole(role) {
+  // Железная проверка: если пользователь в БД не админ, он ВСЕГДА принудительно учитель
+  if (REAL_DATABASE_ROLE !== ADMIN_VALUE) {
+    role = 'teacher';
+  }
+
   currentRole = role;
-  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  renderNav(role);
-  if(role==='teacher') showPage('page-my-groups');
-  else showPage('page-students');
+
+  // Обновляем визуальный статус кнопок переключателя (если они отрендерились админу)
+  const btnAdmin = document.getElementById('role-btn-admin');
+  const btnTeacher = document.getElementById('role-btn-teacher');
+  
+  if (btnAdmin && btnTeacher) {
+    if (role === 'admin') {
+      btnAdmin.classList.add('active');
+      btnTeacher.classList.remove('active');
+    } else {
+      btnTeacher.classList.add('active');
+      btnAdmin.classList.remove('remove'); // исправляем возможную опечатку active
+      btnTeacher.classList.add('active');
+      btnAdmin.classList.remove('active');
+    }
+  }
+
+  // Перерисовываем меню навигации под выбранную роль
+  renderNav();
+  
+  // Открываем дефолтную страницу для этой роли
+  if (role === 'admin') {
+    showPage('page-students');
+  } else {
+    showPage('page-my-groups'); // У учителя дефолтное окно — "Мои группы"
+  }
 }
 
 function showPage(pageId) {
