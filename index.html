@@ -130,65 +130,82 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
 }
 /* ── Left brand panel ── */
 .login-left {
-  flex: 1.15;
+  flex: 1.1;
   background:
-    radial-gradient(circle at 80% 12%, rgba(233,194,90,.16), transparent 42%),
-    radial-gradient(circle at 10% 92%, rgba(200,150,30,.14), transparent 50%),
+    radial-gradient(ellipse 55% 45% at 30% 30%, rgba(233,194,90,.10), transparent 60%),
+    radial-gradient(circle at 92% 8%, rgba(200,150,30,.10), transparent 45%),
     var(--grad-graphite);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: flex-start;
   position: relative; overflow: hidden;
-  padding: 56px;
+  padding: 64px 88px;
+  padding: 64px clamp(48px, 7vw, 104px);
   color: #fff;
 }
 /* grain */
 .login-left::after {
-  content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
-  background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.45;
+  background-image: radial-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
   background-size: 4px 4px;
 }
 .login-dots { position: absolute; inset: 0; pointer-events: none; }
 .login-dot {
   position: absolute; border-radius: 50%;
   background: var(--gold);
-  opacity:.45;
+  opacity:.4;
   animation: floatDot var(--d,6s) ease-in-out infinite;
   animation-delay: var(--dl,0s);
 }
 .login-left-content {
   position: relative; z-index: 1;
   animation: fadeInUp .7s ease both;
-  max-width: 480px;
+  width: 100%; max-width: 460px;
+  display: flex; flex-direction: column;
+  align-items: flex-start;
 }
 .login-brand {
   display: flex; flex-direction: column; align-items: flex-start; gap: 0;
-  margin-bottom: 52px;
+  position: relative;
+  margin-bottom: 44px;
 }
-.login-brand-logo { width: 280px; max-width: 80%; height: auto; filter: drop-shadow(0 8px 30px rgba(233,194,90,.22)); }
+/* soft glow anchoring the logo to the column */
+.login-brand::before {
+  content:''; position:absolute; z-index:-1;
+  left: -40px; top: 50%; transform: translateY(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(233,194,90,.16), transparent 65%);
+  pointer-events: none;
+}
+.login-brand-logo {
+  width: 220px; height: auto; display: block;
+  filter: drop-shadow(0 10px 32px rgba(233,194,90,.28));
+}
 .login-tagline {
-  font-size: 12px; color: var(--gold-light); margin-top: 14px;
-  font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+  font-size: 11.5px; color: var(--gold-light); margin-top: 18px;
+  font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+  padding-left: 3px;
 }
 .login-hero-title {
   font-family: var(--font-display);
-  font-size: 52px; font-weight: 600; color: #fff;
-  line-height: 1.05; letter-spacing: -1px; margin-bottom: 22px;
+  font-size: 50px;
+  font-size: clamp(40px, 4.6vw, 56px); font-weight: 600; color: #fff;
+  line-height: 1.0; letter-spacing: -1.5px; margin-bottom: 26px;
 }
 .login-hero-title em {
   font-style: italic; font-weight: 500;
   background: var(--grad-gold); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .login-hero-sub {
-  font-size: 15.5px; color: #b8b3a4; line-height: 1.65; max-width: 410px;
+  font-size: 15px; color: #aaa498; line-height: 1.7; max-width: 380px;
 }
 .login-feature-row {
-  display: flex; gap: 26px; margin-top: 46px; flex-wrap: wrap;
+  display: flex; gap: 14px 28px; margin-top: 36px; flex-wrap: wrap;
 }
-.login-feature { display:flex; align-items:center; gap:9px; font-size:13.5px; color:#d8d2c2; font-weight:500; }
-.login-feature svg { width:17px; height:17px; color:var(--gold-light); flex-shrink:0; }
+.login-feature { display:flex; align-items:center; gap:8px; font-size:13px; color:#cfc9ba; font-weight:500; }
+.login-feature svg { width:16px; height:16px; color:var(--gold-light); flex-shrink:0; }
 
-/* decorative rings */
-.login-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(143,179,164,.12); pointer-events: none; }
-.login-ring-spin { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(224,101,63,.18); animation: spinRing 26s linear infinite; pointer-events: none; }
+/* decorative rings — subtle depth, top-right + bottom-left only */
+.login-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(233,194,90,.10); pointer-events: none; }
+.login-ring-spin { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(233,194,90,.10); animation: spinRing 40s linear infinite; pointer-events: none; }
 
 /* ── Right form panel ── */
 .login-right {
@@ -731,14 +748,13 @@ tbody td { padding: 11px 14px; color: var(--text); }
 <div class="login-screen" id="login-screen">
 
   <div class="login-left">
-    <div class="login-ring" style="width:320px;height:320px;bottom:-80px;left:-80px"></div>
-    <div class="login-ring" style="width:200px;height:200px;top:60px;right:60px"></div>
-    <div class="login-ring-spin" style="width:440px;height:440px;bottom:-140px;left:-140px"></div>
+    <div class="login-ring" style="width:380px;height:380px;bottom:-120px;right:-100px"></div>
+    <div class="login-ring-spin" style="width:560px;height:560px;bottom:-200px;right:-180px"></div>
+    <div class="login-ring" style="width:240px;height:240px;top:-90px;left:-70px"></div>
     <div class="login-dots">
-      <div class="login-dot" style="width:8px;height:8px;top:18%;left:22%;--d:7s;--dl:0s"></div>
-      <div class="login-dot" style="width:5px;height:5px;top:55%;left:65%;--d:9s;--dl:1.2s"></div>
-      <div class="login-dot" style="width:6px;height:6px;top:75%;left:38%;--d:6s;--dl:.5s"></div>
-      <div class="login-dot" style="width:10px;height:10px;top:30%;left:78%;--d:8s;--dl:2s"></div>
+      <div class="login-dot" style="width:6px;height:6px;top:14%;right:18%;--d:7s;--dl:0s"></div>
+      <div class="login-dot" style="width:4px;height:4px;top:42%;right:10%;--d:9s;--dl:1.2s"></div>
+      <div class="login-dot" style="width:5px;height:5px;bottom:16%;right:30%;--d:6s;--dl:.5s"></div>
     </div>
     <div class="login-left-content">
       <div class="login-brand">
