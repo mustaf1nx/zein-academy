@@ -5,6 +5,7 @@ Zein Academy — Backend API
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends
@@ -48,6 +49,11 @@ app.include_router(ent_router)
 app.include_router(forbidden_router)
 app.include_router(mentors_router)
 app.include_router(analytics_router)
+
+# Статические файлы (логотипы и пр.)
+_assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+if os.path.isdir(_assets_dir):
+    app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
 
 
 @app.on_event("startup")

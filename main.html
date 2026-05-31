@@ -449,24 +449,19 @@ tbody td { padding: 11px 14px; color: #333; }
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">Z</div>
-    <div class="logo-text">ZEIN</div>
+    <div class="logo-icon">N</div>
+    <div class="logo-text">newton</div>
   </div>
 
-<nav class="nav" id="nav">
-  {% if user.role == role_enum.admin %}
-    <a href="/users">Сотрудники</a>
-    <a href="/groups">Группы</a>
-    <a href="/analytics">Аналитика</a>
-    <!-- другие пункты для админа -->
-  {% elif user.role == role_enum.teacher %}
-    <a href="/students">Ученики</a>
-    <a href="/my-groups">Мои группы</a>
-    <a href="/tasks">Мои задачи</a>
-    <!-- другие пункты для учителя -->
-  {% endif %}
-</nav>
+  <!-- Role switcher -->
+  <div class="role-bar">
+    <button class="role-btn active" onclick="setRole('admin')">Ст. тренер</button>
+    <button class="role-btn" onclick="setRole('teacher')">Учитель</button>
+  </div>
 
+  <nav class="nav" id="nav">
+    <!-- populated by JS -->
+  </nav>
 
   <div class="sidebar-user">
     <div class="user-avatar">ТЕ</div>

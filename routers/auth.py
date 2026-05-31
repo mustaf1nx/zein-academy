@@ -27,6 +27,7 @@ def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
         full_name=user.full_name,
         initials=user.initials,
         user_id=user.id,
+        iin=user.iin,
     )
 
 

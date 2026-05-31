@@ -3,13 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZEIN</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>ZEIN Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@300..800&display=swap" rel="stylesheet">
 
 
 <style>
+:root {
+  /* ── ZEIN brand: graphite + gold ── */
+  --ink:        #c8961e;   /* brand gold — primary accent */
+  --ink-700:    #b1830f;
+  --ink-600:    #d9a526;
+  --ink-500:    #e0ab2e;   /* lighter gold (hover) */
+  --ink-soft:   #fbf2dc;   /* gold tint surface */
+  --ink-softer: #fdf8ec;
+
+  --accent:     #c8961e;   /* gold accent */
+  --accent-600: #b1830f;
+  --accent-soft:#fbf2dc;
+
+  --gold:       #c8961e;
+  --gold-light: #e9c25a;
+
+  --graphite:   #16161a;   /* near-black brand */
+  --graphite-2: #1f1f25;
+  --graphite-3: #2a2a32;
+
+  --paper:      #f6f4ef;   /* warm light background */
+  --paper-2:    #fdfcf9;
+  --surface:    #ffffff;
+  --line:       #e7e3d8;
+  --line-soft:  #f1ede2;
+
+  --text:       #1a1a1e;
+  --text-2:     #5c5c64;
+  --text-3:     #9a9aa2;
+
+  --grad-primary: linear-gradient(135deg, #d9a526 0%, #b1830f 100%);
+  --grad-gold:    linear-gradient(135deg, #e9c25a 0%, #c8961e 55%, #a9760a 100%);
+  --grad-accent:  linear-gradient(135deg, #e0ab2e 0%, #b1830f 100%);
+  --grad-graphite:linear-gradient(150deg, #1f1f25 0%, #16161a 60%, #101013 100%);
+
+  --danger:     #d6453d;
+  --danger-600: #b8342d;
+
+  --radius:     14px;
+  --radius-sm:  10px;
+  --shadow:     0 6px 28px rgba(0,0,0,.10);
+  --shadow-lg:  0 18px 50px rgba(0,0,0,.18);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; display: flex; height: 100vh; overflow: hidden; }
+body { font-family: var(--font-body); background: var(--paper); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
 /* ===== LOGIN SCREEN ===== */
 
@@ -38,7 +86,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; di
     right: 0;
     height: 56px;
     background: #fff;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--line);
     align-items: center;
     padding: 0 16px;
     z-index: 999;
@@ -77,179 +125,164 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; di
 .login-screen {
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: stretch;
-  background: #0b0e1a;
-  font-family: 'Inter', sans-serif;
+  background: var(--paper);
+  font-family: var(--font-body);
 }
+/* ── Left brand panel ── */
 .login-left {
-  flex: 1;
-  background: linear-gradient(145deg, #0f1525 0%, #141d38 60%, #0f1525 100%);
+  flex: 1.15;
+  background:
+    radial-gradient(circle at 80% 12%, rgba(233,194,90,.16), transparent 42%),
+    radial-gradient(circle at 10% 92%, rgba(200,150,30,.14), transparent 50%),
+    var(--grad-graphite);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
-  padding: 48px;
+  padding: 56px;
+  color: #fff;
 }
-.login-dots {
-  position: absolute; inset: 0; pointer-events: none;
+/* grain */
+.login-left::after {
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 4px 4px;
 }
+.login-dots { position: absolute; inset: 0; pointer-events: none; }
 .login-dot {
   position: absolute; border-radius: 50%;
-  background: #4f8ef7;
+  background: var(--gold);
+  opacity:.45;
   animation: floatDot var(--d,6s) ease-in-out infinite;
   animation-delay: var(--dl,0s);
 }
 .login-left-content {
   position: relative; z-index: 1;
   animation: fadeInUp .7s ease both;
+  max-width: 480px;
 }
 .login-brand {
-  display: flex; align-items: center; gap: 14px;
-  margin-bottom: 48px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+  margin-bottom: 52px;
 }
-.login-brand-icon {
-  width: 52px; height: 52px; border-radius: 14px;
-  background: linear-gradient(135deg,#4f8ef7,#7c5cfc);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-weight: 900; color: #fff;
-  box-shadow: 0 8px 32px rgba(79,142,247,.35);
-}
-.login-brand-name {
-  font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -.5px;
-}
+.login-brand-logo { width: 280px; max-width: 80%; height: auto; filter: drop-shadow(0 8px 30px rgba(233,194,90,.22)); }
 .login-tagline {
-  font-size: 15px; color: #5a6a9a; margin-top: 2px; font-weight: 400;
+  font-size: 12px; color: var(--gold-light); margin-top: 14px;
+  font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
 }
 .login-hero-title {
-  font-size: 38px; font-weight: 800; color: #fff;
-  line-height: 1.15; letter-spacing: -.8px; margin-bottom: 18px;
-  max-width: 420px;
+  font-family: var(--font-display);
+  font-size: 52px; font-weight: 600; color: #fff;
+  line-height: 1.05; letter-spacing: -1px; margin-bottom: 22px;
 }
-.login-hero-title span { color: #4f8ef7; }
+.login-hero-title em {
+  font-style: italic; font-weight: 500;
+  background: var(--grad-gold); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 .login-hero-sub {
-  font-size: 15px; color: #5a6a9a; line-height: 1.6; max-width: 360px;
+  font-size: 15.5px; color: #b8b3a4; line-height: 1.65; max-width: 410px;
 }
-.login-stats {
-  display: flex; gap: 32px; margin-top: 48px;
+.login-feature-row {
+  display: flex; gap: 26px; margin-top: 46px; flex-wrap: wrap;
 }
-.login-stat-val {
-  font-size: 24px; font-weight: 800; color: #fff;
-}
-.login-stat-label {
-  font-size: 12px; color: #4a5a80; margin-top: 2px;
-}
+.login-feature { display:flex; align-items:center; gap:9px; font-size:13.5px; color:#d8d2c2; font-weight:500; }
+.login-feature svg { width:17px; height:17px; color:var(--gold-light); flex-shrink:0; }
 
-/* Ring decoration */
-.login-ring {
-  position: absolute; border-radius: 50%;
-  border: 1px solid rgba(79,142,247,.1);
-  pointer-events: none;
-}
-.login-ring-spin {
-  position: absolute; border-radius: 50%;
-  border: 1.5px dashed rgba(79,142,247,.15);
-  animation: spinRing 18s linear infinite;
-  pointer-events: none;
-}
+/* decorative rings */
+.login-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(143,179,164,.12); pointer-events: none; }
+.login-ring-spin { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(224,101,63,.18); animation: spinRing 26s linear infinite; pointer-events: none; }
 
-/* Right side — form */
+/* ── Right form panel ── */
 .login-right {
-  width: 460px; flex-shrink: 0;
-  background: #fff;
+  width: 480px; flex-shrink: 0;
+  background: var(--paper-2);
   display: flex; align-items: center; justify-content: center;
-  padding: 48px 44px;
+  padding: 48px 52px;
+  border-left: 1px solid var(--line);
 }
-.login-form-wrap {
-  width: 100%;
-  animation: fadeInUp .55s .1s ease both;
-}
+.login-form-wrap { width: 100%; animation: fadeInUp .55s .1s ease both; }
 .login-form-title {
-  font-size: 24px; font-weight: 800; color: #0d1117; margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 30px; font-weight: 600; color: var(--text); margin-bottom: 6px;
+  letter-spacing: -.5px;
 }
-.login-form-sub {
-  font-size: 14px; color: #8891b0; margin-bottom: 36px;
-}
+.login-form-sub { font-size: 14.5px; color: var(--text-2); margin-bottom: 36px; }
 .lf-group { margin-bottom: 20px; }
 .lf-label {
-  display: block; font-size: 12px; font-weight: 700;
-  color: #4a5578; letter-spacing: .4px; text-transform: uppercase;
-  margin-bottom: 7px;
+  display: block; font-size: 11.5px; font-weight: 700;
+  color: var(--text-2); letter-spacing: .6px; text-transform: uppercase;
+  margin-bottom: 8px;
 }
 .lf-input-wrap { position: relative; }
-.lf-input-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  color: #b0b8d0; display: flex; pointer-events: none;
-}
+.lf-input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-3); display: flex; pointer-events: none; }
 .lf-input {
-  width: 100%; padding: 13px 14px 13px 42px;
-  border: 2px solid #e8eaf2; border-radius: 10px;
-  font-size: 14px; font-family: inherit; color: #0d1117;
-  background: #f8f9fc; outline: none;
-  transition: border-color .2s, background .2s, box-shadow .2s;
+  width: 100%; padding: 14px 14px 14px 44px;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  font-size: 14.5px; font-family: inherit; color: var(--text);
+  background: var(--surface); outline: none;
+  transition: border-color .2s, box-shadow .2s;
   letter-spacing: .3px;
 }
-.lf-input:focus {
-  border-color: #4f8ef7; background: #fff;
-  box-shadow: 0 0 0 3px rgba(79,142,247,.12);
-}
-.lf-input.error { border-color: #ef4444; background: #fff8f8; }
-.lf-input::placeholder { color: #c0c8de; }
-.lf-eye {
-  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer; color: #b0b8d0; padding: 4px;
-  display: flex; border-radius: 6px; transition: color .15s;
-}
-.lf-eye:hover { color: #4f8ef7; }
-.lf-hint { font-size: 11px; color: #a0a8c0; margin-top: 5px; }
-.lf-hint.error-msg { color: #ef4444; display: none; }
+.lf-input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,150,30,.18); }
+.lf-input.error { border-color: var(--danger); background: #fff8f7; }
+.lf-input::placeholder { color: var(--text-3); }
+.lf-eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-3); padding: 4px; display: flex; border-radius: 6px; transition: color .15s; }
+.lf-eye:hover { color: var(--ink-700); }
+.lf-hint { font-size: 11.5px; color: var(--text-3); margin-top: 6px; }
+.lf-hint.error-msg { color: var(--danger); display: none; }
 .lf-hint.error-msg.show { display: block; }
 .lf-submit {
-  width: 100%; padding: 14px;
-  background: linear-gradient(135deg, #4f8ef7 0%, #7c5cfc 100%);
-  color: #fff; border: none; border-radius: 10px;
-  font-size: 15px; font-weight: 700; letter-spacing: .2px;
-  cursor: pointer; margin-top: 8px;
-  transition: opacity .2s, transform .15s, box-shadow .2s;
-  box-shadow: 0 4px 20px rgba(79,142,247,.3);
+  width: 100%; padding: 15px;
+  background: var(--graphite);
+  color: var(--gold-light); border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; letter-spacing: .3px;
+  cursor: pointer; margin-top: 10px;
+  transition: transform .15s, box-shadow .2s, background .2s, color .2s;
+  box-shadow: 0 8px 26px rgba(0,0,0,.22);
 }
-.lf-submit:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(79,142,247,.4); }
+.lf-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(0,0,0,.30); background: var(--graphite-2); color: #fff; }
 .lf-submit:active { transform: translateY(0); }
 .lf-submit.loading { opacity: .7; pointer-events: none; }
 .lf-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 24px 0; color: #c8cfe0; font-size: 12px;
+  display: flex; align-items: center; gap: 14px;
+  margin: 26px 0 16px; color: var(--text-3); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
 }
-.lf-divider::before, .lf-divider::after {
-  content: ''; flex: 1; height: 1px; background: #e8eaf2;
-}
-.lf-accounts {
-  display: flex; flex-direction: column; gap: 8px;
-}
+.lf-divider::before, .lf-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.lf-accounts { display: flex; flex-direction: column; gap: 9px; }
 .lf-account-btn {
-  width: 100%; padding: 10px 14px;
-  border: 1.5px solid #e8eaf2; border-radius: 8px;
-  background: #f8f9fc; cursor: pointer; text-align: left;
-  display: flex; align-items: center; gap: 10px;
-  transition: border-color .15s, background .15s;
-  font-family: inherit;
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  background: var(--surface); cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 12px;
+  transition: border-color .15s, box-shadow .15s, transform .12s;
+  font-family: inherit; position: relative;
 }
-.lf-account-btn:hover { border-color: #4f8ef7; background: #f0f5ff; }
-.lf-account-role {
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .4px; color: #4f8ef7;
-}
-.lf-account-name { font-size: 13px; color: #333; font-weight: 500; }
-.lf-account-iin { font-size: 11px; color: #a0a8c0; font-family: monospace; }
+.lf-account-btn:hover { border-color: var(--gold); box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-1px); }
+.lf-account-meta { flex: 1; min-width: 0; }
+.lf-account-role { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-700); }
+.lf-account-name { font-size: 14px; color: var(--text); font-weight: 600; margin-top: 1px; }
+.lf-account-iin { font-size: 11px; color: var(--text-3); font-family: ui-monospace, monospace; margin-top: 1px; }
 .lf-account-avatar {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+  width: 40px; height: 40px; border-radius: 11px;
+  background: var(--graphite);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 700; font-size: 12px; flex-shrink: 0;
+  color: var(--gold-light); font-weight: 700; font-size: 14px; flex-shrink: 0;
+  font-family: var(--font-display);
 }
+.lf-account-remove {
+  position: absolute; right: 10px; top: 10px;
+  width: 22px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); opacity: 0; transition: opacity .15s, background .15s, color .15s;
+}
+.lf-account-btn:hover .lf-account-remove { opacity: 1; }
+.lf-account-remove:hover { background: var(--accent-soft); color: var(--accent); }
 .login-screen.hidden { display: none; }
 
 /* SIDEBAR */
 .sidebar {
-  width: 260px;
-  background: #fff;
-  border-right: 1px solid #e5e7eb;
+  width: 264px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -257,139 +290,129 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; di
   z-index: 10;
 }
 .sidebar-logo {
-  padding: 18px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 20px;
+  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
-.logo-icon {
-  width: 40px; height: 40px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 800; font-size: 18px;
+.logo-owl {
+  width: 52px; height: auto; flex-shrink: 0;
+  filter: drop-shadow(0 3px 8px rgba(200,150,30,.25));
 }
-.logo-text { font-size: 20px; font-weight: 700; color: #111; }
-.nav { flex: 1; padding: 10px 0; }
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 21px; font-weight: 700; color: var(--graphite);
+  letter-spacing: -.3px; line-height: 1;
+  display: flex; flex-direction: column;
+}
+.logo-text span {
+  font-family: var(--font-body);
+  font-size: 10px; font-weight: 600; color: var(--gold); 
+  letter-spacing: 2px; text-transform: uppercase; margin-top: 2px;
+}
+.nav { flex: 1; padding: 12px 0; }
 .nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 18px;
   cursor: pointer;
-  color: #555;
+  color: var(--text-2);
   font-size: 13.5px;
   font-weight: 500;
   border-radius: 0;
   transition: all 0.15s;
   position: relative;
 }
-.nav-item:hover { background: #f5f6ff; color: #6366f1; }
-.nav-item.active { background: #eef0ff; color: #6366f1; font-weight: 600; }
-.nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #6366f1; border-radius: 0 2px 2px 0; }
+.nav-item:hover { background: var(--ink-softer); color: var(--graphite); }
+.nav-item.active { background: var(--ink-soft); color: var(--graphite); font-weight: 700; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--gold); border-radius: 0 3px 3px 0; }
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item.active svg { color: var(--ink-700); }
 .nav-group-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 18px;
   cursor: pointer;
-  color: #555;
+  color: var(--text-2);
   font-size: 13.5px;
   font-weight: 500;
   transition: all 0.15s;
   user-select: none;
 }
-.nav-group-header:hover { background: #f5f6ff; color: #6366f1; }
+.nav-group-header:hover { background: var(--ink-softer); color: var(--graphite); }
 .nav-group-header svg { width: 18px; height: 18px; flex-shrink: 0; }
 .nav-group-header .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform 0.2s; }
 .nav-group-header.open .chevron { transform: rotate(180deg); }
 .nav-sub { display: none; }
 .nav-sub.open { display: block; }
 .nav-sub-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 16px 8px 44px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px 8px 47px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-2);
   font-size: 13px;
   font-weight: 400;
   transition: all 0.15s;
 }
-.nav-sub-item:hover { background: #f5f6ff; color: #6366f1; }
-.nav-sub-item.active { background: #eef0ff; color: #6366f1; font-weight: 600; }
+.nav-sub-item:hover { background: var(--ink-softer); color: var(--graphite); }
+.nav-sub-item.active { background: var(--ink-soft); color: var(--graphite); font-weight: 700; }
 .nav-sub-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-.nav-divider { height: 1px; background: #f0f0f0; margin: 6px 0; }
+.nav-divider { height: 1px; background: var(--line-soft); margin: 6px 0; }
 .sidebar-user {
   padding: 14px 16px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--line);
   display: flex; align-items: center; gap: 10px;
 }
 .user-avatar {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 50%;
+  width: 38px; height: 38px;
+  background: var(--graphite);
+  border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 700; font-size: 13px;
+  color: var(--gold-light); font-weight: 700; font-size: 13px;
   flex-shrink: 0;
+  font-family: var(--font-display);
 }
 .user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-meta { font-size: 11px; color: #888; }
+.user-name { font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta { font-size: 11px; color: var(--text-3); }
 .logout-btn {
-  background: none; border: none; cursor: pointer; color: #999;
+  background: none; border: none; cursor: pointer; color: var(--text-3);
   padding: 4px; border-radius: 6px;
   transition: color 0.15s;
   display: flex;
 }
-.logout-btn:hover { color: #ef4444; }
-
-/* ROLE SWITCHER */
-.role-bar {
-  padding: 8px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex; gap: 6px;
-}
-.role-btn {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1.5px solid #e5e7eb;
-  cursor: pointer;
-  transition: all 0.15s;
-  background: #fff;
-  color: #666;
-}
-.role-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+.logout-btn:hover { color: var(--danger); }
 
 /* MAIN */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
 .page { display: none; flex-direction: column; flex: 1; overflow: hidden; }
 .page.active { display: flex; }
 .page-header {
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--line);
   padding: 16px 24px;
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
 }
-.page-title { font-size: 20px; font-weight: 700; color: #111; }
+.page-title { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--text); letter-spacing: -.4px; }
 .page-actions { display: flex; gap: 8px; align-items: center; }
 .page-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
 
 /* BUTTONS */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px;
+  padding: 9px 18px; border-radius: 10px;
   font-size: 13px; font-weight: 600;
   cursor: pointer; border: none; transition: all 0.15s;
 }
-.btn-primary { background: #6366f1; color: #fff; }
-.btn-primary:hover { background: #5558e8; }
-.btn-outline { background: #fff; color: #6366f1; border: 1.5px solid #6366f1; }
-.btn-outline:hover { background: #eef0ff; }
-.btn-danger { background: #ef4444; color: #fff; }
-.btn-danger:hover { background: #dc2626; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-icon { padding: 6px; border-radius: 6px; background: none; border: 1px solid #e5e7eb; color: #666; cursor: pointer; }
-.btn-icon:hover { background: #f5f5f5; }
+.btn-primary { background: var(--graphite); color: var(--gold-light); box-shadow: 0 4px 14px rgba(0,0,0,.22); }
+.btn-primary:hover { background: var(--graphite-2); color: #fff; transform: translateY(-1px); box-shadow: 0 7px 20px rgba(0,0,0,.28); }
+.btn-outline { background: var(--surface); color: var(--graphite); border: 1.5px solid var(--line); }
+.btn-outline:hover { background: var(--ink-soft); border-color: var(--gold); color: var(--ink-700); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-600); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { padding: 7px; border-radius: 8px; background: none; border: 1px solid var(--line); color: var(--text-2); cursor: pointer; }
+.btn-icon:hover { background: var(--ink-soft); color: var(--ink-700); }
 
 /* SEARCH BAR */
 .search-bar {
@@ -398,7 +421,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; di
 .search-input {
   flex: 1;
   padding: 10px 14px 10px 38px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid var(--line);
   border-radius: 8px;
   font-size: 13px;
   background: #fff;
@@ -406,26 +429,26 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; di
   position: relative;
 }
 .search-wrap { position: relative; flex: 1; }
-.search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #aaa; width: 16px; height: 16px; }
-.search-input:focus { border-color: #6366f1; }
+.search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); width: 16px; height: 16px; }
+.search-input:focus { border-color: var(--ink); }
 
 /* TABLE */
-.table-wrap { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: visible; }
+.table-wrap { background: #fff; border-radius: 10px; border: 1px solid var(--line); overflow: visible; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th {
-  background: #f9fafb;
+  background: var(--paper-2);
   padding: 11px 14px;
   text-align: left;
   font-size: 12px;
   font-weight: 600;
-  color: #666;
-  border-bottom: 1px solid #e5e7eb;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
-tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.1s; }
+tbody tr { border-bottom: 1px solid var(--line-soft); transition: background 0.1s; }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: #fafbff; }
-tbody td { padding: 11px 14px; color: #333; }
+tbody tr:hover { background: var(--ink-softer); }
+tbody td { padding: 11px 14px; color: var(--text); }
 .td-truncate { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* BADGES */
@@ -435,10 +458,10 @@ tbody td { padding: 11px 14px; color: #333; }
   font-size: 11px; font-weight: 600;
 }
 .badge-active { background: #dcfce7; color: #16a34a; }
-.badge-inactive { background: #f3f4f6; color: #6b7280; }
+.badge-inactive { background: var(--line-soft); color: #6b7280; }
 .badge-started { background: #dbeafe; color: #2563eb; }
-.badge-not-started { background: #f3f4f6; color: #6b7280; }
-.badge-return { background: #fee2e2; color: #dc2626; }
+.badge-not-started { background: var(--line-soft); color: #6b7280; }
+.badge-return { background: #fee2e2; color: var(--danger-600); }
 .badge-kaz { background: #fef3c7; color: #d97706; }
 .badge-rus { background: #dbeafe; color: #2563eb; }
 
@@ -446,23 +469,23 @@ tbody td { padding: 11px 14px; color: #333; }
 .action-menu { position: relative; display: inline-block; }
 .action-dots {
   background: none; border: none; cursor: pointer;
-  padding: 4px 8px; border-radius: 6px; color: #666; font-size: 18px; line-height: 1;
+  padding: 4px 8px; border-radius: 6px; color: var(--text-2); font-size: 18px; line-height: 1;
 }
-.action-dots:hover { background: #f3f4f6; }
+.action-dots:hover { background: var(--line-soft); }
 .action-dropdown {
   position: absolute; right: 0; top: 100%; z-index: 100;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   min-width: 160px; display: none;
 }
 .action-dropdown.open { display: block; }
 .action-dropdown-item {
-  padding: 9px 14px; font-size: 13px; cursor: pointer; color: #333;
+  padding: 9px 14px; font-size: 13px; cursor: pointer; color: var(--text);
   display: flex; align-items: center; gap: 8px;
   transition: background 0.1s;
 }
-.action-dropdown-item:hover { background: #f9fafb; }
-.action-dropdown-item.danger { color: #ef4444; }
+.action-dropdown-item:hover { background: var(--paper-2); }
+.action-dropdown-item.danger { color: var(--danger); }
 
 /* MODAL */
 .modal-overlay {
@@ -477,16 +500,16 @@ tbody td { padding: 11px 14px; color: #333; }
   max-height: 90vh; overflow-y: auto;
 }
 .modal-lg { width: 700px; }
-.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: #111; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--text); }
 .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
 /* FORM */
 .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
 .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 12px; font-weight: 600; color: #555; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
 .form-input, .form-select, .form-textarea {
   padding: 9px 12px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid var(--line);
   border-radius: 7px;
   font-size: 13px;
   font-family: inherit;
@@ -494,17 +517,17 @@ tbody td { padding: 11px 14px; color: #333; }
   background: #fff;
   transition: border-color 0.15s;
 }
-.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #6366f1; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--ink); }
 .form-textarea { resize: vertical; min-height: 80px; }
-.form-section-title { font-size: 14px; font-weight: 700; color: #111; margin: 16px 0 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; }
+.form-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 16px 0 10px; border-bottom: 1px solid var(--line-soft); padding-bottom: 6px; }
 
 /* SCHEDULE */
-.schedule-grid { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: auto; }
+.schedule-grid { background: #fff; border-radius: 10px; border: 1px solid var(--line); overflow: auto; }
 .schedule-table { border-collapse: collapse; min-width: 900px; }
-.schedule-table th, .schedule-table td { border: 1px solid #e5e7eb; padding: 0; }
-.sched-header { background: #f9fafb; font-size: 12px; font-weight: 700; color: #555; padding: 10px 14px; text-align: center; white-space: nowrap; }
-.sched-day { background: #f9fafb; font-size: 12px; font-weight: 700; color: #444; padding: 8px 12px; white-space: nowrap; }
-.sched-time { font-size: 11px; color: #888; padding: 6px 10px; white-space: nowrap; background: #fafafa; text-align: right; }
+.schedule-table th, .schedule-table td { border: 1px solid var(--line); padding: 0; }
+.sched-header { background: var(--paper-2); font-size: 12px; font-weight: 700; color: var(--text-2); padding: 10px 14px; text-align: center; white-space: nowrap; }
+.sched-day { background: var(--paper-2); font-size: 12px; font-weight: 700; color: var(--text); padding: 8px 12px; white-space: nowrap; }
+.sched-time { font-size: 11px; color: var(--text-3); padding: 6px 10px; white-space: nowrap; background: #fafafa; text-align: right; }
 .sched-cell { min-height: 50px; padding: 4px; vertical-align: top; }
 .sched-lesson {
   border-radius: 6px; padding: 6px 8px; margin: 2px;
@@ -529,27 +552,27 @@ tbody td { padding: 11px 14px; color: #333; }
 /* ANALYTICS */
 .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding: 10px 0; }
 .chart-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
-.chart-bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; transition: background 0.15s; cursor: pointer; }
+.chart-bar { width: 100%; background: var(--ink); border-radius: 4px 4px 0 0; min-height: 4px; transition: background 0.15s; cursor: pointer; }
 .chart-bar:hover { background: #4f46e5; }
-.chart-bar-label { font-size: 10px; color: #888; }
-.chart-bar-val { font-size: 10px; color: #555; font-weight: 600; }
+.chart-bar-label { font-size: 10px; color: var(--text-3); }
+.chart-bar-val { font-size: 10px; color: var(--text-2); font-weight: 600; }
 
 /* TASKS */
 .task-card {
-  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  background: #fff; border-radius: 10px; border: 1px solid var(--line);
   padding: 14px 18px; margin-bottom: 8px;
   display: flex; align-items: center; gap: 14px;
   transition: border-color 0.15s;
 }
 .task-card:hover { border-color: #c7d2fe; }
 .task-info { flex: 1; }
-.task-name { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
-.task-type { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: #f3f4f6; color: #555; margin-bottom: 6px; }
-.task-meta { font-size: 12px; color: #888; }
-.task-meta span { color: #6366f1; }
+.task-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.task-type { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: var(--line-soft); color: var(--text-2); margin-bottom: 6px; }
+.task-meta { font-size: 12px; color: var(--text-3); }
+.task-meta span { color: var(--ink); }
 .task-deadline {
   display: flex; align-items: center; gap: 5px;
-  background: #fee2e2; color: #dc2626;
+  background: #fee2e2; color: var(--danger-600);
   padding: 4px 10px; border-radius: 20px;
   font-size: 12px; font-weight: 600;
   white-space: nowrap;
@@ -558,109 +581,109 @@ tbody td { padding: 11px 14px; color: #333; }
 /* SLOTS */
 .slots-table td { text-align: center; font-size: 12px; font-weight: 600; }
 .slot-green { background: #dcfce7; color: #16a34a; }
-.slot-red { background: #fee2e2; color: #dc2626; }
+.slot-red { background: #fee2e2; color: var(--danger-600); }
 .slot-blue { background: #dbeafe; color: #2563eb; }
-.slot-gray { background: #f3f4f6; color: #6b7280; }
+.slot-gray { background: var(--line-soft); color: #6b7280; }
 
 /* MY GROUPS */
 .group-card {
-  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  background: #fff; border-radius: 10px; border: 1px solid var(--line);
   margin-bottom: 10px; overflow: hidden;
 }
 .group-card-header {
   padding: 14px 18px; display: flex; align-items: center; gap: 14px;
   cursor: pointer; transition: background 0.1s;
 }
-.group-card-header:hover { background: #fafbff; }
-.group-name { font-size: 14px; font-weight: 700; color: #111; }
-.group-sub { font-size: 12px; color: #888; margin-top: 2px; }
-.group-body { padding: 0 18px 14px; border-top: 1px solid #f3f4f6; display: none; }
+.group-card-header:hover { background: var(--ink-softer); }
+.group-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.group-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.group-body { padding: 0 18px 14px; border-top: 1px solid var(--line-soft); display: none; }
 .group-body.open { display: block; }
 .report-table th { font-size: 11px; }
 .report-table td { font-size: 12px; padding: 8px 10px; }
 .attendance-btn {
-  width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid #e5e7eb;
+  width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--line);
   cursor: pointer; font-size: 11px; font-weight: 700;
   transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center;
 }
 .att-present { background: #dcfce7; border-color: #86efac; color: #16a34a; }
-.att-absent { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
-.att-none { background: #fff; color: #ccc; }
+.att-absent { background: #fee2e2; border-color: #fca5a5; color: var(--danger-600); }
+.att-none { background: #fff; color: var(--text-3); }
 .score-input {
-  width: 50px; padding: 4px 6px; border: 1.5px solid #e5e7eb;
+  width: 50px; padding: 4px 6px; border: 1.5px solid var(--line);
   border-radius: 5px; font-size: 12px; text-align: center;
 }
 
 /* TABS */
-.tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; }
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); margin-bottom: 16px; }
 .tab-btn {
   padding: 10px 18px; font-size: 13px; font-weight: 600;
   cursor: pointer; border: none; background: none;
-  color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  color: var(--text-3); border-bottom: 2px solid transparent; margin-bottom: -2px;
   transition: all 0.15s;
 }
-.tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
-.tab-btn:hover { color: #6366f1; }
+.tab-btn.active { color: var(--graphite); border-bottom-color: var(--gold); font-weight: 700; }
+.tab-btn:hover { color: var(--graphite); }
 
 /* STAT CARDS */
 .stat-row { display: flex; gap: 14px; margin-bottom: 20px; }
 .stat-card {
-  flex: 1; background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  flex: 1; background: #fff; border-radius: 10px; border: 1px solid var(--line);
   padding: 16px 20px;
 }
-.stat-label { font-size: 12px; color: #888; font-weight: 500; margin-bottom: 6px; }
-.stat-value { font-size: 26px; font-weight: 800; color: #111; }
-.stat-sub { font-size: 12px; color: #6366f1; margin-top: 4px; }
+.stat-label { font-size: 12px; color: var(--text-3); font-weight: 500; margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 800; color: var(--text); }
+.stat-sub { font-size: 12px; color: var(--ink); margin-top: 4px; }
 
 /* TRANSFER */
 .transfer-box {
   display: flex; align-items: center; gap: 20px;
-  background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;
+  background: #fff; border-radius: 12px; border: 1px solid var(--line);
   padding: 30px;
 }
 .transfer-side { flex: 1; }
-.transfer-arrow { font-size: 28px; color: #6366f1; flex-shrink: 0; }
+.transfer-arrow { font-size: 28px; color: var(--ink); flex-shrink: 0; }
 
 /* DATE LIST */
 .date-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; background: #fff;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--line-soft);
 }
 .date-item:last-child { border-bottom: none; }
 
 /* RETURNS */
 .return-card {
-  background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+  background: #fff; border-radius: 10px; border: 1px solid var(--line);
   margin-bottom: 8px; overflow: hidden;
 }
 .return-card-row {
   display: grid; grid-template-columns: 120px 140px 100px 160px 70px 1fr;
   gap: 10px; padding: 12px 16px; align-items: start;
 }
-.return-label { font-size: 11px; color: #888; }
-.return-val { font-size: 13px; color: #111; font-weight: 500; }
-.return-reason { font-size: 12px; color: #555; line-height: 1.5; }
+.return-label { font-size: 11px; color: var(--text-3); }
+.return-val { font-size: 13px; color: var(--text); font-weight: 500; }
+.return-reason { font-size: 12px; color: var(--text-2); line-height: 1.5; }
 
 /* FORM HISTORY */
 .history-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 
 /* EMPTY STATE */
-.empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-3); }
 .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
 .empty-state p { font-size: 14px; }
 
 /* MENTOR ASSIGN */
 .mentor-select {
-  padding: 6px 10px; border: 1.5px solid #e5e7eb; border-radius: 6px;
+  padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 6px;
   font-size: 12px; outline: none; background: #fff; min-width: 100px;
 }
 .assign-btn {
-  padding: 6px 12px; background: #6366f1; color: #fff;
+  padding: 6px 12px; background: var(--ink); color: #fff;
   border: none; border-radius: 6px; font-size: 12px; font-weight: 600;
   cursor: pointer;
 }
-.assign-btn:hover { background: #5558e8; }
+.assign-btn:hover { background: var(--ink-500); }
 .assign-btn:disabled { background: #d1d5db; cursor: default; }
 
 /* SCROLLBAR */
@@ -669,13 +692,13 @@ tbody td { padding: 11px 14px; color: #333; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
 
 /* ENT PROGRESS */
-.progress-bar { height: 6px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background: #6366f1; border-radius: 10px; }
+.progress-bar { height: 6px; background: var(--line); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--ink); border-radius: 10px; }
 
 /* FILTER TAG */
 .filter-tag {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; background: #eef0ff; color: #6366f1;
+  padding: 4px 10px; background: var(--ink-soft); color: var(--ink);
   border-radius: 20px; font-size: 12px; font-weight: 500;
 }
 </style>
@@ -684,11 +707,11 @@ tbody td { padding: 11px 14px; color: #333; }
 <div id="confirm-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:none;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;padding:28px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center">
     <div id="confirm-icon" style="font-size:40px;margin-bottom:12px">⚠️</div>
-    <div id="confirm-title" style="font-size:17px;font-weight:700;color:#111;margin-bottom:8px"></div>
-    <div id="confirm-text" style="font-size:13px;color:#666;margin-bottom:24px"></div>
+    <div id="confirm-title" style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px"></div>
+    <div id="confirm-text" style="font-size:13px;color:var(--text-2);margin-bottom:24px"></div>
     <div style="display:flex;gap:10px;justify-content:center">
-      <button id="confirm-cancel" style="padding:10px 24px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:#555">Отмена</button>
-      <button id="confirm-ok" style="padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;color:#fff;background:#ef4444">Удалить</button>
+      <button id="confirm-cancel" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--text-2)">Отмена</button>
+      <button id="confirm-ok" style="padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;color:#fff;background:var(--danger)">Удалить</button>
     </div>
   </div>
 </div>
@@ -697,7 +720,7 @@ tbody td { padding: 11px 14px; color: #333; }
 <div id="student-profile-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px">
   <div style="background:#fff;border-radius:16px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,0.2);margin:auto">
     <div id="student-profile-content">
-      <div style="text-align:center;padding:40px;color:#aaa">Загрузка...</div>
+      <div style="text-align:center;padding:40px;color:var(--text-3)">Загрузка...</div>
     </div>
   </div>
 </div>
@@ -719,20 +742,23 @@ tbody td { padding: 11px 14px; color: #333; }
     </div>
     <div class="login-left-content">
       <div class="login-brand">
-        <div><div class="login-brand-icon">Z</div></div>
-        <div><div class="login-brand-name">ZEIN</div><div class="login-tagline">Образовательный центр</div></div>
+        <img src="assets/zein-logo-full.png" alt="ZEIN" class="login-brand-logo">
+        <div class="login-tagline">Образовательный центр</div>
       </div>
-      <div class="login-hero-title">Платформа<br>управления<br><span>образованием</span></div>
-      <div class="login-hero-sub">Единое пространство для учителей, менторов и администрации. Журнал посещений, отчёты, расписание — всё в одном месте.</div>
-      <div class="login-stats">
+      <div class="login-hero-title">Знания<br>требуют<br><em>порядка</em></div>
+      <div class="login-hero-sub">Единое пространство для преподавателей, менторов и администрации. Журнал посещений, отчёты и расписание — всё в одном месте.</div>
+      <div class="login-feature-row">
+        <div class="login-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Журнал уроков</div>
+        <div class="login-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Отчёты</div>
+        <div class="login-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Расписание</div>
       </div>
     </div>
   </div>
 
   <div class="login-right">
     <div class="login-form-wrap">
-      <div class="login-form-title">Добро пожаловать</div>
-      <div class="login-form-sub">Войдите используя ваш ИИН и пароль</div>
+      <div class="login-form-title">С возвращением</div>
+      <div class="login-form-sub">Войдите, используя ваш ИИН и пароль</div>
       <div class="lf-group">
         <label class="lf-label">ИИН</label>
         <div class="lf-input-wrap">
@@ -752,17 +778,8 @@ tbody td { padding: 11px 14px; color: #333; }
         <div class="lf-hint error-msg" id="pass-error">Неверный ИИН или пароль</div>
       </div>
       <button class="lf-submit" id="login-btn" onclick="doLogin()">Войти в систему</button>
-      <div class="lf-divider">или войдите как</div>
-      <div class="lf-accounts">
-        <button class="lf-account-btn" onclick="quickLogin('admin')">
-          <div class="lf-account-avatar">СТ</div>
-          <div><div class="lf-account-role">Ст. тренер</div><div class="lf-account-name">Админ</div><div class="lf-account-iin">ИИН: 900101350123</div></div>
-        </button>
-        <button class="lf-account-btn" onclick="quickLogin('teacher')">
-          <div class="lf-account-avatar" style="background:linear-gradient(135deg,#00c896,#0099cc)">МА</div>
-          <div><div class="lf-account-role" style="color:#00b386">Преподаватель</div><div class="lf-account-name">Мухамеди Айман</div><div class="lf-account-iin">ИИН: 950215450234</div></div>
-        </button>
-      </div>
+      <div class="lf-divider" id="lf-divider" style="display:none">недавние входы</div>
+      <div class="lf-accounts" id="lf-accounts"></div>
     </div>
   </div>
 
@@ -771,22 +788,19 @@ tbody td { padding: 11px 14px; color: #333; }
 <!-- Мобильная шапка -->
 <div class="mobile-header">
   <button onclick="document.querySelector('.sidebar').classList.toggle('mobile-open')"
-    style="background:none;border:none;cursor:pointer;font-size:22px;color:#6366f1">☰</button>
-  <span style="font-weight:700;font-size:16px;color:#6366f1">Zein Academy</span>
+    style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--graphite)">☰</button>
+  <span style="display:flex;align-items:center;gap:8px">
+    <img src="assets/zein-owl.png" alt="" style="height:24px;width:auto">
+    <span style="font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--graphite)">Zein Academy</span>
+  </span>
 </div>
 
   
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar" style="display:none">
   <div class="sidebar-logo">
-    <div class="logo-icon">Z</div>
-    <div class="logo-text">Zein</div>
-  </div>
-
-  <!-- Role switcher -->
-  <div class="role-bar">
-    <button class="role-btn active" onclick="setRole('admin')">Ст. тренер</button>
-    <button class="role-btn" onclick="setRole('teacher')">Учитель</button>
+    <img src="assets/zein-owl.png" alt="" class="logo-owl">
+    <div class="logo-text">Zein<span>Academy</span></div>
   </div>
 
   <nav class="nav" id="nav">
@@ -1014,7 +1028,7 @@ tbody td { padding: 11px 14px; color: #333; }
       <div class="page-actions"><button class="btn btn-outline" onclick="showPage('page-all-tasks')">Назад</button></div>
     </div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:24px;max-width:600px">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:24px;max-width:600px">
         <div class="form-group" style="margin-bottom:16px">
           <label class="form-label">Студент</label>
           <div class="search-wrap">
@@ -1031,7 +1045,7 @@ tbody td { padding: 11px 14px; color: #333; }
 
   <!-- MY GROUPS (TEACHER) -->
   <div class="page" id="page-my-groups">
-    <div class="page-header"><div class="page-title">Мои группы</div></div>
+    <div class="page-header"><div class="page-title">Мои уроки</div></div>
     <div class="page-body">
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(this,'today')">Сегодня</button>
@@ -1045,7 +1059,7 @@ tbody td { padding: 11px 14px; color: #333; }
   <div class="page" id="page-my-reports">
     <div class="page-header"><div class="page-title">Мои отчеты</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
         <div class="form-group" style="margin:0">
           <label class="form-label">Дата от</label>
           <input type="date" class="form-input">
@@ -1083,7 +1097,7 @@ tbody td { padding: 11px 14px; color: #333; }
   <div class="page" id="page-return-form">
     <div class="page-header"><div class="page-title">Форма для передачи возврата</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:24px;max-width:800px;margin:0 auto">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:24px;max-width:800px;margin:0 auto">
         <div class="form-section-title">Выбор ученика</div>
         <div class="form-group" style="margin-bottom:14px">
           <label class="form-label">Поиск ученика</label>
@@ -1125,7 +1139,7 @@ tbody td { padding: 11px 14px; color: #333; }
   <div class="page" id="page-new-student">
     <div class="page-header"><div class="page-title">Запись ученика</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:28px;max-width:800px;margin:0 auto">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:28px;max-width:800px;margin:0 auto">
         <div class="form-section-title">Данные ученика</div>
         <div class="form-group" style="margin-bottom:14px">
           <label class="form-label">Менеджер клиента *</label>
@@ -1166,7 +1180,7 @@ tbody td { padding: 11px 14px; color: #333; }
   <div class="page" id="page-extension">
     <div class="page-header"><div class="page-title">Продление обучения</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:28px;max-width:700px;margin:0 auto">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:28px;max-width:700px;margin:0 auto">
         <div class="form-section-title">Выбор ученика</div>
         <div class="form-row">
           <div class="form-group">
@@ -1193,18 +1207,18 @@ tbody td { padding: 11px 14px; color: #333; }
     <div class="page-header"><div class="page-title">Аналитика</div></div>
     <div class="page-body">
       <div id="analytics-summary"></div>
-      <div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;padding:20px;">
+      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:20px;">
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
           <div style="font-weight:700;font-size:15px">Распределение по количеству учеников</div>
-          <span style="font-size:13px;color:#666">Всего групп: <b>992</b></span>
-          <span style="font-size:13px;color:#666">Средний размер: <b>6.9</b></span>
+          <span style="font-size:13px;color:var(--text-2)">Всего групп: <b>992</b></span>
+          <span style="font-size:13px;color:var(--text-2)">Средний размер: <b>6.9</b></span>
           <div style="margin-left:auto;display:flex;gap:6px">
             <button class="btn btn-primary btn-sm">Штуки</button>
             <button class="btn btn-outline btn-sm">%</button>
           </div>
         </div>
         <div id="analytics-chart"></div>
-        <div style="font-size:11px;color:#aaa;margin-top:12px">Оси: по горизонтали — «Количество учеников» (0..20+), по вертикали — «Количество групп».</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:12px">Оси: по горизонтали — «Количество учеников» (0..20+), по вертикали — «Количество групп».</div>
       </div>
     </div>
   </div>
@@ -1276,18 +1290,18 @@ tbody td { padding: 11px 14px; color: #333; }
         <table class="slots-table" style="border-collapse:collapse;min-width:900px">
           <thead>
             <tr>
-              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Продукт</th>
-              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Язык</th>
-              <th colspan="5" style="padding:10px 16px;text-align:center;font-size:12px;border:1px solid #e5e7eb;background:#f9fafb">Мәңгілік Ел 36</th>
+              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid var(--line);background:var(--paper-2)">Продукт</th>
+              <th style="padding:10px 16px;text-align:left;font-size:12px;border:1px solid var(--line);background:var(--paper-2)">Язык</th>
+              <th colspan="5" style="padding:10px 16px;text-align:center;font-size:12px;border:1px solid var(--line);background:var(--paper-2)">Мәңгілік Ел 36</th>
             </tr>
             <tr>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;background:#f9fafb"></th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;background:#f9fafb"></th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">09:00–12:00</th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">14:30–17:30</th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">17:30–20:30</th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">ЕНТ 14:30–16:30</th>
-              <th style="border:1px solid #e5e7eb;padding:8px 16px;font-size:11px;background:#f9fafb">ЕНТ 15:30–17:30</th>
+              <th style="border:1px solid var(--line);padding:8px 16px;background:var(--paper-2)"></th>
+              <th style="border:1px solid var(--line);padding:8px 16px;background:var(--paper-2)"></th>
+              <th style="border:1px solid var(--line);padding:8px 16px;font-size:11px;background:var(--paper-2)">09:00–12:00</th>
+              <th style="border:1px solid var(--line);padding:8px 16px;font-size:11px;background:var(--paper-2)">14:30–17:30</th>
+              <th style="border:1px solid var(--line);padding:8px 16px;font-size:11px;background:var(--paper-2)">17:30–20:30</th>
+              <th style="border:1px solid var(--line);padding:8px 16px;font-size:11px;background:var(--paper-2)">ЕНТ 14:30–16:30</th>
+              <th style="border:1px solid var(--line);padding:8px 16px;font-size:11px;background:var(--paper-2)">ЕНТ 15:30–17:30</th>
             </tr>
           </thead>
           <tbody id="slots-tbody"></tbody>
@@ -1467,7 +1481,7 @@ tbody td { padding: 11px 14px; color: #333; }
     <div class="table-wrap">
       <table class="report-table">
         <thead><tr><th>Ученик</th><th>Присутствие</th><th>Балл за урок</th><th>Балл за д/з</th></tr></thead>
-        <tbody id="report-tbody"><tr><td colspan="4" style="text-align:center;color:#aaa">Загрузка...</td></tr></tbody>
+        <tbody id="report-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-3)">Загрузка...</td></tr></tbody>
       </table>
     </div>
     <div class="form-group" style="margin:14px 0 0">
@@ -1522,13 +1536,13 @@ function renderAgStudents() {
   if (!window._agStudentDiv) return;
   const entries = Object.entries(window._agStudents || {});
   window._agStudentDiv.innerHTML = entries.map(([id, name]) => `
-    <div style="display:flex;align-items:center;gap:6px;background:#eef0ff;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;color:#6366f1">
+    <div style="display:flex;align-items:center;gap:6px;background:var(--ink-soft);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--ink)">
       ${name}
-      <span onclick="removeAgStudent(${id})" style="cursor:pointer;color:#999;font-size:14px;line-height:1">×</span>
+      <span onclick="removeAgStudent(${id})" style="cursor:pointer;color:var(--text-3);font-size:14px;line-height:1">×</span>
     </div>`).join('');
 }
 
-function showConfirm(title, text, onConfirm, btnText='Удалить', btnColor='#ef4444', icon='⚠️') {
+function showConfirm(title, text, onConfirm, btnText='Удалить', btnColor='var(--danger)', icon='⚠️') {
   const modal = document.getElementById('confirm-modal');
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-text').textContent = text;
@@ -1547,7 +1561,7 @@ function showToast(msg, type = 'success') {
   const t = document.createElement('div');
   t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 20px;
     border-radius:10px;font-size:13px;font-weight:600;color:#fff;
-    background:${type==='error'?'#ef4444':type==='warn'?'#f59e0b':'#22c55e'};
+    background:${type==='error'?'var(--danger)':type==='warn'?'#f59e0b':'#22c55e'};
     box-shadow:0 4px 24px rgba(0,0,0,.18);animation:fadeInUp .3s ease;max-width:320px`;
   t.textContent = msg;
   document.body.appendChild(t);
@@ -1575,6 +1589,7 @@ async function doLogin() {
   if (!/^\d{12}$/.test(iin)) {
     iinErr.classList.add('show'); iinInp.classList.add('error'); return;
   }
+  _lastIin = iin;
   const btn = document.getElementById('login-btn');
   btn.classList.add('loading'); btn.textContent = 'Вход...';
   try {
@@ -1591,37 +1606,119 @@ async function doLogin() {
   }
 }
 
-async function quickLogin(role) {
-  const btn = document.getElementById('login-btn');
-  btn.classList.add('loading'); btn.textContent = 'Вход...';
-  try {
-    // Правильные учетные данные для разных ролей
-    const credentials = {
-      admin: { iin: '900101350123', password: 'zein2024' },
-      teacher: { iin: '950215450234', password: 'teacher123' }
-    };
-    
-    const creds = credentials[role] || credentials.admin;
-    
-    const data = await api('/api/auth/login', {
-      method:'POST', body: JSON.stringify(creds)
-    });
-    
-    if (!data) { showToast('Ошибка входа', 'error'); return; }
-    _saveSession(data);
-    enterApp(data.role, data.full_name, data.initials);
-  } catch(e) { 
-    console.error('quickLogin error:', e);
-    showToast('Ошибка входа: ' + e.message, 'error'); 
-  }
-  finally { btn.classList.remove('loading'); btn.textContent = 'Войти в систему'; }
+// ── Быстрая авторизация (сохранённые аккаунты) ────────────────────
+const SAVED_KEY = 'zein_accounts';
+
+function _getSavedAccounts() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); }
+  catch { return []; }
 }
+
+function _saveAccount(data) {
+  // data: ответ /api/auth/login + сохраняем токен для быстрого входа
+  const accounts = _getSavedAccounts().filter(a => a.user_id !== data.user_id);
+  accounts.unshift({
+    user_id:   data.user_id,
+    iin:       data.iin || _lastIin || '',
+    full_name: data.full_name,
+    initials:  data.initials,
+    role:      data.role,
+    token:     data.access_token,
+    last_login: Date.now(),
+  });
+  localStorage.setItem(SAVED_KEY, JSON.stringify(accounts.slice(0, 6)));
+}
+
+function _removeAccount(userId, ev) {
+  if (ev) ev.stopPropagation();
+  const accounts = _getSavedAccounts().filter(a => a.user_id !== userId);
+  localStorage.setItem(SAVED_KEY, JSON.stringify(accounts));
+  renderSavedAccounts();
+}
+
+const ROLE_LABELS = {
+  admin: 'Администратор', teacher: 'Преподаватель',
+  mentor: 'Ментор', manager: 'Менеджер', lidoruby: 'Лидоруби',
+};
+const ROLE_GRADIENTS = {
+  admin:    'var(--graphite)',
+  teacher:  'linear-gradient(135deg,#2d6b4f,#194636)',
+  mentor:   'linear-gradient(135deg,#b1830f,#8a5e08)',
+  manager:  'linear-gradient(135deg,#5a4ac0,#3a2e8a)',
+  lidoruby: 'linear-gradient(135deg,#0e7490,#155e75)',
+};
+
+function renderSavedAccounts() {
+  const wrap = document.getElementById('lf-accounts');
+  const divider = document.getElementById('lf-divider');
+  if (!wrap) return;
+  const accounts = _getSavedAccounts();
+  if (!accounts.length) {
+    wrap.innerHTML = '';
+    if (divider) divider.style.display = 'none';
+    return;
+  }
+  if (divider) divider.style.display = 'flex';
+  wrap.innerHTML = accounts.map(a => {
+    const ini = a.initials || (a.full_name || 'ЗА').slice(0,2).toUpperCase();
+    const grad = ROLE_GRADIENTS[a.role] || 'var(--graphite)';
+    return `
+    <div class="lf-account-btn" onclick="quickLogin(${a.user_id})">
+      <div class="lf-account-avatar" style="background:${grad}">${ini}</div>
+      <div class="lf-account-meta">
+        <div class="lf-account-role">${ROLE_LABELS[a.role] || a.role}</div>
+        <div class="lf-account-name">${a.full_name || ''}</div>
+        <div class="lf-account-iin">ИИН: ${a.iin || '—'}</div>
+      </div>
+      <span class="lf-account-remove" title="Убрать" onclick="_removeAccount(${a.user_id}, event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+async function quickLogin(userId) {
+  const account = _getSavedAccounts().find(a => a.user_id === userId);
+  if (!account || !account.token) {
+    showToast('Сессия истекла — войдите заново', 'warn');
+    _removeAccount(userId);
+    return;
+  }
+  // Пробуем войти по сохранённому токену
+  TOKEN = account.token;
+  try {
+    const me = await api('/api/auth/me');
+    if (!me) throw new Error('expired');
+    CURRENT_USER = {
+      access_token: account.token,
+      user_id: account.user_id,
+      iin: account.iin,
+      full_name: me.full_name || account.full_name,
+      initials: me.initials || account.initials,
+      role: me.role || account.role,
+    };
+    localStorage.setItem('zein_token', TOKEN);
+    localStorage.setItem('zein_user', JSON.stringify(CURRENT_USER));
+    // обновим время последнего входа
+    _saveAccount({ ...CURRENT_USER });
+    enterApp(CURRENT_USER.role, CURRENT_USER.full_name, CURRENT_USER.initials);
+  } catch (e) {
+    TOKEN = null;
+    showToast('Сессия истекла — войдите по паролю', 'warn');
+    document.getElementById('iin-input').value = account.iin || '';
+    _removeAccount(userId);
+  }
+}
+
+let _lastIin = '';
 
 function _saveSession(data) {
   TOKEN = data.access_token;
+  data.iin = data.iin || _lastIin;
   CURRENT_USER = data;
   localStorage.setItem('zein_token', TOKEN);
   localStorage.setItem('zein_user', JSON.stringify(data));
+  _saveAccount(data);
 }
 
 function enterApp(role, fullName, initials) {
@@ -1636,23 +1733,25 @@ function enterApp(role, fullName, initials) {
   if (role === 'teacher') showPage('page-my-groups');
   else showPage('page-students');
 
-// Принудительно загрузить данные
-  setTimeout(() => {
-    loadStudents();
-    buildSchedule();
-    loadGroups();
-    loadClassrooms();
-    loadStaff('mentor','mentors-tbody',false);
-    loadStaff('teacher','teachers-tbody',true);
-    loadStaff('lidoruby','lidoruby-tbody',false);
-    loadStaff('manager','managers-tbody',false);
-  }, 300);
-  setTimeout(() => {
-    const g = document.getElementById('group-staff');
-    const s = document.getElementById('sub-staff');
-    if(g&&s){ g.classList.add('open'); s.classList.add('open'); }
-  }, 80);
-  _prefillSelects();
+  // Принудительно загрузить данные (только для админа)
+  if (role !== 'teacher') {
+    setTimeout(() => {
+      loadStudents();
+      buildSchedule();
+      loadGroups();
+      loadClassrooms();
+      loadStaff('mentor','mentors-tbody',false);
+      loadStaff('teacher','teachers-tbody',true);
+      loadStaff('lidoruby','lidoruby-tbody',false);
+      loadStaff('manager','managers-tbody',false);
+    }, 300);
+    setTimeout(() => {
+      const g = document.getElementById('group-staff');
+      const s = document.getElementById('sub-staff');
+      if(g&&s){ g.classList.add('open'); s.classList.add('open'); }
+    }, 80);
+    _prefillSelects();
+  }
 }
 
 function doLogout() {
@@ -1696,7 +1795,7 @@ let _studentFilters = {};
 
 async function loadStudents() {
   const tbody = document.getElementById('students-tbody');
-  tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:#aaa">Загрузка...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--text-3)">Загрузка...</td></tr>';
   try {
     const p = new URLSearchParams(_studentFilters);
     const [data, assignments] = await Promise.all([
@@ -1704,7 +1803,7 @@ async function loadStudents() {
       api('/api/mentors/assignments'),
     ]);
     if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:#aaa">Ученики не найдены</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--text-3)">Ученики не найдены</td></tr>';
       return;
     }
     // Создать map ментор по student_id
@@ -1712,8 +1811,8 @@ async function loadStudents() {
     (assignments||[]).forEach(a => mentorMap[a.student_id] = a.mentor_name);
 
     tbody.innerHTML = data.map(s => `
-      <tr onclick="openStudentProfile(${s.id})" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
-        <td style="font-size:11px;color:#888">${s.id}</td>
+      <tr onclick="openStudentProfile(${s.id})" style="cursor:pointer" onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
+        <td style="font-size:11px;color:var(--text-3)">${s.id}</td>
         <td><b>${s.full_name}</b></td>
         <td class="td-truncate">${s.phone||'—'}</td>
         <td>${s.parent_name||'—'}</td>
@@ -1735,7 +1834,7 @@ async function loadStudents() {
         </td>
       </tr>`).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#ef4444;padding:20px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--danger);padding:20px">${e.message}</td></tr>`;
   }
 }
 
@@ -1881,7 +1980,7 @@ async function loadStaff(role, tbodyId, extraCol) {
 async function _loadStaffData(role, tbodyId, extraCol, search) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#aaa;padding:16px">Загрузка...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:var(--text-3);padding:16px">Загрузка...</td></tr>`;
   try {
     const data = await api(`/api/users/?role=${role}`);
     if (!data) return;
@@ -1890,14 +1989,14 @@ async function _loadStaffData(role, tbodyId, extraCol, search) {
                          (s.phone||'').includes(search))
       : data;
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#aaa;padding:16px">Ничего не найдено</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:var(--text-3);padding:16px">Ничего не найдено</td></tr>`;
       return;
     }
     const parts = n => { const p = (n||'').split(' '); return [p[0]||'—', p.slice(1).join(' ')||'—']; };
     tbody.innerHTML = filtered.map(s => {
       const [last, first] = parts(s.full_name);
       return `<tr>
-        <td style="font-size:11px;color:#888">${s.id}</td>
+        <td style="font-size:11px;color:var(--text-3)">${s.id}</td>
         <td><b>${last}</b></td>
         <td>${first}</td>
         <td>${s.phone||'—'}</td>
@@ -1915,7 +2014,7 @@ async function _loadStaffData(role, tbodyId, extraCol, search) {
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:#ef4444;padding:16px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${extraCol?7:6}" style="text-align:center;color:var(--danger);padding:16px">${e.message}</td></tr>`;
   }
 }
 
@@ -1964,7 +2063,7 @@ async function submitAddStaff() {
 async function loadMentorAssignments() {
   const tbody = document.getElementById('mentor-assign-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:16px">Загрузка...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:16px">Загрузка...</td></tr>';
   try {
     const [students, assignments, mentors] = await Promise.all([
       api('/api/students/?status=ACTIVE'),
@@ -1972,7 +2071,7 @@ async function loadMentorAssignments() {
       api('/api/users/?role=mentor'),
     ]);
     if (!students?.length) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:16px">Нет активных учеников</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:16px">Нет активных учеников</td></tr>'; return;
     }
     const assignMap = {};
     (assignments||[]).forEach(a => assignMap[a.student_id] = a);
@@ -2009,18 +2108,18 @@ async function assignMentor(studentId, mentorId) {
 async function loadGroups() {
   const tbody = document.getElementById('groups-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Загрузка...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
   try {
     const data = await api('/api/groups/');
     if (!data?.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Групп нет</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px">Групп нет</td></tr>'; return;
     }
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
     tbody.innerHTML = data.map(g => {
       const slots = g.schedule_slots||[];
       const timeStr = slots[0] ? `${slots[0].start_time}–${slots[0].end_time}` : '—';
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'—';
-      return `<tr onclick="openEditGroupModal(${g.id})" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+      return `<tr onclick="openEditGroupModal(${g.id})" style="cursor:pointer" onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
         <td><b>${g.name}</b></td>
         <td>${g.teacher_name||'—'}</td>
         <td>${g.language}</td>
@@ -2031,7 +2130,7 @@ async function loadGroups() {
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:#ef4444;text-align:center;padding:20px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`;
   }
 }
 
@@ -2124,7 +2223,7 @@ async function loadClassrooms() {
   try {
     const data = await api('/api/classrooms/');
     if (!data?.length) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:16px">Нет кабинетов</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-3);padding:16px">Нет кабинетов</td></tr>'; return;
     }
     tbody.innerHTML = data.map(c => `
       <tr>
@@ -2167,33 +2266,33 @@ async function deleteClassroom(id) {
 async function loadTasks(containerId, mine) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px">Загрузка...</div>';
+  container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
   try {
     const data = await api('/api/tasks/' + (mine?'?mine=true':''));
-    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Задач нет</div>'; return; }
+    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Задач нет</div>'; return; }
     const statusLabel = {todo:'К выполнению', in_progress:'В процессе', done:'Готово'};
     const statusColor = {todo:'#f59e0b', in_progress:'#3b82f6', done:'#22c55e'};
     container.innerHTML = data.map(t => `
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="flex:1">
           <div style="font-weight:600;font-size:14px">${t.title}</div>
-          ${t.description ? `<div style="font-size:12px;color:#777;margin-top:3px">${t.description}</div>` : ''}
-          <div style="font-size:11px;color:#aaa;margin-top:4px">
+          ${t.description ? `<div style="font-size:12px;color:var(--text-2);margin-top:3px">${t.description}</div>` : ''}
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px">
             ${t.assignee_name?'Кому: <b>'+t.assignee_name+'</b> · ':''}
             ${t.due_date?'До: '+t.due_date+' · ':''}
             От: ${t.creator_name||'—'}
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <select style="font-size:12px;border:1px solid #e5e7eb;border-radius:6px;padding:5px 8px;color:${statusColor[t.status]};font-weight:600" onchange="updateTaskStatus(${t.id},this.value)">
+          <select style="font-size:12px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;color:${statusColor[t.status]};font-weight:600" onchange="updateTaskStatus(${t.id},this.value)">
             <option value="todo" ${t.status==='todo'?'selected':''}>К выполнению</option>
             <option value="in_progress" ${t.status==='in_progress'?'selected':''}>В процессе</option>
             <option value="done" ${t.status==='done'?'selected':''}>Готово ✓</option>
           </select>
-          <button onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:4px">${icon('trash')}</button>
+          <button onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--danger);padding:4px">${icon('trash')}</button>
         </div>
       </div>`).join('');
-  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+  } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
 async function updateTaskStatus(id, status) {
@@ -2236,32 +2335,32 @@ async function submitAddTask() {
 async function loadMyGroups() {
   const container = document.getElementById('my-groups-body');
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px">Загрузка...</div>';
+  container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
   try {
     const data = await api('/api/groups/');
-    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Групп нет</div>'; return; }
+    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
     container.innerHTML = data.map(g => {
       const slots = g.schedule_slots||[];
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'Нет расписания';
       const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
       return `
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;overflow:hidden">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden">
           <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
             <div>
               <b style="font-size:14px">${g.name}</b>
-              <span style="margin-left:10px;font-size:12px;color:#888">${g.teacher_name||''}</span>
+              <span style="margin-left:10px;font-size:12px;color:var(--text-3)">${g.teacher_name||''}</span>
               <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:6px">${g.language}</span>
             </div>
-            <div style="font-size:12px;color:#6366f1;font-weight:600">${daysStr} ${timeStr} · ${g.student_count} уч.</div>
+            <div style="font-size:12px;color:var(--ink);font-weight:600">${daysStr} ${timeStr} · ${g.student_count} уч.</div>
           </div>
-          <div style="display:none;padding:14px 18px;border-top:1px solid #f3f4f6;display:flex;gap:10px">
+          <div style="display:none;padding:14px 18px;border-top:1px solid var(--line-soft);display:flex;gap:10px">
             <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
             <button class="btn btn-outline btn-sm" onclick="showAttendanceSummary(${g.id},'${g.name}')">📊 Статистика</button>
           </div>
         </div>`;
     }).join('');
-  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+  } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
 // ══ ATTENDANCE ════════════════════════════════════════════════════
@@ -2273,7 +2372,7 @@ async function openAttendanceModal(groupId, groupName) {
   if (titleEl) titleEl.textContent = `Журнал — ${groupName} — ${new Date().toLocaleDateString('ru')}`;
   openModal('report-modal');
   const tbody = document.getElementById('report-tbody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:16px">Загрузка учеников...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">Загрузка учеников...</td></tr>';
   try {
     const today = new Date().toISOString().split('T')[0];
     const [students, existing] = await Promise.all([
@@ -2283,13 +2382,13 @@ async function openAttendanceModal(groupId, groupName) {
     const existMap = {};
     (existing||[]).forEach(r => existMap[r.student_id] = r);
     if (!students?.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:16px">В группе нет учеников</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">В группе нет учеников</td></tr>'; return;
     }
     tbody.innerHTML = students.map(s => {
       const rec = existMap[s.id];
       const st = rec?.status||'none';
       return `<tr data-student-id="${s.id}">
-        <td><b>${s.full_name}</b><div style="font-size:11px;color:#aaa">${s.grade} класс</div></td>
+        <td><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
         <td style="text-align:center">
           <button class="attendance-btn ${st==='present'?'att-present':st==='absent'?'att-absent':'att-none'}" onclick="toggleAttendance(this)">${st==='present'?'✓':st==='absent'?'✗':'?'}</button>
         </td>
@@ -2297,7 +2396,7 @@ async function openAttendanceModal(groupId, groupName) {
         <td style="text-align:center"><input class="score-input" type="number" min="0" max="10" step="0.5" placeholder="—" value="${rec?.score_2!=null?rec.score_2:''}"></td>
       </tr>`;
     }).join('');
-  } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:#ef4444;padding:16px">${e.message}</td></tr>`; }
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger);padding:16px">${e.message}</td></tr>`; }
 }
 
 async function saveAttendanceReport() {
@@ -2334,13 +2433,13 @@ async function showAttendanceSummary(groupId, groupName) {
         <td>${s.student_name}</td>
         <td style="text-align:center">${s.total_lessons}</td>
         <td style="text-align:center;color:#22c55e;font-weight:700">${s.present}</td>
-        <td style="text-align:center;color:#ef4444;font-weight:700">${s.absent}</td>
+        <td style="text-align:center;color:var(--danger);font-weight:700">${s.absent}</td>
         <td style="text-align:center;font-weight:700">${s.attendance_rate}%</td>
         <td style="text-align:center">${s.avg_score!=null?s.avg_score:'—'}</td>
       </tr>`).join('');
     const w = window.open('','_blank','width=700,height=500');
     w.document.write(`<html><head><title>Статистика — ${groupName}</title>
-      <style>body{font-family:Inter,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #e5e7eb;padding:8px 12px;font-size:13px}th{background:#f9fafb;font-weight:600}</style></head>
+      <style>body{font-family:Inter,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:8px 12px;font-size:13px}th{background:var(--paper-2);font-weight:600}</style></head>
       <body><h2 style="font-size:18px;margin-bottom:16px">📊 Статистика посещаемости — ${groupName}</h2>
       <table><thead><tr><th>Ученик</th><th>Всего</th><th>✓ Был</th><th>✗ Отсутствовал</th><th>%</th><th>Ср. балл</th></tr></thead>
       <tbody>${rows}</tbody></table></body></html>`);
@@ -2353,7 +2452,7 @@ async function loadReturns() {
   if (!tbody) return;
   try {
     const data = await api('/api/returns/');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px">Возвратов нет</td></tr>'; return; }
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:16px">Возвратов нет</td></tr>'; return; }
     const fmt = d => new Date(d).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     tbody.innerHTML = data.map(r => `
       <tr>
@@ -2362,7 +2461,7 @@ async function loadReturns() {
         <td>${r.parent_name||'—'}</td>
         <td>${r.parent_phone||'—'}</td>
         <td><span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}">${r.language||'—'}</span></td>
-        <td style="font-size:12px;color:#555;max-width:280px">${r.reason||'—'}</td>
+        <td style="font-size:12px;color:var(--text-2);max-width:280px">${r.reason||'—'}</td>
       </tr>`).join('');
   } catch(e) { console.error(e); }
 }
@@ -2377,7 +2476,7 @@ async function loadReturnFormPage() {
   if (!dropdown) {
     dropdown = document.createElement('div');
     dropdown.id = 'return-student-dropdown';
-    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)';
+    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)';
     searchInp.parentNode.style.position = 'relative';
     searchInp.parentNode.appendChild(dropdown);
   }
@@ -2395,10 +2494,10 @@ async function loadReturnFormPage() {
     if (!filtered.length) { dropdown.style.display='none'; return; }
     dropdown.innerHTML = filtered.map(s => `
       <div onclick="selectReturnStudent(${s.id},'${s.full_name.replace(/'/g,"\\'")}','${s.parent_name||''}','${s.parent_phone||''}')"
-        style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
-        onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+        style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line-soft)"
+        onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
         <b>${s.full_name}</b>
-        <span style="font-size:11px;color:#888;margin-left:6px">${s.grade} кл · ${s.language} · ${s.branch||'—'}</span>
+        <span style="font-size:11px;color:var(--text-3);margin-left:6px">${s.grade} кл · ${s.language} · ${s.branch||'—'}</span>
       </div>`).join('');
     dropdown.style.display = 'block';
   };
@@ -2450,7 +2549,7 @@ async function loadFormHistory() {
   if (!tbody) return;
   try {
     const data = await api('/api/forms/');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#aaa;padding:16px">Истории нет</td></tr>'; return; }
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--text-3);padding:16px">Истории нет</td></tr>'; return; }
     const fmt = d => new Date(d).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     tbody.innerHTML = data.map(f => `
       <tr>
@@ -2481,13 +2580,13 @@ async function loadAnalytics() {
     if (summaryEl) {
       summaryEl.innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px">
-          ${[['👥 Учеников',summary.total_students,'#6366f1'],['✅ Активных',summary.active_students,'#22c55e'],
+          ${[['👥 Учеников',summary.total_students,'var(--ink)'],['✅ Активных',summary.active_students,'#22c55e'],
              ['📚 Групп',summary.total_groups,'#f59e0b'],['🎓 Учителей',summary.total_teachers,'#3b82f6'],
-             ['🛡 Менторов',summary.total_mentors,'#8b5cf6'],['📊 Менеджеров',summary.total_managers,'#ec4899'],
+             ['🛡 Менторов',summary.total_mentors,'var(--ink-500)'],['📊 Менеджеров',summary.total_managers,'#ec4899'],
           ].map(([label,val,color])=>`
-            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px 12px;text-align:center">
+            <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 12px;text-align:center">
               <div style="font-size:26px;font-weight:800;color:${color}">${val}</div>
-              <div style="font-size:12px;color:#777;margin-top:4px">${label}</div>
+              <div style="font-size:12px;color:var(--text-2);margin-top:4px">${label}</div>
             </div>`).join('')}
         </div>`;
     }
@@ -2518,18 +2617,18 @@ async function loadENT() {
     const activeTests = data.filter(test => test.status !== 'DELETED');
     
     if (!activeTests?.length) { 
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:16px">Тестов нет</td></tr>'; 
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:16px">Тестов нет</td></tr>'; 
       return; 
     }
     
     tbody.innerHTML = activeTests.map(e => `
-    <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+    <tr onclick="openENTEditor(${e.id},'${e.name}')" style="cursor:pointer" onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
         <td>${e.id}</td>
         <td><b>${e.name}</b></td>
         <td><span class="badge ${e.status==='ACTIVE'?'badge-active':'badge-inactive'}">${e.status}</span></td>
         <td style="min-width:160px">
           <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%"></div></div>
-          <div style="font-size:11px;color:#888;margin-top:2px">${e.progress}%</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${e.progress}%</div>
         </td>
         <td>
           <div class="action-menu">
@@ -2628,27 +2727,27 @@ async function openENTEditor(testId, testName) {
 
   modal.innerHTML = `
     <div style="background:#fff;border-radius:16px;width:750px;max-width:95vw;max-height:92vh;display:flex;flex-direction:column">
-      <div style="padding:16px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center">
+      <div style="padding:16px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
         <h3 style="font-size:16px;font-weight:700">✏️ Правильные ответы — ${testName}</h3>
         <button onclick="document.getElementById('ent-editor-modal').style.display='none'"
-          style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3)">×</button>
       </div>
       <!-- Tabs -->
-      <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;overflow-x:auto;flex-shrink:0">
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0">
         ${BASE_SECTIONS.map(s => `
           <button onclick="switchENTTab('${s.key}')" id="enttab-${s.key}"
             style="padding:10px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
-            color:${activeTab===s.key?'#6366f1':'#888'};border-bottom:${activeTab===s.key?'2px solid #6366f1':'2px solid transparent'};margin-bottom:-1px">
+            color:${activeTab===s.key?'var(--ink)':'var(--text-3)'};border-bottom:${activeTab===s.key?'2px solid var(--ink)':'2px solid transparent'};margin-bottom:-1px">
             ${s.name}
           </button>`).join('')}
         <button onclick="switchENTTab('profile')" id="enttab-profile"
           style="padding:10px 14px;border:none;background:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
-          color:#888;border-bottom:2px solid transparent;margin-bottom:-1px">
+          color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px">
           Профильные предметы
         </button>
       </div>
       <div id="ent-editor-body" style="overflow-y:auto;padding:16px 24px;flex:1"></div>
-      <div style="padding:12px 24px;border-top:1px solid #e5e7eb">
+      <div style="padding:12px 24px;border-top:1px solid var(--line)">
         <button onclick="saveENTAnswers(${testId})" class="btn btn-primary" style="width:100%">💾 Сохранить все ответы</button>
       </div>
     </div>`;
@@ -2661,12 +2760,12 @@ async function openENTEditor(testId, testName) {
       const n = startNum + i;
       const saved = editorAnswers[subjectKey][String(n)] || '';
       html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="min-width:32px;font-size:13px;color:#888;font-weight:600">${n}.</span>
+        <span style="min-width:32px;font-size:13px;color:var(--text-3);font-weight:600">${n}.</span>
         <div style="display:flex;gap:5px">
           ${opts.map(o => `
             <button onclick="setEAns2('${subjectKey}','${n}','${o}','single',this)"
-              style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved===o?'#6366f1':'#e5e7eb'};
-              background:${saved===o?'#6366f1':'#fff'};color:${saved===o?'#fff':'#555'};
+              style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved===o?'var(--ink)':'var(--line)'};
+              background:${saved===o?'var(--ink)':'#fff'};color:${saved===o?'#fff':'var(--text-2)'};
               font-weight:700;font-size:13px;cursor:pointer;transition:all .15s">${o}</button>
           `).join('')}
         </div>
@@ -2682,19 +2781,19 @@ async function openENTEditor(testId, testName) {
       const n = startNum + i;
       const s1 = editorAnswers[subjectKey][`${n}_1`] || '';
       const s2 = editorAnswers[subjectKey][`${n}_2`] || '';
-      html += `<div style="margin-bottom:12px;padding:10px;background:#f9fafb;border-radius:10px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#555">${n}.</div>
+      html += `<div style="margin-bottom:12px;padding:10px;background:var(--paper-2);border-radius:10px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text-2)">${n}.</div>
         <div style="display:flex;gap:5px;margin-bottom:6px">
           ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}_1','${o}','single',this)"
-            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s1===o?'#6366f1':'#e5e7eb'};
-            background:${s1===o?'#6366f1':'#fff'};color:${s1===o?'#fff':'#555'};
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s1===o?'var(--ink)':'var(--line)'};
+            background:${s1===o?'var(--ink)':'#fff'};color:${s1===o?'#fff':'var(--text-2)'};
             font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
           ${s1?`<span style="font-size:12px;color:#22c55e;font-weight:600;margin-left:4px">✓${s1}</span>`:''}
         </div>
         <div style="display:flex;gap:5px">
           ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}_2','${o}','single',this)"
-            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s2===o?'#6366f1':'#e5e7eb'};
-            background:${s2===o?'#6366f1':'#fff'};color:${s2===o?'#fff':'#555'};
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${s2===o?'var(--ink)':'var(--line)'};
+            background:${s2===o?'var(--ink)':'#fff'};color:${s2===o?'#fff':'var(--text-2)'};
             font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
           ${s2?`<span style="font-size:12px;color:#22c55e;font-weight:600;margin-left:4px">✓${s2}</span>`:''}
         </div>
@@ -2709,11 +2808,11 @@ async function openENTEditor(testId, testName) {
       const n = startNum + i;
       const saved = editorAnswers[subjectKey][String(n)] || [];
       html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="min-width:32px;font-size:13px;color:#888;font-weight:600">${n}.</span>
+        <span style="min-width:32px;font-size:13px;color:var(--text-3);font-weight:600">${n}.</span>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
           ${opts.map(o=>`<button onclick="setEAns2('${subjectKey}','${n}','${o}','multi',this)"
-            style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved.includes(o)?'#10b981':'#e5e7eb'};
-            background:${saved.includes(o)?'#10b981':'#fff'};color:${saved.includes(o)?'#fff':'#555'};
+            style="width:38px;height:38px;border-radius:8px;border:2px solid ${saved.includes(o)?'#10b981':'var(--line)'};
+            background:${saved.includes(o)?'#10b981':'#fff'};color:${saved.includes(o)?'#fff':'var(--text-2)'};
             font-weight:700;font-size:13px;cursor:pointer">${o}</button>`).join('')}
         </div>
         ${saved.length?`<span style="font-size:12px;color:#10b981;font-weight:600">${saved.join(',')}</span>`:''}
@@ -2725,8 +2824,8 @@ async function openENTEditor(testId, testName) {
   function renderProfileSubject(subjName) {
     const key = subjName;
     return `
-      <div style="background:#eef0ff;border-radius:10px;padding:10px 14px;margin-bottom:14px">
-        <div style="font-size:13px;font-weight:700;color:#6366f1">1–30: один вариант (A–D)</div>
+      <div style="background:var(--ink-soft);border-radius:10px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">1–30: один вариант (A–D)</div>
       </div>
       ${renderSingleBlock(key, 30, ['A','B','C','D'])}
       <div style="background:#fff3e0;border-radius:10px;padding:10px 14px;margin:16px 0 14px">
@@ -2744,11 +2843,11 @@ async function openENTEditor(testId, testName) {
   window.switchENTTab = function(tab) {
     activeTab = tab;
     document.querySelectorAll('[id^="enttab-"]').forEach(b => {
-      b.style.color = '#888';
+      b.style.color = 'var(--text-3)';
       b.style.borderBottom = '2px solid transparent';
     });
     const activeBtn = document.getElementById(`enttab-${tab}`);
-    if (activeBtn) { activeBtn.style.color = '#6366f1'; activeBtn.style.borderBottom = '2px solid #6366f1'; }
+    if (activeBtn) { activeBtn.style.color = 'var(--ink)'; activeBtn.style.borderBottom = '2px solid var(--ink)'; }
     renderTabContent();
   };
 
@@ -2757,12 +2856,12 @@ async function openENTEditor(testId, testName) {
     if (activeTab === 'profile') {
       body.innerHTML = `
         <div style="margin-bottom:14px">
-          <div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:600">Выберите предмет:</div>
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:8px;font-weight:600">Выберите предмет:</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${PROFILE_SUBJECTS.map(s => `
               <button onclick="switchProfileSubj('${s}')" id="psubj-${s.replace(/\s+/g,'_')}"
-                style="padding:6px 12px;border-radius:20px;border:2px solid ${activeProfileSubj===s?'#6366f1':'#e5e7eb'};
-                background:${activeProfileSubj===s?'#6366f1':'#fff'};color:${activeProfileSubj===s?'#fff':'#555'};
+                style="padding:6px 12px;border-radius:20px;border:2px solid ${activeProfileSubj===s?'var(--ink)':'var(--line)'};
+                background:${activeProfileSubj===s?'var(--ink)':'#fff'};color:${activeProfileSubj===s?'#fff':'var(--text-2)'};
                 font-size:12px;font-weight:600;cursor:pointer">${s}</button>
             `).join('')}
           </div>
@@ -2772,8 +2871,8 @@ async function openENTEditor(testId, testName) {
       const sec = BASE_SECTIONS.find(s => s.key === activeTab);
       if (sec) {
         body.innerHTML = `
-          <div style="background:#eef0ff;border-radius:10px;padding:10px 14px;margin-bottom:14px">
-            <div style="font-size:13px;font-weight:700;color:#6366f1">${sec.name} — ${sec.count} вопросов (A–D)</div>
+          <div style="background:var(--ink-soft);border-radius:10px;padding:10px 14px;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;color:var(--ink)">${sec.name} — ${sec.count} вопросов (A–D)</div>
           </div>
           ${renderSingleBlock(sec.key, sec.count, sec.opts)}`;
       }
@@ -2783,10 +2882,10 @@ async function openENTEditor(testId, testName) {
   window.switchProfileSubj = function(subj) {
     activeProfileSubj = subj;
     document.querySelectorAll('[id^="psubj-"]').forEach(b => {
-      b.style.background = '#fff'; b.style.borderColor = '#e5e7eb'; b.style.color = '#555';
+      b.style.background = '#fff'; b.style.borderColor = 'var(--line)'; b.style.color = 'var(--text-2)';
     });
     const btn = document.getElementById(`psubj-${subj.replace(/\s+/g,'_')}`);
-    if (btn) { btn.style.background = '#6366f1'; btn.style.borderColor = '#6366f1'; btn.style.color = '#fff'; }
+    if (btn) { btn.style.background = 'var(--ink)'; btn.style.borderColor = 'var(--ink)'; btn.style.color = '#fff'; }
     document.getElementById('profile-subj-content').innerHTML = renderProfileSubject(subj);
   };
 
@@ -2795,9 +2894,9 @@ async function openENTEditor(testId, testName) {
       editorAnswers[subjKey][String(qNum)] = option;
       const row = btn.parentElement;
       row.querySelectorAll('button').forEach(b => {
-        b.style.background = '#fff'; b.style.borderColor = '#e5e7eb'; b.style.color = '#555';
+        b.style.background = '#fff'; b.style.borderColor = 'var(--line)'; b.style.color = 'var(--text-2)';
       });
-      btn.style.background = '#6366f1'; btn.style.borderColor = '#6366f1'; btn.style.color = '#fff';
+      btn.style.background = 'var(--ink)'; btn.style.borderColor = 'var(--ink)'; btn.style.color = '#fff';
       // Update checkmark
       const check = row.nextElementSibling;
       if (check && check.tagName === 'SPAN') { check.textContent = '✓ ' + option; check.style.display = ''; }
@@ -2807,7 +2906,7 @@ async function openENTEditor(testId, testName) {
       const idx = arr.indexOf(option);
       if (idx >= 0) {
         arr.splice(idx, 1);
-        btn.style.background = '#fff'; btn.style.borderColor = '#e5e7eb'; btn.style.color = '#555';
+        btn.style.background = '#fff'; btn.style.borderColor = 'var(--line)'; btn.style.color = 'var(--text-2)';
       } else if (arr.length < 3) {
         arr.push(option);
         btn.style.background = '#10b981'; btn.style.borderColor = '#10b981'; btn.style.color = '#fff';
@@ -2843,10 +2942,10 @@ function showENTLink(testId, testName) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h3 style="font-size:17px;font-weight:700">🔗 Ссылка для учеников</h3>
         <button onclick="document.getElementById('ent-link-modal').style.display='none'"
-          style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3)">×</button>
       </div>
-      <div style="font-size:14px;color:#555;margin-bottom:12px">Тест: <b>${testName}</b></div>
-      <div style="background:#f8f9ff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px;color:#6366f1;word-break:break-all;margin-bottom:12px">
+      <div style="font-size:14px;color:var(--text-2);margin-bottom:12px">Тест: <b>${testName}</b></div>
+      <div style="background:#f8f9ff;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;color:var(--ink);word-break:break-all;margin-bottom:12px">
         ${link}
       </div>
       <div style="display:flex;gap:10px;margin-bottom:20px">
@@ -2854,13 +2953,13 @@ function showENTLink(testId, testName) {
           class="btn btn-primary" style="flex:1">📋 Скопировать ссылку</button>
       </div>
       <div style="text-align:center">
-        <div style="font-size:13px;color:#888;margin-bottom:8px">QR код</div>
+        <div style="font-size:13px;color:var(--text-3);margin-bottom:8px">QR код</div>
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}"
-          style="border-radius:8px;border:1px solid #e5e7eb" width="200" height="200">
+          style="border-radius:8px;border:1px solid var(--line)" width="200" height="200">
         <div style="margin-top:8px">
           <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(link)}"
             download="qr-ent-${testId}.png" target="_blank"
-            style="font-size:13px;color:#6366f1;text-decoration:underline">⬇️ Скачать QR</a>
+            style="font-size:13px;color:var(--ink);text-decoration:underline">⬇️ Скачать QR</a>
         </div>
       </div>
     </div>`;
@@ -2881,9 +2980,9 @@ async function showENTResults(testId, testName) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h3 style="font-size:17px;font-weight:700">📊 Результаты — ${testName}</h3>
         <button onclick="document.getElementById('ent-results-modal').style.display='none'"
-          style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3)">×</button>
       </div>
-      <div id="ent-results-content" style="text-align:center;padding:30px;color:#aaa">Загрузка...</div>
+      <div id="ent-results-content" style="text-align:center;padding:30px;color:var(--text-3)">Загрузка...</div>
     </div>`;
   modal.style.display = 'flex';
   modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
@@ -2892,15 +2991,15 @@ async function showENTResults(testId, testName) {
     const results = await api(`/api/ent/${testId}/results`);
     const content = document.getElementById('ent-results-content');
     if (!results?.length) {
-      content.innerHTML = '<div style="color:#aaa;padding:20px">Результатов пока нет</div>';
+      content.innerHTML = '<div style="color:var(--text-3);padding:20px">Результатов пока нет</div>';
       return;
     }
     content.innerHTML = `
-      <div style="margin-bottom:12px;font-size:13px;color:#888">${results.length} учеников сдали тест</div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--text-3)">${results.length} учеников сдали тест</div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:13px">
           <thead>
-            <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">
+            <tr style="background:var(--paper-2);border-bottom:2px solid var(--line)">
               <th style="text-align:left;padding:10px;font-weight:600">Ученик</th>
               <th style="padding:10px;font-weight:600">Класс</th>
               <th style="padding:10px;font-weight:600">Язык</th>
@@ -2909,35 +3008,35 @@ async function showENTResults(testId, testName) {
               <th style="padding:10px;font-weight:600">Мат. гр.</th>
               <th style="padding:10px;font-weight:600">Предмет 1</th>
               <th style="padding:10px;font-weight:600">Предмет 2</th>
-              <th style="padding:10px;font-weight:600;color:#6366f1">Итого</th>
+              <th style="padding:10px;font-weight:600;color:var(--ink)">Итого</th>
             </tr>
           </thead>
           <tbody>
             ${results.map(r => {
               const s = r.scores || {};
-              return `<tr style="border-bottom:1px solid #f3f4f6">
-                <td style="padding:10px;font-weight:600">${r.student_name}<div style="font-size:11px;color:#aaa">${r.student_phone||''}</div></td>
+              return `<tr style="border-bottom:1px solid var(--line-soft)">
+                <td style="padding:10px;font-weight:600">${r.student_name}<div style="font-size:11px;color:var(--text-3)">${r.student_phone||''}</div></td>
                 <td style="padding:10px;text-align:center">${r.grade}</td>
                 <td style="padding:10px;text-align:center"><span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}">${r.language}</span></td>
                 <td style="padding:10px;text-align:center">${s.history??'—'}</td>
                 <td style="padding:10px;text-align:center">${s.reading??'—'}</td>
                 <td style="padding:10px;text-align:center">${s.math??'—'}</td>
                 <td style="padding:10px;text-align:center">
-                  <div style="font-size:11px;color:#888">${r.subject1||'—'}</div>
+                  <div style="font-size:11px;color:var(--text-3)">${r.subject1||'—'}</div>
                   <div style="font-weight:700">${s.subject1??'—'}</div>
                 </td>
                 <td style="padding:10px;text-align:center">
-                  <div style="font-size:11px;color:#888">${r.subject2||'—'}</div>
+                  <div style="font-size:11px;color:var(--text-3)">${r.subject2||'—'}</div>
                   <div style="font-weight:700">${s.subject2??'—'}</div>
                 </td>
-                <td style="padding:10px;text-align:center;font-weight:800;font-size:16px;color:#6366f1">${r.total_score??'—'}</td>
+                <td style="padding:10px;text-align:center;font-weight:800;font-size:16px;color:var(--ink)">${r.total_score??'—'}</td>
               </tr>`;
             }).join('')}
           </tbody>
         </table>
       </div>`;
   } catch(e) {
-    document.getElementById('ent-results-content').innerHTML = `<div style="color:#ef4444">${e.message}</div>`;
+    document.getElementById('ent-results-content').innerHTML = `<div style="color:var(--danger)">${e.message}</div>`;
   }
 }
   
@@ -2961,13 +3060,13 @@ async function loadForbiddenDates() {
   if (!tbody) return;
   try {
     const data = await api('/api/forbidden-dates/');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:16px">Дат нет</td></tr>'; return; }
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-3);padding:16px">Дат нет</td></tr>'; return; }
     const fmt = d => new Date(d.created_at).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric'});
     tbody.innerHTML = data.map(d => `
       <tr>
         <td><b>${d.date}</b></td>
-        <td style="color:#888;font-size:13px">${fmt(d)}</td>
-        <td><button style="background:none;border:none;cursor:pointer;color:#ef4444" onclick="deleteForbiddenDate(${d.id})">${icon('trash')}</button></td>
+        <td style="color:var(--text-3);font-size:13px">${fmt(d)}</td>
+        <td><button style="background:none;border:none;cursor:pointer;color:var(--danger)" onclick="deleteForbiddenDate(${d.id})">${icon('trash')}</button></td>
       </tr>`).join('');
   } catch(e) { console.error(e); }
 }
@@ -2996,7 +3095,7 @@ async function loadSlots() {
   if (!tbody) return;
   try {
     const data = await api('/api/analytics/slots');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:16px">Данных нет</td></tr>'; return; }
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:16px">Данных нет</td></tr>'; return; }
     const slotColor = (e,c) => { if(!c) return 'slot-gray'; if(e>c) return 'slot-red'; if(e===c) return 'slot-green'; if(e>c*0.7) return 'slot-blue'; return ''; };
     const byGrade = {};
     data.forEach(s => { if(!byGrade[s.grade]) byGrade[s.grade]={KAZ:[],RUS:[]}; byGrade[s.grade][s.language].push(s); });
@@ -3004,13 +3103,13 @@ async function loadSlots() {
       const kaz = byGrade[grade].KAZ; const rus = byGrade[grade].RUS;
       return `
         <tr>
-          <td rowspan="2" style="border:1px solid #e5e7eb;padding:8px 16px;font-weight:700;background:#f9fafb">${grade}</td>
-          <td style="border:1px solid #e5e7eb;padding:8px 16px;font-size:12px;font-weight:600">KAZ</td>
-          ${kaz.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid #e5e7eb;padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
+          <td rowspan="2" style="border:1px solid var(--line);padding:8px 16px;font-weight:700;background:var(--paper-2)">${grade}</td>
+          <td style="border:1px solid var(--line);padding:8px 16px;font-size:12px;font-weight:600">KAZ</td>
+          ${kaz.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid var(--line);padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
         </tr>
         <tr>
-          <td style="border:1px solid #e5e7eb;padding:8px 16px;font-size:12px;font-weight:600">RUS</td>
-          ${rus.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid #e5e7eb;padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
+          <td style="border:1px solid var(--line);padding:8px 16px;font-size:12px;font-weight:600">RUS</td>
+          ${rus.map(s=>`<td class="${slotColor(s.enrolled,s.capacity)}" style="border:1px solid var(--line);padding:8px;text-align:center;font-size:12px;font-weight:600">${s.enrolled}/${s.capacity}</td>`).join('')}
         </tr>`;
     }).join('');
   } catch(e) { console.error(e); }
@@ -3032,10 +3131,10 @@ async function openEditGroupModal(groupId) {
       <div class="modal modal-lg" style="max-height:90vh;overflow-y:auto;width:600px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
           <div class="modal-title" style="margin:0">Редактировать группу</div>
-          <button onclick="document.getElementById('edit-group-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">×</button>
+          <button onclick="document.getElementById('edit-group-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3)">×</button>
         </div>
         <div id="edit-group-content">
-          <div style="text-align:center;padding:30px;color:#aaa">Загрузка...</div>
+          <div style="text-align:center;padding:30px;color:var(--text-3)">Загрузка...</div>
         </div>
       </div>`;
     modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
@@ -3126,18 +3225,18 @@ async function openEditGroupModal(groupId) {
         <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Ученики (<span id="eg-student-count">${(students||[]).length}</span>)</div>
         <div style="position:relative;margin-bottom:8px">
           <input class="form-input" id="eg-student-search" placeholder="🔍 Начните вводить имя ученика..." autocomplete="off">
-          <div id="eg-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+          <div id="eg-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
         </div>
-        <div id="eg-students-list" style="max-height:220px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px">
+        <div id="eg-students-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">
           ${(students||[]).length ? (students||[]).map(s=>`
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line-soft)">
               <div>
                 <b style="font-size:13px">${s.full_name}</b>
-                <span style="font-size:11px;color:#888;margin-left:8px">${s.grade} кл · ${s.language}</span>
+                <span style="font-size:11px;color:var(--text-3);margin-left:8px">${s.grade} кл · ${s.language}</span>
               </div>
-              <button onclick="removeStudentFromGroup(${groupId},${s.id},this)" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
+              <button onclick="removeStudentFromGroup(${groupId},${s.id},this)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px;padding:4px 8px;border-radius:4px">✕</button>
             </div>`).join('') :
-            '<div id="eg-empty" style="text-align:center;color:#aaa;padding:16px">Учеников нет</div>'}
+            '<div id="eg-empty" style="text-align:center;color:var(--text-3);padding:16px">Учеников нет</div>'}
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:20px">
@@ -3162,10 +3261,10 @@ async function openEditGroupModal(groupId) {
       if (!filtered.length) { dropdown.style.display='none'; return; }
       dropdown.innerHTML = filtered.map(s => `
         <div onclick="addStudentToEditGroup(${groupId},${s.id},'${s.full_name.replace(/'/g,"\\'")}',${s.grade},'${s.language}')"
-          style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center"
-          onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+          style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center"
+          onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
           <b>${s.full_name}</b>
-          <span style="font-size:11px;color:#888">${s.grade} кл · ${s.language}</span>
+          <span style="font-size:11px;color:var(--text-3)">${s.grade} кл · ${s.language}</span>
         </div>`).join('');
       dropdown.style.display = 'block';
     };
@@ -3177,7 +3276,7 @@ async function openEditGroupModal(groupId) {
     });
 
   } catch(e) {
-    document.getElementById('edit-group-content').innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`;
+    document.getElementById('edit-group-content').innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`;
   }
 }
 
@@ -3225,7 +3324,7 @@ async function openStudentProfile(studentId) {
   const modal = document.getElementById('student-profile-modal');
   modal.style.display = 'flex';
   document.getElementById('student-profile-content').innerHTML =
-    '<div style="text-align:center;padding:40px;color:#aaa">Загрузка...</div>';
+    '<div style="text-align:center;padding:40px;color:var(--text-3)">Загрузка...</div>';
   modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
 
   try {
@@ -3244,58 +3343,58 @@ async function openStudentProfile(studentId) {
               <span style="background:${statusColor[student.status]||'#9ca3af'};color:#fff;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600">${student.status}</span>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 40px;font-size:13px">
-              <div><span style="color:#888;min-width:120px;display:inline-block">Фамилия</span> <b>${(student.full_name||'').split(' ')[0]||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">Имя родителя</span> <b>${student.parent_name||'—'}</b></div>
-              <div><span style="color:#888;min-width:120px;display:inline-block">Имя</span> <b>${(student.full_name||'').split(' ').slice(1).join(' ')||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">Телефон родителя</span> <b>${student.parent_phone||'—'}</b></div>
-              <div><span style="color:#888;min-width:120px;display:inline-block">Телефон</span> <b>${student.phone||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">Баланс</span> <b>0</b></div>
-              <div><span style="color:#888;min-width:120px;display:inline-block">Класс</span> <b>${student.grade||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">Менеджер</span> <b id="sp-manager-name">—</b></div>
-              <div><span style="color:#888;min-width:120px;display:inline-block">Язык</span> <b>${student.language||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">Ментор</span> <b id="sp-mentor-name">—</b></div>              <div><span style="color:#888;min-width:120px;display:inline-block">Филиал</span> <b>${student.branch||'—'}</b></div>
-              <div><span style="color:#888;min-width:140px;display:inline-block">ID</span> <b>${student.id}</b></div>
+              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Фамилия</span> <b>${(student.full_name||'').split(' ')[0]||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">Имя родителя</span> <b>${student.parent_name||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Имя</span> <b>${(student.full_name||'').split(' ').slice(1).join(' ')||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">Телефон родителя</span> <b>${student.parent_phone||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Телефон</span> <b>${student.phone||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">Баланс</span> <b>0</b></div>
+              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Класс</span> <b>${student.grade||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">Менеджер</span> <b id="sp-manager-name">—</b></div>
+              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Язык</span> <b>${student.language||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">Ментор</span> <b id="sp-mentor-name">—</b></div>              <div><span style="color:var(--text-3);min-width:120px;display:inline-block">Филиал</span> <b>${student.branch||'—'}</b></div>
+              <div><span style="color:var(--text-3);min-width:140px;display:inline-block">ID</span> <b>${student.id}</b></div>
             </div>
           </div>
         </div>
         <button onclick="document.getElementById('student-profile-modal').style.display='none'"
-          style="background:none;border:none;font-size:24px;cursor:pointer;color:#888">×</button>
+          style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-3)">×</button>
       </div>
 
-      <div style="padding:12px 28px;border-bottom:1px solid #e5e7eb;display:flex;gap:8px;flex-wrap:wrap;background:#fff">
+      <div style="padding:12px 28px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;background:#fff">
         <button onclick="openEditStudentModal(${student.id})" class="btn btn-outline btn-sm">✏️ Редактировать</button>
         <button onclick="copyInvitationText(${student.id})" class="btn btn-outline btn-sm">📋 Скопировать приглашение</button>
         <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Ссылка скопирована!'))" class="btn btn-outline btn-sm">🔗 Ссылка заморозки</button>
         <button onclick="toggleStudentStatus(${student.id},'${student.status}');document.getElementById('student-profile-modal').style.display='none'"
-          class="btn btn-sm" style="background:${student.status==='ACTIVE'?'#fee2e2':'#dcfce7'};color:${student.status==='ACTIVE'?'#dc2626':'#16a34a'};border:1px solid ${student.status==='ACTIVE'?'#fca5a5':'#86efac'}">
+          class="btn btn-sm" style="background:${student.status==='ACTIVE'?'#fee2e2':'#dcfce7'};color:${student.status==='ACTIVE'?'var(--danger-600)':'#16a34a'};border:1px solid ${student.status==='ACTIVE'?'#fca5a5':'#86efac'}">
           ${student.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}
         </button>
         <button onclick="deleteStudentFromModal(${student.id})"
           class="btn btn-danger btn-sm">🗑 Удалить</button>
       </div>
 
-      <div style="margin:12px 28px;padding:10px 16px;background:#f8f9ff;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;font-size:13px">
-          <div><b>Ссылка заморозки:</b> <a href="${window.location.origin}/freezing?id=${student.id}" target="_blank" style="color:#6366f1;margin-left:6px;text-decoration:underline">http://localhost:8000/freezing?id=${student.id}</a></div>        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Скопировано!'))"
-          style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:16px">📋</button>
+      <div style="margin:12px 28px;padding:10px 16px;background:#f8f9ff;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <div><b>Ссылка заморозки:</b> <a href="${window.location.origin}/freezing?id=${student.id}" target="_blank" style="color:var(--ink);margin-left:6px;text-decoration:underline">http://localhost:8000/freezing?id=${student.id}</a></div>        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Скопировано!'))"
+          style="background:none;border:none;cursor:pointer;color:var(--ink);font-size:16px">📋</button>
       </div>
 
       <div style="background:#fff;border-radius:0 0 16px 16px">
-        <div style="display:flex;border-bottom:1px solid #e5e7eb;padding:0 28px;overflow-x:auto">
+        <div style="display:flex;border-bottom:1px solid var(--line);padding:0 28px;overflow-x:auto">
           ${['Задачи','Комментарии','Группы','Результаты уроков','Абонементы','Заморозки'].map((tab,i) => `
             <button onclick="switchStudentTab(this,'sp-tab-${i}',${studentId})"
               class="sp-tab-btn"
               style="padding:12px 16px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
-              color:${i===0?'#6366f1':'#888'};border-bottom:${i===0?'2px solid #6366f1':'2px solid transparent'};margin-bottom:-1px">
+              color:${i===0?'var(--ink)':'var(--text-3)'};border-bottom:${i===0?'2px solid var(--ink)':'2px solid transparent'};margin-bottom:-1px">
               ${tab}
             </button>`).join('')}
         </div>
         <div style="padding:20px 28px;min-height:200px">
           <div id="sp-tab-0">${renderStudentTasksTab(studentId)}</div>
           <div id="sp-tab-1">${renderStudentCommentsTab(studentId)}</div>
-          <div id="sp-tab-2"><div style="text-align:center;color:#aaa;padding:20px">Загрузка групп...</div></div>
+          <div id="sp-tab-2"><div style="text-align:center;color:var(--text-3);padding:20px">Загрузка групп...</div></div>
           <div id="sp-tab-3">${renderStudentAttendanceTab(studentId)}</div>
-          <div id="sp-tab-4"><div style="text-align:center;color:#aaa;padding:20px">Нет абонементов</div></div>
-          <div id="sp-tab-5"><div style="text-align:center;color:#aaa;padding:20px">Нет заморозок</div></div>
+          <div id="sp-tab-4"><div style="text-align:center;color:var(--text-3);padding:20px">Нет абонементов</div></div>
+          <div id="sp-tab-5"><div style="text-align:center;color:var(--text-3);padding:20px">Нет заморозок</div></div>
         </div>
       </div>`;
 
@@ -3324,7 +3423,7 @@ async function openStudentProfile(studentId) {
 
   } catch(e) {
     document.getElementById('student-profile-content').innerHTML =
-      `<div style="color:#ef4444;padding:30px;text-align:center">${e.message}</div>`;
+      `<div style="color:var(--danger);padding:30px;text-align:center">${e.message}</div>`;
   }
 }
 
@@ -3336,35 +3435,35 @@ function renderStudentTasksTab(studentId) {
       <input type="date" class="form-input" style="flex:1;min-width:140px" id="sp-task-due">
       <button class="btn btn-primary btn-sm" onclick="createStudentTask(${studentId})">Создать</button>
     </div>
-    <div id="sp-tasks-list"><div style="text-align:center;color:#aaa;padding:20px">Загрузка задач...</div></div>`;
+    <div id="sp-tasks-list"><div style="text-align:center;color:var(--text-3);padding:20px">Загрузка задач...</div></div>`;
 }
 
 function renderStudentCommentsTab(studentId) {
   return `
     <div style="margin-bottom:16px">
-      <textarea id="sp-comment-input" style="width:100%;height:80px;border:1.5px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px;font-family:inherit;resize:vertical" placeholder="Новый комментарий"></textarea>
+      <textarea id="sp-comment-input" style="width:100%;height:80px;border:1.5px solid var(--line);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;resize:vertical" placeholder="Новый комментарий"></textarea>
       <div style="text-align:right;margin-top:6px">
         <button class="btn btn-primary btn-sm" onclick="submitStudentComment(${studentId})">Отправить</button>
       </div>
     </div>
-    <div id="sp-comments-list"><div style="text-align:center;color:#aaa;padding:20px">Комментариев нет</div></div>`;
+    <div id="sp-comments-list"><div style="text-align:center;color:var(--text-3);padding:20px">Комментариев нет</div></div>`;
 }
 
 function renderStudentAttendanceTab(studentId) {
-  return `<div id="sp-attendance-list"><div style="text-align:center;color:#aaa;padding:20px">Загрузка результатов...</div></div>`;
+  return `<div id="sp-attendance-list"><div style="text-align:center;color:var(--text-3);padding:20px">Загрузка результатов...</div></div>`;
 }
 
 // Полностью переписать переключение табов
 window.switchStudentTab = function(btn, tabId, studentId) {
   // Сбросить все кнопки
   document.querySelectorAll('.sp-tab-btn').forEach(b => {
-    b.style.color = '#888';
+    b.style.color = 'var(--text-3)';
     b.style.borderBottom = '2px solid transparent';
     b.style.fontWeight = '500';
   });
   // Активировать нажатую
-  btn.style.color = '#6366f1';
-  btn.style.borderBottom = '2px solid #6366f1';
+  btn.style.color = 'var(--ink)';
+  btn.style.borderBottom = '2px solid var(--ink)';
   btn.style.fontWeight = '700';
 
   // Скрыть/показать контент
@@ -3388,29 +3487,29 @@ async function loadStudentTasks(studentId) {
   try {
     const tasks = await api('/api/tasks/');
     if (!tasks?.length) {
-      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Задач нет</div>'; return;
+      container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px">Задач нет</div>'; return;
     }
     const statusColor = {todo:'#f59e0b', in_progress:'#3b82f6', done:'#22c55e'};
     const statusLabel = {todo:'Открыта', in_progress:'В процессе', done:'Сделано'};
     container.innerHTML = `
       <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead><tr style="border-bottom:1px solid #e5e7eb">
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Тип</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Описание</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Исполнитель</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Дедлайн</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Статус</th>
+        <thead><tr style="border-bottom:1px solid var(--line)">
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Тип</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Описание</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Исполнитель</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Дедлайн</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Статус</th>
           <th style="padding:8px"></th>
         </tr></thead>
         <tbody>
           ${tasks.map(t=>`
-            <tr style="border-bottom:1px solid #f3f4f6">
+            <tr style="border-bottom:1px solid var(--line-soft)">
               <td style="padding:8px">${t.title}</td>
-              <td style="padding:8px;color:#888">${t.description||'—'}</td>
+              <td style="padding:8px;color:var(--text-3)">${t.description||'—'}</td>
               <td style="padding:8px">${t.assignee_name||'—'}</td>
               <td style="padding:8px">${t.due_date||'—'}</td>
               <td style="padding:8px">
-                <span style="background:${statusColor[t.status]||'#e5e7eb'};color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${statusLabel[t.status]||t.status}</span>
+                <span style="background:${statusColor[t.status]||'var(--line)'};color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${statusLabel[t.status]||t.status}</span>
               </td>
               <td style="padding:8px">
                 ${t.status!=='done'?`<button onclick="updateTaskStatus(${t.id},'done');loadStudentTasks(${studentId})" style="background:#dcfce7;color:#16a34a;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">✓ Сделано</button>`:''}
@@ -3418,7 +3517,7 @@ async function loadStudentTasks(studentId) {
             </tr>`).join('')}
         </tbody>
       </table>`;
-  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`; }
+  } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:16px">${e.message}</div>`; }
 }
 
 async function createStudentTask(studentId) {
@@ -3444,10 +3543,10 @@ function submitStudentComment(studentId) {
   const list = document.getElementById('sp-comments-list');
   const now = new Date().toLocaleString('ru');
   const div = document.createElement('div');
-  div.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px';
+  div.style.cssText = 'border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px';
   div.innerHTML = `
-    <div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:#888">
-      <span>${now}</span> · <b style="color:#333">${CURRENT_USER?.full_name||'Вы'}</b>
+    <div style="display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text-3)">
+      <span>${now}</span> · <b style="color:var(--text)">${CURRENT_USER?.full_name||'Вы'}</b>
     </div>
     <div style="font-size:13px">${text}</div>`;
   if (list.querySelector('[style*="text-align:center"]')) list.innerHTML = '';
@@ -3477,46 +3576,46 @@ async function loadStudentAttendance(studentId) {
     }
     allRecords.sort((a,b) => b.date?.localeCompare(a.date));
     if (!allRecords.length) {
-      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Нет данных посещаемости</div>'; return;
+      container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px">Нет данных посещаемости</div>'; return;
     }
     container.innerHTML = `
       <div style="display:flex;gap:12px;margin-bottom:16px">
         <div style="background:#dcfce7;color:#16a34a;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px">✓ ${present} посетил</div>
-        <div style="background:#fee2e2;color:#dc2626;padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px">✗ ${absent} пропустил</div>
+        <div style="background:#fee2e2;color:var(--danger-600);padding:6px 16px;border-radius:20px;font-weight:700;font-size:13px">✗ ${absent} пропустил</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead><tr style="border-bottom:1px solid #e5e7eb">
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Дата</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Посещение</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">Группа</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">ДЗ</th>
-          <th style="text-align:left;padding:8px;color:#888;font-weight:600">КР</th>
+        <thead><tr style="border-bottom:1px solid var(--line)">
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Дата</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Посещение</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">Группа</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">ДЗ</th>
+          <th style="text-align:left;padding:8px;color:var(--text-3);font-weight:600">КР</th>
         </tr></thead>
         <tbody>
           ${allRecords.map(r=>`
-            <tr style="border-bottom:1px solid #f3f4f6">
+            <tr style="border-bottom:1px solid var(--line-soft)">
               <td style="padding:8px">${r.date}</td>
               <td style="padding:8px">
-                <span style="background:${r.status==='present'?'#dcfce7':'#fee2e2'};color:${r.status==='present'?'#16a34a':'#dc2626'};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                <span style="background:${r.status==='present'?'#dcfce7':'#fee2e2'};color:${r.status==='present'?'#16a34a':'var(--danger-600)'};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">
                   ${r.status==='present'?'Да':'Нет'}
                 </span>
               </td>
-              <td style="padding:8px;color:#888">${r.group_name||'—'}</td>
+              <td style="padding:8px;color:var(--text-3)">${r.group_name||'—'}</td>
               <td style="padding:8px">${r.score_1!=null?r.score_1:'—'}</td>
               <td style="padding:8px">${r.score_2!=null?r.score_2:'—'}</td>
             </tr>`).join('')}
         </tbody>
       </table>`;
-  } catch(e) { container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`; }
+  } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:16px">${e.message}</div>`; }
 }
 
 function switchStudentTab(btn, tabId) {
   document.querySelectorAll('.student-tab-btn').forEach(b => {
-    b.style.color = '#888';
+    b.style.color = 'var(--text-3)';
     b.style.borderBottom = '2px solid transparent';
   });
-  btn.style.color = '#6366f1';
-  btn.style.borderBottom = '2px solid #6366f1';
+  btn.style.color = 'var(--ink)';
+  btn.style.borderBottom = '2px solid var(--ink)';
   ['st-tab-0','st-tab-1'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = id === tabId ? 'block' : 'none';
@@ -3526,7 +3625,7 @@ function switchStudentTab(btn, tabId) {
 async function loadStudentGroups(studentId) {
   const container = document.getElementById('sp-tab-2');
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Загрузка групп...</div>';
+  container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px">Загрузка групп...</div>';
   try {
     const groups = await api('/api/groups/');
     const studentGroups = [];
@@ -3537,7 +3636,7 @@ async function loadStudentGroups(studentId) {
       }
     }
     if (!studentGroups.length) {
-      container.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Ученик не состоит ни в одной группе</div>';
+      container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px">Ученик не состоит ни в одной группе</div>';
       return;
     }
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
@@ -3546,22 +3645,22 @@ async function loadStudentGroups(studentId) {
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'—';
       const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'—';
       return `
-        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div style="border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
           <div>
             <b style="font-size:14px">${g.name}</b>
             <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
-            <div style="font-size:12px;color:#888;margin-top:4px">
+            <div style="font-size:12px;color:var(--text-3);margin-top:4px">
               👤 ${g.teacher_name||'—'} · 🕐 ${timeStr} · 📅 ${daysStr}
             </div>
           </div>
           <button onclick="removeStudentFromGroup(${g.id}, ${studentId})"
-            style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px">✕ Убрать</button>
+            style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px;padding:4px 8px">✕ Убрать</button>
         </div>`;
     }).join('') + `
       <div style="margin-top:8px">
         <div style="position:relative">
           <input class="form-input" id="sp-add-group-search" placeholder="+ Добавить в группу..." autocomplete="off">
-          <div id="sp-add-group-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+          <div id="sp-add-group-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
         </div>
       </div>`;
 
@@ -3577,15 +3676,15 @@ async function loadStudentGroups(studentId) {
         if (!filtered.length) { dropdown.style.display='none'; return; }
         dropdown.innerHTML = filtered.map(g=>`
           <div onclick="addStudentToGroupFromProfile(${studentId},${g.id},'${g.name}')"
-            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
-            onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
-            <b>${g.name}</b> <span style="font-size:11px;color:#888">${g.language} · ${g.teacher_name||'—'}</span>
+            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line-soft)"
+            onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
+            <b>${g.name}</b> <span style="font-size:11px;color:var(--text-3)">${g.language} · ${g.teacher_name||'—'}</span>
           </div>`).join('');
         dropdown.style.display = 'block';
       };
     }
   } catch(e) {
-    container.innerHTML = `<div style="color:#ef4444;padding:16px">${e.message}</div>`;
+    container.innerHTML = `<div style="color:var(--danger);padding:16px">${e.message}</div>`;
   }
 }
 
@@ -3614,7 +3713,7 @@ async function openEditStudentModal(studentId) {
       <div style="background:#fff;border-radius:16px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
           <h3 style="margin:0;font-size:17px;font-weight:700">Редактировать ученика</h3>
-          <button onclick="document.getElementById('edit-student-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+          <button onclick="document.getElementById('edit-student-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3)">×</button>
         </div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Фамилия</label><input class="form-input" id="es-last" value="${(s.full_name||'').split(' ')[0]||''}"></div>
@@ -3779,13 +3878,13 @@ async function addStudentToEditGroup(groupId, studentId, name, grade, lang) {
     const empty = document.getElementById('eg-empty');
     if (empty) empty.remove();
     const div = document.createElement('div');
-    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6';
+    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line-soft)';
     div.innerHTML = `
       <div>
         <b style="font-size:13px">${name}</b>
-        <span style="font-size:11px;color:#888;margin-left:8px">${grade} кл · ${lang}</span>
+        <span style="font-size:11px;color:var(--text-3);margin-left:8px">${grade} кл · ${lang}</span>
       </div>
-      <button onclick="removeStudentFromGroup(${groupId},${studentId},this)" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;padding:4px 8px;border-radius:4px" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background=''">✕ Убрать</button>`;
+      <button onclick="removeStudentFromGroup(${groupId},${studentId},this)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px;padding:4px 8px;border-radius:4px" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background=''">✕ Убрать</button>`;
     list.appendChild(div);
     // Обновить счётчик
     const cnt = document.getElementById('eg-student-count');
@@ -3841,7 +3940,6 @@ const adminNav = [
   {id:'my-tasks',label:'Мои задачи',icon:'check-circle'},
   {id:'all-tasks',label:'Все задачи',icon:'list-checks'},
   {divider:true},
-  {id:'my-groups',label:'Мои группы',icon:'users-round'},
   {id:'returns',label:'Возвраты',icon:'rotate-ccw'},
   {id:'return-form',label:'Форма возврата',icon:'clipboard'},
   {id:'form-history',label:'История форм',icon:'history'},
@@ -3852,7 +3950,7 @@ const adminNav = [
   {id:'slots',label:'Слоты',icon:'grid'},
 ];
 const teacherNav = [
-  {id:'my-groups',label:'Мои группы',icon:'users-round'},
+  {id:'my-groups',label:'Мои уроки',icon:'users-round'},
   {id:'my-reports',label:'Мои отчёты',icon:'file-text'},
 ];
 
@@ -3909,23 +4007,14 @@ function renderNav(role) {
   });
 }
 
-function setRole(role) {
-  currentRole = role;
-  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  renderNav(role);
-  if(role==='teacher') showPage('page-my-groups');
-  else showPage('page-students');
-}
-
 async function buildSchedule() {
   const grid = document.getElementById('schedule-grid');
   if (!grid) return;
-  grid.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa">Загрузка...</div>';
+  grid.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3)">Загрузка...</div>';
   try {
     const groups = await api('/api/groups/');
     if (!groups?.length) {
-      grid.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px">Расписания нет. Создайте группы.</div>';
+      grid.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Расписания нет. Создайте группы.</div>';
       return;
     }
     const DAYS = ['MON','TUE','WED','THU','FRI','SAT'];
@@ -3944,23 +4033,23 @@ async function buildSchedule() {
       <div style="overflow-x:auto;padding:16px">
         <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;min-width:900px">
           ${DAYS.map((d,i) => `
-            <div style="background:#f9fafb;border-radius:8px;padding:10px">
-              <div style="font-weight:700;font-size:13px;color:#444;text-align:center;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${BORDER[i]}">${DLBL[d]}</div>
+            <div style="background:var(--paper-2);border-radius:8px;padding:10px">
+              <div style="font-weight:700;font-size:13px;color:var(--text);text-align:center;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${BORDER[i]}">${DLBL[d]}</div>
               ${byDay[d].length ? byDay[d].map((s,j) => `
                 <div onclick="openEditGroupModal(${s.group.id})"
                   style="background:${COLORS[j%8]};border-left:3px solid ${BORDER[j%8]};border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:opacity .15s"
                   onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                  <div style="font-weight:700;font-size:12px;color:#222">${s.group.name}</div>
-                  <div style="font-size:11px;color:#555;margin-top:2px">🕐 ${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)}</div>
-                  ${s.group.teacher_name ? `<div style="font-size:11px;color:#777">👤 ${s.group.teacher_name}</div>` : ''}
-                  ${s.group.classroom_name ? `<div style="font-size:11px;color:#777">🚪 ${s.group.classroom_name}</div>` : ''}
-                  <div style="font-size:11px;color:#888;margin-top:2px">${s.group.student_count} уч. · ${s.group.language}</div>
+                  <div style="font-weight:700;font-size:12px;color:var(--text)">${s.group.name}</div>
+                  <div style="font-size:11px;color:var(--text-2);margin-top:2px">🕐 ${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)}</div>
+                  ${s.group.teacher_name ? `<div style="font-size:11px;color:var(--text-2)">👤 ${s.group.teacher_name}</div>` : ''}
+                  ${s.group.classroom_name ? `<div style="font-size:11px;color:var(--text-2)">🚪 ${s.group.classroom_name}</div>` : ''}
+                  <div style="font-size:11px;color:var(--text-3);margin-top:2px">${s.group.student_count} уч. · ${s.group.language}</div>
                 </div>`).join('') :
-                '<div style="text-align:center;color:#ccc;font-size:12px;padding:16px">Нет занятий</div>'}
+                '<div style="text-align:center;color:var(--text-3);font-size:12px;padding:16px">Нет занятий</div>'}
             </div>`).join('')}
         </div>
       </div>`;
-  } catch(e) { grid.innerHTML = `<div style="color:#ef4444;padding:20px">${e.message}</div>`; }
+  } catch(e) { grid.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
 const pageLoaders = {
@@ -3987,6 +4076,11 @@ const pageLoaders = {
 };
 
 function showPage(pageId) {
+  // Гард: преподаватель видит только свои страницы
+  if (currentRole === 'teacher') {
+    const allowed = teacherNav.map(i => 'page-' + i.id);
+    if (!allowed.includes(pageId)) pageId = 'page-my-groups';
+  }
   document.querySelector('.sidebar')?.classList.remove('mobile-open');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item, .nav-sub-item').forEach(n=>n.classList.remove('active'));
@@ -4057,7 +4151,7 @@ function openModal(id) {
           <label class="form-label">Ученики</label>
           <div style="position:relative">
             <input class="form-input" id="ag-student-search" placeholder="Поиск ученика..." autocomplete="off" style="margin-bottom:6px">
-            <div id="ag-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+            <div id="ag-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
           </div>
           <div id="ag-selected-students" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>`;
         const footer = modal.querySelector('.modal-footer');
@@ -4077,10 +4171,10 @@ function openModal(id) {
         if (!filtered.length) { dropdown.style.display='none'; return; }
         dropdown.innerHTML = filtered.map(s => `
           <div onclick="addStudentToGroupForm(${s.id},'${s.full_name}')"
-            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6"
-            onmouseover="this.style.background='#f5f6ff'" onmouseout="this.style.background=''">
+            style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line-soft)"
+            onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
             <b>${s.full_name}</b>
-            <span style="font-size:11px;color:#888;margin-left:6px">${s.grade} кл · ${s.language}</span>
+            <span style="font-size:11px;color:var(--text-3);margin-left:6px">${s.grade} кл · ${s.language}</span>
           </div>`).join('');
         dropdown.style.display = 'block';
       };
@@ -4139,6 +4233,8 @@ function switchTab(btn) { document.querySelectorAll('.tab-btn').forEach(b=>b.cla
 document.addEventListener('DOMContentLoaded', () => {
   if (TOKEN && CURRENT_USER) {
     enterApp(CURRENT_USER.role, CURRENT_USER.full_name, CURRENT_USER.initials);
+  } else {
+    renderSavedAccounts();
   }
 });
 

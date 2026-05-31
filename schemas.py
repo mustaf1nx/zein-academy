@@ -25,6 +25,7 @@ class TokenResponse(BaseModel):
     full_name: str
     initials: Optional[str] = None
     user_id: int
+    iin: Optional[str] = None
 
 
 # ─── User ─────────────────────────────────────────────────────────────────────
