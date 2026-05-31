@@ -75,24 +75,23 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   .login-left {
     flex: 0 0 auto !important; width: 100% !important;
     min-height: 0 !important;
-    padding: 48px 24px 36px !important;
-    align-items: stretch !important; justify-content: flex-start !important;
+    padding: 36px 24px !important;
+    align-items: center !important; justify-content: center !important;
     overflow: visible !important;
-    text-align: left;
+    text-align: center;
   }
-  .login-left-content { max-width: 100% !important; margin-left: 0 !important; transform: none !important; }
-  .login-brand { margin-bottom: 24px; }
-  .login-brand-logo { width: 150px; }
+  .login-left-content { max-width: 100% !important; margin-left: 0 !important; transform: none !important; align-items: center !important; }
+  .login-brand { margin-bottom: 0 !important; align-items: center !important; }
+  .login-brand-logo { width: 180px; }
   .login-brand::before { display: none; }
-  .login-tagline { font-size: 10px; letter-spacing: 3px; margin-top: 12px; }
-  .login-hero-title { font-size: 32px !important; margin-bottom: 14px; }
-  .login-hero-sub { font-size: 14px; max-width: 100%; }
-  .login-feature-row { margin-top: 20px; gap: 10px 20px; }
+  .login-tagline { font-size: 10px; letter-spacing: 3px; margin-top: 12px; text-align: center; }
+  /* убираем длинный текст на мобиле — оставляем только логотип */
+  .login-hero-title, .login-hero-sub, .login-feature-row { display: none !important; }
   .login-ring, .login-ring-spin { display: none; }
   .login-left::before { display: none; }
 
   .login-right {
-    flex: 0 0 auto !important; width: 100% !important;
+    flex: 1 1 auto !important; width: 100% !important;
     border-left: none; border-top: 1px solid var(--line);
     padding: 36px 24px 48px !important;
     align-items: flex-start;
