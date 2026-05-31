@@ -329,3 +329,18 @@ class Freeze(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     student = relationship("Student")
+
+
+# ─── Audit Log (Журнал действий) ─────────────────────────────────────────────
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_name = Column(String(200), nullable=True)   # денормализовано — имя на момент действия
+    action = Column(String(20), nullable=False)       # create / update / delete
+    entity = Column(String(50), nullable=False)        # student / group / freeze / ...
+    entity_id = Column(Integer, nullable=True)
+    summary = Column(String(400), nullable=True)       # человекочитаемое описание
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

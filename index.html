@@ -58,6 +58,38 @@
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
 }
+
+/* ── Тёмная тема: общие переменные ── */
+:root.theme-dark {
+  --paper:      #0e0e11;
+  --paper-2:    #16161a;
+  --surface:    #1b1b20;
+  --line:       #2c2c33;
+  --line-soft:  #232329;
+
+  --text:       #f0ede6;
+  --text-2:     #a8a59d;
+  --text-3:     #6f6d68;
+
+  --ink-soft:   #2a2418;   /* приглушённый золотой фон */
+  --ink-softer: #211e16;
+  --accent-soft:#2a2418;
+
+  --shadow:     0 6px 28px rgba(0,0,0,.45);
+  --shadow-lg:  0 18px 50px rgba(0,0,0,.6);
+}
+
+/* авто-тёмная по настройкам телефона, если пользователь не выбрал вручную */
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) {
+    --paper:#0e0e11; --paper-2:#16161a; --surface:#1b1b20;
+    --line:#2c2c33; --line-soft:#232329;
+    --text:#f0ede6; --text-2:#a8a59d; --text-3:#6f6d68;
+    --ink-soft:#2a2418; --ink-softer:#211e16; --accent-soft:#2a2418;
+    --shadow:0 6px 28px rgba(0,0,0,.45); --shadow-lg:0 18px 50px rgba(0,0,0,.6);
+  }
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-body); background: var(--paper); color: var(--text); display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 
@@ -105,13 +137,14 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   /* ── App shell ── */
   .sidebar {
     position: fixed;
-    left: -284px; top: 0;
-    width: 280px; height: 100dvh;
+    left: -300px; top: 0;
+    width: 282px; height: 100dvh;
     z-index: 9999;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     transition: left 0.28s ease;
-    box-shadow: 0 0 0 100vmax transparent;
   }
-  .sidebar.mobile-open { left: 0; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .sidebar.mobile-open { left: 0; box-shadow: 8px 0 30px rgba(0,0,0,.35); }
   .mobile-header {
     display: flex !important;
     position: fixed; top: 0; left: 0; right: 0;
@@ -305,7 +338,7 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   transition: border-color .2s, box-shadow .2s, background .2s;
   letter-spacing: .3px;
 }
-.lf-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 4px rgba(200,150,30,.18); }
+.lf-input:focus { border-color: var(--gold); background: var(--surface); box-shadow: 0 0 0 4px rgba(200,150,30,.18); }
 .lf-input.error { border-color: var(--danger); background: #fff8f7; }
 .lf-input::placeholder { color: var(--text-3); }
 /* kill Chrome's blue autofill fill */
@@ -480,7 +513,7 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
 .page { display: none; flex-direction: column; flex: 1; overflow: hidden; }
 .page.active { display: flex; }
 .page-header {
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
   padding: 16px 24px;
   display: flex; align-items: center; justify-content: space-between;
@@ -517,7 +550,7 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   border: 1.5px solid var(--line);
   border-radius: 8px;
   font-size: 13px;
-  background: #fff;
+  background: var(--surface);
   outline: none;
   position: relative;
 }
@@ -526,7 +559,7 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
 .search-input:focus { border-color: var(--ink); }
 
 /* TABLE */
-.table-wrap { background: #fff; border-radius: 10px; border: 1px solid var(--line); overflow: visible; }
+.table-wrap { background: var(--surface); border-radius: 10px; border: 1px solid var(--line); overflow: visible; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th {
   background: var(--paper-2);
@@ -567,7 +600,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 .action-dots:hover { background: var(--line-soft); }
 .action-dropdown {
   position: absolute; right: 0; top: 100%; z-index: 100;
-  background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   min-width: 160px; display: none;
 }
@@ -587,7 +620,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 }
 .modal-overlay.open { display: flex; }
 .modal {
-  background: #fff; border-radius: 12px;
+  background: var(--surface); border-radius: 12px;
   padding: 24px; width: 500px; max-width: 95vw;
   box-shadow: 0 20px 60px rgba(0,0,0,0.15);
   max-height: 90vh; overflow-y: auto;
@@ -607,7 +640,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   font-size: 13px;
   font-family: inherit;
   outline: none;
-  background: #fff;
+  background: var(--surface);
   transition: border-color 0.15s;
 }
 .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--ink); }
@@ -615,7 +648,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 .form-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 16px 0 10px; border-bottom: 1px solid var(--line-soft); padding-bottom: 6px; }
 
 /* SCHEDULE */
-.schedule-grid { background: #fff; border-radius: 10px; border: 1px solid var(--line); overflow: auto; }
+.schedule-grid { background: var(--surface); border-radius: 10px; border: 1px solid var(--line); overflow: auto; }
 .schedule-table { border-collapse: collapse; min-width: 900px; }
 .schedule-table th, .schedule-table td { border: 1px solid var(--line); padding: 0; }
 .sched-header { background: var(--paper-2); font-size: 12px; font-weight: 700; color: var(--text-2); padding: 10px 14px; text-align: center; white-space: nowrap; }
@@ -652,7 +685,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 
 /* TASKS */
 .task-card {
-  background: #fff; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 10px; border: 1px solid var(--line);
   padding: 14px 18px; margin-bottom: 8px;
   display: flex; align-items: center; gap: 14px;
   transition: border-color 0.15s;
@@ -680,7 +713,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 
 /* MY GROUPS */
 .group-card {
-  background: #fff; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 10px; border: 1px solid var(--line);
   margin-bottom: 10px; overflow: hidden;
 }
 .group-card-header {
@@ -701,7 +734,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 }
 .att-present { background: #dcfce7; border-color: #86efac; color: #16a34a; }
 .att-absent { background: #fee2e2; border-color: #fca5a5; color: var(--danger-600); }
-.att-none { background: #fff; color: var(--text-3); }
+.att-none { background: var(--surface); color: var(--text-3); }
 .att-frozen { background: #dbeafe; border-color: #93c5fd; color: #2563eb; cursor: not-allowed; }
 .score-input {
   width: 50px; padding: 4px 6px; border: 1.5px solid var(--line);
@@ -722,7 +755,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 /* STAT CARDS */
 .stat-row { display: flex; gap: 14px; margin-bottom: 20px; }
 .stat-card {
-  flex: 1; background: #fff; border-radius: 10px; border: 1px solid var(--line);
+  flex: 1; background: var(--surface); border-radius: 10px; border: 1px solid var(--line);
   padding: 16px 20px;
 }
 .stat-label { font-size: 12px; color: var(--text-3); font-weight: 500; margin-bottom: 6px; }
@@ -732,7 +765,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 /* TRANSFER */
 .transfer-box {
   display: flex; align-items: center; gap: 20px;
-  background: #fff; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 12px; border: 1px solid var(--line);
   padding: 30px;
 }
 .transfer-side { flex: 1; }
@@ -741,14 +774,14 @@ tbody td { padding: 11px 14px; color: var(--text); }
 /* DATE LIST */
 .date-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; background: #fff;
+  padding: 12px 16px; background: var(--surface);
   border-bottom: 1px solid var(--line-soft);
 }
 .date-item:last-child { border-bottom: none; }
 
 /* RETURNS */
 .return-card {
-  background: #fff; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 10px; border: 1px solid var(--line);
   margin-bottom: 8px; overflow: hidden;
 }
 .return-card-row {
@@ -770,7 +803,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 /* MENTOR ASSIGN */
 .mentor-select {
   padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 6px;
-  font-size: 12px; outline: none; background: #fff; min-width: 100px;
+  font-size: 12px; outline: none; background: var(--surface); min-width: 100px;
 }
 .assign-btn {
   padding: 6px 12px; background: var(--ink); color: #fff;
@@ -799,12 +832,12 @@ tbody td { padding: 11px 14px; color: var(--text); }
 </head>
 
 <div id="confirm-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:none;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:16px;padding:28px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center">
+  <div style="background:var(--surface);border-radius:16px;padding:28px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center">
     <div id="confirm-icon" style="font-size:40px;margin-bottom:12px">⚠️</div>
     <div id="confirm-title" style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px"></div>
     <div id="confirm-text" style="font-size:13px;color:var(--text-2);margin-bottom:24px"></div>
     <div style="display:flex;gap:10px;justify-content:center">
-      <button id="confirm-cancel" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--text-2)">Отмена</button>
+      <button id="confirm-cancel" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-2)">Отмена</button>
       <button id="confirm-ok" style="padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;color:#fff;background:var(--danger)">Удалить</button>
     </div>
   </div>
@@ -812,7 +845,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 
 <!-- STUDENT PROFILE MODAL -->
 <div id="student-profile-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px">
-  <div style="background:#fff;border-radius:16px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,0.2);margin:auto">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,0.2);margin:auto">
     <div id="student-profile-content">
       <div style="text-align:center;padding:40px;color:var(--text-3)">Загрузка...</div>
     </div>
@@ -907,6 +940,9 @@ tbody td { padding: 11px 14px; color: var(--text); }
       <div class="user-name">Админ</div>
       <div class="user-meta">77757339394 · ID: 3361</div>
     </div>
+    <button class="logout-btn" id="theme-toggle" onclick="toggleTheme()" title="Сменить тему">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
     <button class="logout-btn" onclick="doLogout()" title="Выйти">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
     </button>
@@ -1122,7 +1158,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
       <div class="page-actions"><button class="btn btn-outline" onclick="showPage('page-all-tasks')">Назад</button></div>
     </div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:24px;max-width:600px">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:24px;max-width:600px">
         <div class="form-group" style="margin-bottom:16px">
           <label class="form-label">Студент</label>
           <div class="search-wrap">
@@ -1153,7 +1189,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="page" id="page-my-reports">
     <div class="page-header"><div class="page-title">Мои отчеты</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
         <div class="form-group" style="margin:0">
           <label class="form-label">Дата от</label>
           <input type="date" class="form-input">
@@ -1191,7 +1227,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="page" id="page-return-form">
     <div class="page-header"><div class="page-title">Форма для передачи возврата</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:24px;max-width:800px;margin:0 auto">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:24px;max-width:800px;margin:0 auto">
         <div class="form-section-title">Выбор ученика</div>
         <div class="form-group" style="margin-bottom:14px">
           <label class="form-label">Поиск ученика</label>
@@ -1233,7 +1269,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="page" id="page-new-student">
     <div class="page-header"><div class="page-title">Запись ученика</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:28px;max-width:800px;margin:0 auto">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:28px;max-width:800px;margin:0 auto">
         <div class="form-section-title">Данные ученика</div>
         <div class="form-group" style="margin-bottom:14px">
           <label class="form-label">Менеджер клиента *</label>
@@ -1274,7 +1310,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="page" id="page-extension">
     <div class="page-header"><div class="page-title">Продление обучения</div></div>
     <div class="page-body">
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:28px;max-width:700px;margin:0 auto">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:28px;max-width:700px;margin:0 auto">
         <div class="form-section-title">Выбор ученика</div>
         <div class="form-row">
           <div class="form-group">
@@ -1301,7 +1337,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="page-header"><div class="page-title">Аналитика</div></div>
     <div class="page-body">
       <div id="analytics-summary"></div>
-      <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:20px;">
+      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:20px;">
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
           <div style="font-weight:700;font-size:15px">Распределение по количеству учеников</div>
           <span style="font-size:13px;color:var(--text-2)">Всего групп: <b>992</b></span>
@@ -1380,7 +1416,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
       </div>
     </div>
     <div class="page-body" style="padding:0">
-      <div style="overflow:auto;background:#fff">
+      <div style="overflow:auto;background:var(--surface)">
         <table class="slots-table" style="border-collapse:collapse;min-width:900px">
           <thead>
             <tr>
@@ -1399,6 +1435,24 @@ tbody td { padding: 11px 14px; color: var(--text); }
             </tr>
           </thead>
           <tbody id="slots-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT LOG -->
+  <div class="page" id="page-audit">
+    <div class="page-header">
+      <div class="page-title">Журнал действий</div>
+      <div class="page-actions">
+        <button class="btn btn-outline btn-sm" onclick="loadAudit()">Обновить</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Дата и время</th><th>Кто</th><th>Действие</th><th>Раздел</th><th>Описание</th></tr></thead>
+          <tbody id="audit-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:16px">Загрузка...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2367,7 +2421,7 @@ async function loadTasks(containerId, mine) {
     const statusLabel = {todo:'К выполнению', in_progress:'В процессе', done:'Готово'};
     const statusColor = {todo:'#f59e0b', in_progress:'#3b82f6', done:'#22c55e'};
     container.innerHTML = data.map(t => `
-      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="flex:1">
           <div style="font-weight:600;font-size:14px">${t.title}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--text-2);margin-top:3px">${t.description}</div>` : ''}
@@ -2439,7 +2493,7 @@ async function loadMyGroups() {
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'Нет расписания';
       const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
       return `
-        <div style="background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden">
           <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
             <div>
               <b style="font-size:14px">${g.name}</b>
@@ -2583,7 +2637,7 @@ async function loadReturnFormPage() {
   if (!dropdown) {
     dropdown = document.createElement('div');
     dropdown.id = 'return-student-dropdown';
-    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)';
+    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)';
     searchInp.parentNode.style.position = 'relative';
     searchInp.parentNode.appendChild(dropdown);
   }
@@ -2691,7 +2745,7 @@ async function loadAnalytics() {
              ['📚 Групп',summary.total_groups,'#f59e0b'],['🎓 Учителей',summary.total_teachers,'#3b82f6'],
              ['🛡 Менторов',summary.total_mentors,'var(--ink-500)'],['📊 Менеджеров',summary.total_managers,'#ec4899'],
           ].map(([label,val,color])=>`
-            <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 12px;text-align:center">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 12px;text-align:center">
               <div style="font-size:26px;font-weight:800;color:${color}">${val}</div>
               <div style="font-size:12px;color:var(--text-2);margin-top:4px">${label}</div>
             </div>`).join('')}
@@ -2833,7 +2887,7 @@ async function openENTEditor(testId, testName) {
   let activeTab = 'history';
 
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;width:750px;max-width:95vw;max-height:92vh;display:flex;flex-direction:column">
+    <div style="background:var(--surface);border-radius:16px;width:750px;max-width:95vw;max-height:92vh;display:flex;flex-direction:column">
       <div style="padding:16px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
         <h3 style="font-size:16px;font-weight:700">✏️ Правильные ответы — ${testName}</h3>
         <button onclick="document.getElementById('ent-editor-modal').style.display='none'"
@@ -3045,7 +3099,7 @@ function showENTLink(testId, testName) {
     document.body.appendChild(modal);
   }
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:28px;width:500px;max-width:95vw">
+    <div style="background:var(--surface);border-radius:16px;padding:28px;width:500px;max-width:95vw">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h3 style="font-size:17px;font-weight:700">🔗 Ссылка для учеников</h3>
         <button onclick="document.getElementById('ent-link-modal').style.display='none'"
@@ -3083,7 +3137,7 @@ async function showENTResults(testId, testName) {
     document.body.appendChild(modal);
   }
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:28px;width:900px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="background:var(--surface);border-radius:16px;padding:28px;width:900px;max-width:95vw;max-height:90vh;overflow-y:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h3 style="font-size:17px;font-weight:700">📊 Результаты — ${testName}</h3>
         <button onclick="document.getElementById('ent-results-modal').style.display='none'"
@@ -3332,7 +3386,7 @@ async function openEditGroupModal(groupId) {
         <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Ученики (<span id="eg-student-count">${(students||[]).length}</span>)</div>
         <div style="position:relative;margin-bottom:8px">
           <input class="form-input" id="eg-student-search" placeholder="🔍 Начните вводить имя ученика..." autocomplete="off">
-          <div id="eg-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+          <div id="eg-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:180px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
         </div>
         <div id="eg-students-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">
           ${(students||[]).length ? (students||[]).map(s=>`
@@ -3468,7 +3522,7 @@ async function openStudentProfile(studentId) {
           style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-3)">×</button>
       </div>
 
-      <div style="padding:12px 28px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;background:#fff">
+      <div style="padding:12px 28px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;background:var(--surface)">
         <button onclick="openEditStudentModal(${student.id})" class="btn btn-outline btn-sm">✏️ Редактировать</button>
         <button onclick="copyInvitationText(${student.id})" class="btn btn-outline btn-sm">📋 Скопировать приглашение</button>
         <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Ссылка скопирована!'))" class="btn btn-outline btn-sm">🔗 Ссылка заморозки</button>
@@ -3485,7 +3539,7 @@ async function openStudentProfile(studentId) {
           style="background:none;border:none;cursor:pointer;color:var(--ink);font-size:16px">📋</button>
       </div>
 
-      <div style="background:#fff;border-radius:0 0 16px 16px">
+      <div style="background:var(--surface);border-radius:0 0 16px 16px">
         <div style="display:flex;border-bottom:1px solid var(--line);padding:0 28px;overflow-x:auto">
           ${['Задачи','Комментарии','Группы','Результаты уроков','Абонементы','Заморозки'].map((tab,i) => `
             <button onclick="switchStudentTab(this,'sp-tab-${i}',${studentId})"
@@ -3767,7 +3821,7 @@ async function loadStudentGroups(studentId) {
       <div style="margin-top:8px">
         <div style="position:relative">
           <input class="form-input" id="sp-add-group-search" placeholder="+ Добавить в группу..." autocomplete="off">
-          <div id="sp-add-group-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+          <div id="sp-add-group-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
         </div>
       </div>`;
 
@@ -3817,7 +3871,7 @@ async function openEditStudentModal(studentId) {
       document.body.appendChild(modal);
     }
     modal.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto">
+      <div style="background:var(--surface);border-radius:16px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
           <h3 style="margin:0;font-size:17px;font-weight:700">Редактировать ученика</h3>
           <button onclick="document.getElementById('edit-student-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3)">×</button>
@@ -4055,6 +4109,7 @@ const adminNav = [
   {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
   {id:'forbidden-dates',label:'Недоступные даты',icon:'calendar-x'},
   {id:'slots',label:'Слоты',icon:'grid'},
+  {id:'audit',label:'Журнал действий',icon:'history'},
 ];
 const teacherNav = [
   {id:'my-groups',label:'Мои уроки',icon:'users-round'},
@@ -4180,6 +4235,7 @@ const pageLoaders = {
   'page-ent':           loadENT,
   'page-forbidden-dates': loadForbiddenDates,
   'page-slots':         loadSlots,
+  'page-audit':         loadAudit,
 };
 
 function showPage(pageId) {
@@ -4258,7 +4314,7 @@ function openModal(id) {
           <label class="form-label">Ученики</label>
           <div style="position:relative">
             <input class="form-input" id="ag-student-search" placeholder="Поиск ученика..." autocomplete="off" style="margin-bottom:6px">
-            <div id="ag-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
+            <div id="ag-student-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:160px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.1)"></div>
           </div>
           <div id="ag-selected-students" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>`;
         const footer = modal.querySelector('.modal-footer');
@@ -4348,6 +4404,69 @@ function toggleAttendance(btn) {
   }
 }
 function switchTab(btn) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+// ── Журнал действий (аудит) ───────────────────────────────────────
+const AUDIT_ACTION = { create:'Создание', update:'Изменение', delete:'Удаление' };
+const AUDIT_ENTITY = { student:'Ученики', group:'Группы', classroom:'Кабинеты', user:'Сотрудники', freeze:'Заморозки', attendance:'Журнал' };
+async function loadAudit() {
+  const tb = document.getElementById('audit-tbody');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:16px">Загрузка...</td></tr>';
+  try {
+    const rows = await api('/api/audit/?limit=300');
+    if (!rows || !rows.length) {
+      tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:16px">Пока нет записей</td></tr>'; return;
+    }
+    const colors = { create:'#16a34a', update:'#2563eb', delete:'var(--danger)' };
+    tb.innerHTML = rows.map(r => {
+      const dt = new Date(r.created_at).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const act = AUDIT_ACTION[r.action] || r.action;
+      const ent = AUDIT_ENTITY[r.entity] || r.entity;
+      return `<tr>
+        <td style="white-space:nowrap;font-size:12px;color:var(--text-2)">${dt}</td>
+        <td><b>${r.user_name || '—'}</b></td>
+        <td><span style="color:${colors[r.action]||'var(--text-2)'};font-weight:600;font-size:12px">${act}</span></td>
+        <td style="font-size:12px;color:var(--text-2)">${ent}</td>
+        <td style="font-size:13px">${r.summary || ''}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="5" style="color:var(--danger);padding:16px">${e.message}</td></tr>`;
+  }
+}
+
+// ── Тема (светлая/тёмная) ─────────────────────────────────────────
+function applyTheme(mode) {
+  const root = document.documentElement;
+  root.classList.remove('theme-dark','theme-light');
+  if (mode === 'dark') root.classList.add('theme-dark');
+  else if (mode === 'light') root.classList.add('theme-light');
+  // если 'auto' — ничего не добавляем, работает prefers-color-scheme
+  const icon = document.getElementById('theme-icon');
+  if (icon) {
+    const isDark = mode === 'dark' || (mode !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    icon.innerHTML = isDark
+      ? '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>'
+      : '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', '#16161a');
+}
+
+function toggleTheme() {
+  const cur = localStorage.getItem('zein_theme') || 'auto';
+  // порядок переключения: auto -> dark -> light -> dark...
+  let next;
+  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (cur === 'auto') next = sysDark ? 'light' : 'dark';
+  else if (cur === 'dark') next = 'light';
+  else next = 'dark';
+  localStorage.setItem('zein_theme', next);
+  applyTheme(next);
+}
+
+// применяем сразу при загрузке (до входа тоже)
+applyTheme(localStorage.getItem('zein_theme') || 'auto');
 
 // ── Auto-login ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

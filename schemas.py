@@ -365,3 +365,17 @@ class FreezeOut(BaseModel):
     reason: Optional[str] = None
     created_at: datetime
     model_config = {"from_attributes": True}
+
+
+# ─── Audit Log ────────────────────────────────────────────────────────────────
+
+class AuditLogOut(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    user_name: Optional[str] = None
+    action: str
+    entity: str
+    entity_id: Optional[int] = None
+    summary: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}

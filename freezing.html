@@ -1,180 +1,113 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Заморозка обучения — Zein Academy</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#f0f4ff,#faf5ff); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-.container { width:100%; max-width:600px; }
-h1 { text-align:center; font-size:22px; font-weight:700; color:#111; margin-bottom:20px; }
-.card { background:#fff; border-radius:16px; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
-.info-row { font-size:14px; margin-bottom:8px; color:#333; }
-.info-row b { color:#111; }
-.form-label { display:block; font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; margin-top:14px; }
-.form-input { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:8px; font-size:14px; font-family:inherit; outline:none; transition:border-color .2s; }
-.form-input:focus { border-color:#6366f1; }
-.btn-freeze { width:100%; padding:14px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; margin-top:16px; transition:opacity .2s; }
-.btn-freeze:hover { opacity:.9; }
-.btn-freeze:disabled { opacity:.5; cursor:not-allowed; }
-.history-item { padding:12px 0; border-bottom:1px solid #f3f4f6; font-size:13px; color:#555; }
-.history-item:last-child { border-bottom:none; }
-.empty { color:#aaa; font-size:13px; padding:8px 0; }
-.days-badge { display:inline-block; background:#eef0ff; color:#6366f1; padding:4px 12px; border-radius:20px; font-weight:700; font-size:14px; }
-.success-msg { background:#dcfce7; color:#16a34a; padding:14px; border-radius:10px; font-weight:600; text-align:center; display:none; margin-top:12px; }
-.error-msg { background:#fee2e2; color:#dc2626; padding:14px; border-radius:10px; font-weight:600; text-align:center; display:none; margin-top:12px; }
-.loading { text-align:center; padding:40px; color:#aaa; }
-</style>
-</head>
-<body>
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from database import get_db
+from dependencies import get_current_user, require_admin, log_action
+from auth import hash_password
+import models, schemas
 
-<div class="container">
-  <h1>Заморозка обучения</h1>
-  <div id="app"><div class="loading">Загрузка...</div></div>
-</div>
+router = APIRouter(prefix="/api/users", tags=["Users / Staff"])
 
-<script>
-const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : window.location.origin;
 
-// Получить ID из URL: /freezing?id=123
-const params = new URLSearchParams(window.location.search);
-const studentId = params.get('id');
+@router.get("/", response_model=List[schemas.UserOut])
+def list_users(
+    role: Optional[models.RoleEnum] = Query(None),
+    is_active: Optional[bool] = Query(None),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin),
+):
+    q = db.query(models.User)
+    if role:
+        q = q.filter(models.User.role == role)
+    if is_active is not None:
+        q = q.filter(models.User.is_active == is_active)
+    return q.order_by(models.User.full_name).all()
 
-function localDate(d) {
-  d = d || new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
 
-async function loadData() {
-  const app = document.getElementById('app');
-  if (!studentId) {
-    app.innerHTML = '<div class="card" style="text-align:center;color:#ef4444">Ученик не найден — неверная ссылка</div>';
-    return;
-  }
-  try {
-    const student = await fetch(`${API}/api/public/student/${studentId}`).then(r => r.json());
-    render(student);
-  } catch(e) {
-    app.innerHTML = '<div class="card" style="text-align:center;color:#ef4444">Ошибка загрузки данных</div>';
-  }
-}
+@router.post("/", response_model=schemas.UserOut, status_code=201)
+def create_user(
+    data: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    if db.query(models.User).filter(models.User.iin == data.iin).first():
+        raise HTTPException(status_code=400, detail="Пользователь с таким ИИН уже существует")
+    user = models.User(
+        iin=data.iin,
+        hashed_password=hash_password(data.password),
+        full_name=data.full_name,
+        initials=data.initials,
+        role=data.role,
+        phone=data.phone,
+        subject=data.subject,
+        branch=data.branch,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    log_action(db, current_user, "create", "user", user.id, f"Добавлен сотрудник: {user.full_name} ({user.role})")
+    return user
 
-function render(student) {
-  const today = localDate();
-  document.getElementById('app').innerHTML = `
-    <div class="card">
-      <div class="info-row">ФИ ученика: <b>${student.full_name}</b></div>
-      <div class="info-row">Филиал: <b>${student.branch||'—'}</b></div>
-      <div class="info-row">Класс: <b>${student.grade}</b> · Язык: <b>${student.language}</b></div>
-      <div class="info-row" style="margin-top:10px">
-        Доступно дней для заморозки: <span class="days-badge">90</span>
-      </div>
-    </div>
 
-    <div class="card">
-      <div style="font-size:15px;font-weight:700;margin-bottom:4px">Заморозить обучение</div>
-      <div style="font-size:13px;color:#888;margin-bottom:4px">
-        Если ученик временно не может посещать занятия по уважительной причине, вы можете заморозить его абонемент. 
-        Это позволит ученику посетить пропущенные занятия позже.
-      </div>
+@router.get("/{user_id}", response_model=schemas.UserOut)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    # Own profile or admin
+    if current_user.id != user_id and current_user.role != models.RoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Нет доступа")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return user
 
-      <label class="form-label">Дата начала заморозки (включительно)</label>
-      <input type="date" class="form-input" id="freeze-start" value="${today}" min="${today}">
 
-      <label class="form-label">Дата окончания заморозки (включительно)</label>
-      <input type="date" class="form-input" id="freeze-end" value="${today}" min="${today}">
+@router.put("/{user_id}", response_model=schemas.UserOut)
+def update_user(
+    user_id: int,
+    data: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if current_user.id != user_id and current_user.role != models.RoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Нет доступа")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    for field, val in data.model_dump(exclude_none=True).items():
+        if field == "password":
+            user.hashed_password = hash_password(val)
+        else:
+            setattr(user, field, val)
+    db.commit()
+    db.refresh(user)
+    log_action(db, current_user, "update", "user", user.id, f"Изменён сотрудник: {user.full_name}")
+    return user
 
-      <div style="font-size:12px;color:#888;margin-top:8px" id="days-count"></div>
 
-      <button class="btn-freeze" onclick="submitFreeze(${student.id})" id="freeze-btn">Заморозить</button>
-      <div class="success-msg" id="success-msg">✅ Заморозка успешно оформлена!</div>
-      <div class="error-msg" id="error-msg"></div>
-    </div>
-
-    <div class="card">
-      <div style="font-size:15px;font-weight:700;margin-bottom:12px">История заморозок</div>
-      <div id="freeze-history"><div class="empty">Загрузка...</div></div>
-    </div>`;
-
-  loadHistory();
-
-  // Считать количество дней
-  const startInp = document.getElementById('freeze-start');
-  const endInp   = document.getElementById('freeze-end');
-  const countEl  = document.getElementById('days-count');
-
-  function updateCount() {
-    const s = new Date(startInp.value);
-    const e = new Date(endInp.value);
-    if (e < s) { endInp.value = startInp.value; return; }
-    const diff = Math.round((e - s) / 86400000) + 1;
-    countEl.textContent = `Количество дней заморозки: ${diff}`;
-  }
-  startInp.addEventListener('change', updateCount);
-  endInp.addEventListener('change', updateCount);
-  updateCount();
-}
-
-async function loadHistory() {
-  const box = document.getElementById('freeze-history');
-  if (!box) return;
-  try {
-    const rows = await fetch(`${API}/api/public/freezes/${studentId}`).then(r => r.json());
-    if (!rows || !rows.length) { box.innerHTML = '<div class="empty">Нет данных</div>'; return; }
-    const fmt = s => s.split('-').reverse().join('.');
-    box.innerHTML = rows.map(f => `
-      <div class="info-row" style="display:flex;justify-content:space-between;gap:8px">
-        <span><b>${fmt(f.start_date)}</b> — <b>${fmt(f.end_date)}</b></span>
-        <span style="color:#888">${f.reason || ''}</span>
-      </div>`).join('');
-  } catch(e) {
-    box.innerHTML = '<div class="empty">Не удалось загрузить историю</div>';
-  }
-}
-
-async function submitFreeze(studentId) {
-  const start = document.getElementById('freeze-start').value;
-  const end   = document.getElementById('freeze-end').value;
-  const btn   = document.getElementById('freeze-btn');
-  const successEl = document.getElementById('success-msg');
-  const errorEl   = document.getElementById('error-msg');
-
-  if (!start || !end) { showError('Выберите даты заморозки'); return; }
-  if (new Date(end) < new Date(start)) { showError('Дата окончания не может быть раньше начала'); return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Оформляем...';
-  errorEl.style.display = 'none';
-
-  try {
-    const res = await fetch(`${API}/api/public/freezes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: Number(studentId), start_date: start, end_date: end })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Ошибка оформления заморозки');
-    }
-    successEl.style.display = 'block';
-    btn.style.display = 'none';
-    loadHistory();
-  } catch(e) {
-    showError(e.message);
-    btn.disabled = false;
-    btn.textContent = 'Заморозить';
-  }
-}
-
-function showError(msg) {
-  const el = document.getElementById('error-msg');
-  el.textContent = '❌ ' + msg;
-  el.style.display = 'block';
-}
-
-loadData();
-</script>
-</body>
-</html>
+@router.delete("/{user_id}", status_code=204)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    # Удалить связанные данные
+    db.query(models.MentorAssignment).filter(
+        models.MentorAssignment.mentor_id == user_id).delete(synchronize_session=False)
+    db.query(models.Task).filter(
+        models.Task.assigned_to == user_id).delete(synchronize_session=False)
+    db.query(models.Task).filter(
+        models.Task.created_by == user_id).delete(synchronize_session=False)
+    # Убрать teacher_id из групп
+    db.query(models.Group).filter(
+        models.Group.teacher_id == user_id).update(
+        {models.Group.teacher_id: None}, synchronize_session=False)
+    uname = user.full_name
+    db.delete(user)
+    db.commit()
+    log_action(db, current_user, "delete", "user", user_id, f"Удалён сотрудник: {uname}")

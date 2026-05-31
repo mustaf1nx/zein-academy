@@ -22,7 +22,7 @@ from routers.classrooms import router as classrooms_router
 from routers.attendance import router as attendance_router
 from routers.extra import (
     tasks_router, returns_router, forms_router, ent_router,
-    forbidden_router, mentors_router, analytics_router, freezes_router,
+    forbidden_router, mentors_router, analytics_router, freezes_router, audit_router,
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -51,6 +51,7 @@ app.include_router(forbidden_router)
 app.include_router(mentors_router)
 app.include_router(analytics_router)
 app.include_router(freezes_router)
+app.include_router(audit_router)
 
 # Статические файлы (логотипы и пр.)
 _assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
@@ -62,6 +63,7 @@ if os.path.isdir(_assets_dir):
 def seed_default_admin():
     db = SessionLocal()
     try:
+        # Главный аккаунт (твой) — не трогаем
         if not db.query(models.User).filter(models.User.iin == "900101350123").first():
             db.add(models.User(
                 iin="900101350123",
@@ -75,6 +77,26 @@ def seed_default_admin():
             print("✅ Admin создан: ИИН=900101350123 пароль=zein2024")
         else:
             print("ℹ Admin уже существует — seed пропущен")
+
+        # ── 3 дополнительных админских аккаунта ──
+        # Заполни данные ниже: ("ИИН", "пароль", "Имя Фамилия", "ИФ")
+        extra_admins = [
+            # ("000000000001", "пароль1", "Имя Один", "ИО"),
+            # ("000000000002", "пароль2", "Имя Два", "ИД"),
+            # ("000000000003", "пароль3", "Имя Три", "ИТ"),
+        ]
+        for iin, password, full_name, initials in extra_admins:
+            if not db.query(models.User).filter(models.User.iin == iin).first():
+                db.add(models.User(
+                    iin=iin,
+                    hashed_password=hash_password(password),
+                    full_name=full_name,
+                    initials=initials,
+                    role=models.RoleEnum.admin,
+                    is_active=True,
+                ))
+                print(f"✅ Доп. админ создан: {full_name} ({iin})")
+        db.commit()
     finally:
         db.close()
 
