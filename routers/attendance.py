@@ -16,25 +16,53 @@ def save_attendance(
     current_user: models.User = Depends(get_current_user),
 ):
     """Save / overwrite attendance for a group on a specific date."""
+    # Determine which students are frozen on this date (server-side guard)
+    frozen_ids = {
+        f.student_id for f in db.query(models.Freeze).filter(
+            models.Freeze.start_date <= data.date,
+            models.Freeze.end_date >= data.date,
+        ).all()
+    }
+
     # Delete existing records for this group+date
     db.query(models.Attendance).filter(
         models.Attendance.group_id == data.group_id,
         models.Attendance.date == data.date,
     ).delete()
 
+    saved = 0
     for rec in data.records:
+        # Frozen students are always recorded as 'none' regardless of input
+        status = models.AttendanceStatus.none if rec.student_id in frozen_ids else rec.status
+        score_1 = None if rec.student_id in frozen_ids else rec.score_1
+        score_2 = None if rec.student_id in frozen_ids else rec.score_2
         att = models.Attendance(
             group_id=data.group_id,
             student_id=rec.student_id,
             date=data.date,
-            status=rec.status,
-            score_1=rec.score_1,
-            score_2=rec.score_2,
+            status=status,
+            score_1=score_1,
+            score_2=score_2,
             recorded_by=current_user.id,
         )
         db.add(att)
+        saved += 1
     db.commit()
-    return {"detail": f"Сохранено {len(data.records)} записей"}
+    return {"detail": f"Сохранено {saved} записей"}
+
+
+@router.get("/frozen")
+def frozen_students(
+    on: date = Query(..., description="Дата, на которую проверяем заморозку"),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    """Список id учеников, замороженных на указанную дату."""
+    rows = db.query(models.Freeze).filter(
+        models.Freeze.start_date <= on,
+        models.Freeze.end_date >= on,
+    ).all()
+    return {"frozen_ids": sorted({f.student_id for f in rows})}
 
 
 @router.get("/", response_model=List[schemas.AttendanceOut])

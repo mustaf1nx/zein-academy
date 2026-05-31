@@ -1,27 +1,755 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЕНТ — Zein Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
+.header { background:#fff; padding:14px 20px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:100; }
+.header-logo { font-weight:800; font-size:18px; color:#6366f1; }
+.header-test { font-size:14px; color:#888; }
+.progress-bar-wrap { height:4px; background:#e5e7eb; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .4s; }
+.container { max-width:680px; margin:0 auto; padding:20px 16px 80px; }
 
-load_dotenv()
+/* === TOAST NOTIFICATIONS === */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./zein.db")
+.toast {
+  min-width: 320px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transform: translateX(400px);
+  transition: all 0.4s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-# Исправляем URL для PostgreSQL
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+.toast.show {
+  transform: translateX(0);
+}
 
-# ПРОСТАЯ конфигурация без pooling
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+.toast.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+.toast.success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+.toast.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.toast-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.toast-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+  }
+  .toast {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+/* Step indicator */
+.steps { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.step-dot { width:28px; height:28px; border-radius:50%; border:2px solid #e5e7eb; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#aaa; cursor:pointer; transition:all .2s; }
+.step-dot.active { border-color:#6366f1; background:#6366f1; color:#fff; }
+.step-dot.done { border-color:#22c55e; background:#22c55e; color:#fff; }
+
+/* Cards */
+.card { background:#fff; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.card-title { font-size:17px; font-weight:700; margin-bottom:4px; }
+.card-sub { font-size:13px; color:#888; margin-bottom:16px; }
+.section-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+.section-divider { height:1px; background:#f3f4f6; margin:12px 0; }
+
+/* Form */
+.form-label { font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; display:block; }
+.form-input { 
+  width:100%; 
+  padding:12px 14px; 
+  border:1.5px solid #e5e7eb; 
+  border-radius:10px; 
+  font-size:15px; 
+  font-family:inherit; 
+  outline:none; 
+  transition:border .2s;
+  background:#fff;
+}
+.form-input:focus { 
+  border-color:#6366f1; 
+  background:#fff;
+}
+
+/* Fix autofill styling */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px #fff inset !important;
+  -webkit-text-fill-color: #000 !important;
+  border-color: #e5e7eb !important;
+}
+
+.form-input:not(:focus):valid {
+  border-color: #e5e7eb;
+  background: #fff;
+}
+
+.form-select { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; background:#fff; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+@media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
+
+/* Answer buttons */
+.question-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:8px; border-radius:10px; transition:background .15s; }
+.question-row:hover { background:#f9fafb; }
+.q-num { font-size:14px; color:#888; min-width:28px; font-weight:600; }
+.answer-btns { display:flex; gap:6px; flex-wrap:wrap; }
+.ans-btn { width:40px; height:40px; border-radius:10px; border:2px solid #e5e7eb; background:#fff; font-weight:700; font-size:14px; cursor:pointer; transition:all .15s; color:#555; }
+.ans-btn:hover { border-color:#6366f1; color:#6366f1; }
+.ans-btn.selected { background:#6366f1; border-color:#6366f1; color:#fff; }
+.ans-btn.selected-multi { background:#10b981; border-color:#10b981; color:#fff; }
+.q-score { font-size:12px; color:#aaa; margin-left:4px; }
+
+/* Section header */
+.section-header { background:linear-gradient(135deg,#eef0ff,#f5f0ff); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+.section-header h3 { font-size:15px; font-weight:700; color:#4338ca; }
+.section-header p { font-size:12px; color:#7c6ed0; margin-top:2px; }
+
+/* Nav buttons */
+.nav-bar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #e5e7eb; padding:12px 16px; display:flex; gap:10px; z-index:100; }
+.btn { padding:12px 24px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; border:none; transition:all .2s; }
+.btn-outline { background:#fff; border:2px solid #e5e7eb; color:#555; flex:1; }
+.btn-primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; flex:2; }
+.btn-primary:hover { opacity:.9; }
+.btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; flex:2; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Info page */
+.info-section { margin-bottom:20px; }
+
+.loading { text-align:center; padding:40px; color:#aaa; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<div class="header">
+  <div class="header-logo">Zein Academy</div>
+  <div class="header-test" id="header-test-name">ЕНТ</div>
+</div>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+</div>
+
+<div class="container">
+  <div id="loading-state" class="loading">Загрузка теста...</div>
+  <div id="error-state" class="hidden" style="text-align:center;padding:40px;color:#ef4444">Тест не найден или недоступен</div>
+
+  <!-- Step 1: Данные ученика -->
+  <div id="step-info" class="hidden">
+    <div class="card">
+      <div class="card-title" id="test-name-title">ЕНТ Тест</div>
+      <div class="card-sub">Введите свои данные перед началом</div>
+      <div class="info-section">
+        <div class="form-row">
+          <div>
+            <label class="form-label">Имя и фамилия *</label>
+            <input class="form-input" id="st-name" placeholder="Алихан Омаров" maxlength="60">
+          </div>
+          <div>
+            <label class="form-label">Класс *</label>
+            <input class="form-input" id="st-grade" placeholder="10А" maxlength="3">
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">Номер родителя *</label>
+          <input class="form-input" id="st-phone" placeholder="+7 777 123 45 67" maxlength="15" oninput="this.value=this.value.replace(/[^\d+\s]/g,'').slice(0,15)">
+        </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">Профильный предмет 1 *</label>
+          <select class="form-select" id="st-subj1">
+            <option value="">— Выберите —</option>
+            <option>Математика</option>
+            <option>Физика</option>
+            <option>Химия</option>
+            <option>Биология</option>
+            <option>География</option>
+            <option>История Казахстана (профиль)</option>
+            <option>Всемирная история</option>
+            <option>Русская литература</option>
+            <option>Казахская литература</option>
+            <option>Информатика</option>
+            <option>Английский язык</option>
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
+            <option>Основы права</option>
+            <option>Творческий экзамен</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Профильный предмет 2 *</label>
+          <select class="form-select" id="st-subj2">
+            <option value="">— Выберите —</option>
+            <option>Математика</option>
+            <option>Физика</option>
+            <option>Химия</option>
+            <option>Биология</option>
+            <option>География</option>
+            <option>История Казахстана (профиль)</option>
+            <option>Всемирная история</option>
+            <option>Русская литература</option>
+            <option>Казахская литература</option>
+            <option>Информатика</option>
+            <option>Английский язык</option>
+            <option>Русский язык (профиль)</option>
+            <option>Казахский язык (профиль)</option>
+            <option>Основы права</option>
+            <option>Творческий экзамен</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps: Вопросы -->
+  <div id="step-questions" class="hidden">
+    <div class="steps" id="steps-nav"></div>
+    <div id="question-content"></div>
+  </div>
+</div>
+
+<!-- Nav bar -->
+<div class="nav-bar" id="nav-bar" style="display:none">
+  <button class="btn btn-outline" id="btn-back" onclick="goBack()">← Назад</button>
+  <button class="btn btn-primary" id="btn-next" onclick="goNext()">Далее →</button>
+</div>
+
+<script>
+const API = window.location.origin;
+const params = new URLSearchParams(window.location.search);
+const TEST_ID = params.get('id');
+  
+let testData = null;
+let studentInfo = {};
+let answers = {}; // { subject: { "1": "A", "2": ["A","B"] } }
+let currentStep = 0;
+let sections = [];
+
+const SUBJECTS = ['history', 'reading', 'math', 'subject1', 'subject2'];
+const SUBJECT_NAMES = {
+  history: 'История Казахстана',
+  reading: 'Грамотность чтения',
+  math: 'Математическая грамотность',
+  subject1: '',
+  subject2: '',
+};
+
+// Question structure
+const STRUCTURE = {
+  history: [
+    { type: 'single', count: 20, options: ['A','B','C','D'], label: '1–20: один вариант (A–D)' }
+  ],
+  reading: [
+    { type: 'single', count: 10, options: ['A','B','C','D'], label: '1–10: один вариант (A–D)' }
+  ],
+  math: [
+    { type: 'single', count: 10, options: ['A','B','C','D'], label: '1–10: один вариант (A–D)' }
+  ],
+  profile: [
+    { type: 'single', count: 30, options: ['A','B','C','D'], label: '1–30: один вариант (A–D)' },
+    { type: 'double', count: 5, startNum: 31, options: ['A','B','C','D'], label: '31–35: по две части (A–D)' },
+    { type: 'multi', count: 5, startNum: 36, options: ['A','B','C','D','E','F'], maxSelect: 3, label: '36–40: до трёх вариантов (A–F)' }
+  ]
+};
+
+// === AUTO-SAVE SYSTEM ===
+const STORAGE_KEY = `ent_test_${TEST_ID}`;
+
+// Сохранить прогресс
+function saveProgress() {
+  const progress = {
+    studentInfo: studentInfo,
+    answers: answers,
+    currentStep: currentStep,
+    sections: sections,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  console.log('Progress saved:', progress);
+}
+
+// Загрузить прогресс
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const progress = JSON.parse(saved);
+      
+      // Проверить что данные не старые (не больше 24 часов)
+      const maxAge = 24 * 60 * 60 * 1000; // 24 часа
+      if (Date.now() - progress.timestamp > maxAge) {
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+      }
+      
+      // Восстановить данные
+      studentInfo = progress.studentInfo || {};
+      answers = progress.answers || {};
+      currentStep = progress.currentStep || 0;
+      sections = progress.sections || [];
+      
+      console.log('Progress loaded:', progress);
+      return true;
+    }
+  } catch(e) {
+    console.error('Failed to load progress:', e);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  return false;
+}
+
+// Очистить сохранённые данные
+function clearProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+  console.log('Progress cleared');
+}
+  
+// === TOAST SYSTEM ===
+function showToast(message, type = 'error', duration = 4000) {
+  const container = document.getElementById('toast-container');
+  
+  const icons = {
+    error: '❌',
+    success: '✅', 
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type]}</span>
+    <span>${message}</span>
+    <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Анимация появления
+  setTimeout(() => toast.classList.add('show'), 100);
+  
+  // Автоудаление
+  setTimeout(() => removeToast(toast), duration);
+}
+
+function removeToast(toast) {
+  if (!toast) return;
+  toast.classList.remove('show');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 400);
+}
+
+// Remove focus styling after blur
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('.form-input');
+  inputs.forEach(input => {
+    input.addEventListener('blur', () => {
+      input.style.borderColor = '#e5e7eb';
+      input.style.backgroundColor = '#fff';
+    });
+  });
+});
+  
+async function init() {
+  if (!TEST_ID) { showError(); return; }
+  try {
+    const res = await fetch(`${API}/api/ent/${TEST_ID}/public`);
+    if (!res.ok) throw new Error();
+    testData = await res.json();
+    
+    document.getElementById('header-test-name').textContent = testData.name;
+    document.getElementById('test-name-title').textContent = testData.name;
+    
+    // === ЗАГРУЗИТЬ СОХРАНЁННЫЙ ПРОГРЕСС ===
+    const hasProgress = loadProgress();
+    
+    if (hasProgress && currentStep > 0) {
+      // Восстановить прогресс теста
+      showToast('Прогресс восстановлен!', 'info', 3000);
+      
+      // Заполнить форму данными
+      if (studentInfo.name) document.getElementById('st-name').value = studentInfo.name;
+      if (studentInfo.grade) document.getElementById('st-grade').value = studentInfo.grade;
+      if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
+      if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
+      if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      
+      // Переход к нужному шагу
+      if (currentStep >= 1) {
+        document.getElementById('loading-state').classList.add('hidden');
+        showQuestionsStep();
+        document.getElementById('nav-bar').style.display = 'flex';
+      } else {
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('step-info').classList.remove('hidden');
+        document.getElementById('nav-bar').style.display = 'flex';
+        document.getElementById('btn-back').style.display = 'none';
+      }
+      
+      updateProgress(currentStep, 6);
+    } else {
+      // Обычный запуск без сохранённых данных
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('step-info').classList.remove('hidden');
+      document.getElementById('nav-bar').style.display = 'flex';
+      document.getElementById('btn-back').style.display = 'none';
+      updateProgress(0, 6);
+    }
+  } catch(e) { showError(); }
+}
+
+function showError() {
+  document.getElementById('loading-state').classList.add('hidden');
+  document.getElementById('error-state').classList.remove('hidden');
+}
+
+function updateProgress(step, total) {
+  document.getElementById('progress-fill').style.width = `${(step/total)*100}%`;
+}
+
+function goNext() {
+  if (currentStep === 0) {
+    // Validate info
+    const name = document.getElementById('st-name').value.trim();
+    const grade = document.getElementById('st-grade').value.trim();
+    const phone = document.getElementById('st-phone').value.trim();
+    const subj1 = document.getElementById('st-subj1').value;
+    const subj2 = document.getElementById('st-subj2').value;
+    
+    if (!name) { 
+      showToast('Введите имя и фамилию', 'error'); 
+      return; 
+    }
+    if (!grade) {
+      showToast('Введите класс', 'error');
+      return;
+    }
+    if (!phone) {
+      showToast('Введите номер родителя', 'error');
+      return;
+    }
+    if (!subj1 || !subj2) { 
+      showToast('Выберите профильные предметы', 'warning'); 
+      return; 
+    }
+    if (subj1 === subj2) { 
+      showToast('Профильные предметы должны быть разными', 'warning'); 
+      return; 
+    }
+    
+    // Успешное уведомление
+    showToast('Данные сохранены!', 'success', 2000);
+    
+    studentInfo = {
+      name, 
+      grade,
+      phone: phone,
+      subj1, 
+      subj2
+    };
+    
+    SUBJECT_NAMES.subject1 = subj1;
+    SUBJECT_NAMES.subject2 = subj2;
+    
+    sections = [
+      { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
+      { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
+      { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math },
+      { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
+      { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
+    ];
+    
+    sections.forEach(s => { answers[s.key] = {}; });
+    currentStep = 1;
+    
+    saveProgress(); // Сохранить прогресс
+    showQuestionsStep();
+  } else if (currentStep <= sections.length) {
+    currentStep++;
+    saveProgress(); // Сохранить прогресс
+    
+    if (currentStep > sections.length) {
+      submitAnswers();
+    } else {
+      showQuestionsStep();
+    }
+  }
+}
+  
+function goBack() {
+  if (currentStep <= 1) {
+    currentStep = 0;
+    document.getElementById('step-questions').classList.add('hidden');
+    document.getElementById('step-info').classList.remove('hidden');
+    document.getElementById('btn-back').style.display = 'none';
+    updateProgress(0, 6);
+    saveProgress();
+  } else {
+    currentStep--;
+    saveProgress();
+    showQuestionsStep();
+  }
+}
+
+function showQuestionsStep() {
+  document.getElementById('step-info').classList.add('hidden');
+  document.getElementById('step-questions').classList.remove('hidden');
+  document.getElementById('btn-back').style.display = '';
+  const isLast = currentStep === sections.length;
+  document.getElementById('btn-next').textContent = isLast ? '✓ Отправить' : 'Далее →';
+  document.getElementById('btn-next').className = isLast ? 'btn btn-success' : 'btn btn-primary';
+  updateProgress(currentStep, sections.length + 1);
+
+  // Steps nav
+  const nav = document.getElementById('steps-nav');
+  nav.innerHTML = sections.map((s, i) => {
+    const idx = i + 1;
+    const cls = idx < currentStep ? 'done' : idx === currentStep ? 'active' : '';
+    return `<div class="step-dot ${cls}" onclick="jumpToStep(${idx})">${idx}</div>`;
+  }).join('');
+
+  // Content
+  const section = sections[currentStep - 1];
+  renderSection(section);
+}
+
+function jumpToStep(idx) {
+  if (idx < currentStep) {
+    currentStep = idx;
+    saveProgress();
+    showQuestionsStep();
+  }
+}
+
+function renderSection(section) {
+  const content = document.getElementById('question-content');
+  let html = `<div class="section-header"><h3>${section.name}</h3></div>`;
+  let qNum = 0;
+
+  section.structure.forEach(block => {
+    html += `<div class="card">`;
+    html += `<div class="section-title">${block.label}</div><div class="section-divider"></div>`;
+
+    if (block.type === 'single') {
+      for (let i = 1; i <= block.count; i++) {
+        qNum++;
+        const saved = answers[section.key][String(qNum)] || '';
+        html += `<div class="question-row">
+          <span class="q-num">${qNum}.</span>
+          <div class="answer-btns">
+            ${block.options.map(opt => `
+              <button class="ans-btn ${saved===opt?'selected':''}"
+                onclick="selectAnswer('${section.key}',${qNum},'${opt}','single',this)">${opt}</button>
+            `).join('')}
+          </div>
+        </div>`;
+      }
+    } else if (block.type === 'double') {
+      for (let i = 0; i < block.count; i++) {
+        const n = block.startNum + i;
+        const saved1 = (answers[section.key][`${n}_1`]) || '';
+        const saved2 = (answers[section.key][`${n}_2`]) || '';
+        html += `<div style="margin-bottom:14px">
+          <div style="text-align:center;font-weight:600;font-size:14px;margin-bottom:8px;color:#555">${n}.</div>
+          <div class="question-row">
+            <div class="answer-btns">
+              ${block.options.map(opt => `
+                <button class="ans-btn ${saved1===opt?'selected':''}"
+                  onclick="selectAnswer('${section.key}','${n}_1','${opt}','single',this)">${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+          <div class="question-row">
+            <div class="answer-btns">
+              ${block.options.map(opt => `
+                <button class="ans-btn ${saved2===opt?'selected':''}"
+                  onclick="selectAnswer('${section.key}','${n}_2','${opt}','single',this)">${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+      }
+    } else if (block.type === 'multi') {
+      for (let i = 0; i < block.count; i++) {
+        const n = block.startNum + i;
+        const saved = answers[section.key][String(n)] || [];
+        html += `<div class="question-row">
+          <span class="q-num">${n}.</span>
+          <div class="answer-btns">
+            ${block.options.map(opt => `
+              <button class="ans-btn ${saved.includes(opt)?'selected-multi':''}"
+                onclick="selectAnswer('${section.key}',${n},'${opt}','multi',this)">${opt}</button>
+            `).join('')}
+          </div>
+          <span class="q-score">${saved.length}/${block.maxSelect}</span>
+        </div>`;
+      }
+    }
+    html += `</div>`;
+  });
+
+  content.innerHTML = html;
+  content.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function selectAnswer(subjectKey, qNum, option, type, btn) {
+  const key = String(qNum);
+  if (type === 'single') {
+    answers[subjectKey][key] = option;
+    // Update UI
+    const row = btn.closest('.question-row');
+    row.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else if (type === 'multi') {
+    if (!Array.isArray(answers[subjectKey][key])) answers[subjectKey][key] = [];
+    const arr = answers[subjectKey][key];
+    const idx = arr.indexOf(option);
+    if (idx >= 0) {
+      arr.splice(idx, 1);
+      btn.classList.remove('selected-multi');
+    } else if (arr.length < 3) {
+      arr.push(option);
+      btn.classList.add('selected-multi');
+    }
+    // Update score display
+    const row = btn.closest('.question-row');
+    const scoreEl = row.querySelector('.q-score');
+    if (scoreEl) scoreEl.textContent = `${arr.length}/3`;
+  }
+  
+  // Автосохранение при каждом ответе
+  saveProgress();
+}
+
+async function submitAnswers() {
+  document.getElementById('btn-next').disabled = true;
+  document.getElementById('btn-next').textContent = 'Отправка...';
+  
+  // === ДОБАВЬ ОТЛАДКУ ===
+const submitData = {
+  student_name: studentInfo.name,
+  student_phone: studentInfo.phone,
+  grade: parseInt(studentInfo.grade) || 11,         // ЧИСЛО
+  language: "RUS",                                  // ДОБАВИТЬ
+  subject1: studentInfo.subj1,
+  subject2: studentInfo.subj2,
+  answers: answers,
+  progress: 100,                                    // ДОБАВИТЬ
+  status: "COMPLETED"                               // ДОБАВИТЬ
+};
+  
+  console.log('Отправляем данные:', submitData);
+  console.log('URL:', `${API}/api/ent/${TEST_ID}/submit`);
+  
+  try {
+    const res = await fetch(`${API}/api/ent/${TEST_ID}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submitData)
+    });
+    
+    console.log('Статус ответа:', res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Ошибка сервера:', errorText);
+      throw new Error(`Server error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    console.log('Ответ сервера:', data);
+    
+    // Показать успешное завершение без результатов
+    document.getElementById('step-questions').classList.add('hidden');
+    document.getElementById('nav-bar').style.display = 'none';
+    document.getElementById('progress-fill').style.width = '100%';
+    clearProgress(); // Очистить сохранённые данные
+
+    // Показать простое сообщение об успехе
+    const container = document.querySelector('.container');
+    container.innerHTML = `
+      <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:64px; margin-bottom:20px;">✅</div>
+        <div style="font-size:24px; font-weight:700; color:#22c55e; margin-bottom:12px;">
+          Тест успешно завершён!
+        </div>
+        <div style="font-size:16px; color:#666; margin-bottom:8px;">
+          Спасибо, ${studentInfo.name}
+        </div>
+        <div style="font-size:14px; color:#aaa;">
+          Результаты отправлены в Zein Academy
+        </div>
+      </div>
+    `;
+    
+  } catch(e) {
+    showToast('Ошибка отправки. Проверьте соединение.', 'error');
+    document.getElementById('btn-next').disabled = false;
+    document.getElementById('btn-next').textContent = '✓ Отправить';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

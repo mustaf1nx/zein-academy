@@ -481,3 +481,55 @@ def group_size_distribution(db: Session = Depends(get_db), _: models.User = Depe
         size = db.query(models.GroupStudent).filter_by(group_id=g.id).count()
         dist[size] = dist.get(size, 0) + 1
     return [schemas.GroupSizeDistribution(size=k, count=v) for k, v in sorted(dist.items())]
+
+
+# ══════════════════════════════════════════════════════
+# FREEZES (Заморозки)
+# ══════════════════════════════════════════════════════
+freezes_router = APIRouter(prefix="/api/freezes", tags=["Freezes"])
+
+
+@freezes_router.get("/", response_model=List[schemas.FreezeOut])
+def list_freezes(
+    student_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    q = db.query(models.Freeze)
+    if student_id is not None:
+        q = q.filter(models.Freeze.student_id == student_id)
+    return q.order_by(models.Freeze.start_date.desc()).all()
+
+
+@freezes_router.post("/", response_model=schemas.FreezeOut, status_code=201)
+def create_freeze(
+    data: schemas.FreezeCreate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    student = db.query(models.Student).filter(models.Student.id == data.student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Ученик не найден")
+    fr = models.Freeze(
+        student_id=data.student_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        reason=data.reason,
+    )
+    db.add(fr)
+    db.commit()
+    db.refresh(fr)
+    return fr
+
+
+@freezes_router.delete("/{freeze_id}", status_code=204)
+def delete_freeze(
+    freeze_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    fr = db.query(models.Freeze).filter(models.Freeze.id == freeze_id).first()
+    if fr:
+        db.delete(fr)
+        db.commit()
+    return None
