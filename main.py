@@ -10,6 +10,7 @@ from database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends
 import models, os
+import schemas
 from auth import hash_password
 
 
@@ -21,7 +22,7 @@ from routers.classrooms import router as classrooms_router
 from routers.attendance import router as attendance_router
 from routers.extra import (
     tasks_router, returns_router, forms_router, ent_router,
-    forbidden_router, mentors_router, analytics_router,
+    forbidden_router, mentors_router, analytics_router, freezes_router,
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -49,6 +50,7 @@ app.include_router(ent_router)
 app.include_router(forbidden_router)
 app.include_router(mentors_router)
 app.include_router(analytics_router)
+app.include_router(freezes_router)
 
 # Статические файлы (логотипы и пр.)
 _assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
@@ -105,6 +107,43 @@ def get_student_public(student_id: int, db: Session = Depends(get_db)):
         "branch": student.branch,
         "status": student.status,
     }
+
+@app.get("/api/public/freezes/{student_id}")
+def get_freezes_public(student_id: int, db: Session = Depends(get_db)):
+    """История заморозок ученика (для публичной страницы заморозки)."""
+    rows = (
+        db.query(models.Freeze)
+        .filter(models.Freeze.student_id == student_id)
+        .order_by(models.Freeze.start_date.desc())
+        .all()
+    )
+    return [
+        {
+            "id": f.id,
+            "start_date": f.start_date.isoformat(),
+            "end_date": f.end_date.isoformat(),
+            "reason": f.reason,
+        }
+        for f in rows
+    ]
+
+@app.post("/api/public/freezes")
+def create_freeze_public(payload: schemas.FreezeCreate, db: Session = Depends(get_db)):
+    """Создание заморозки с публичной страницы (по ссылке, без авторизации)."""
+    from fastapi import HTTPException
+    student = db.query(models.Student).filter(models.Student.id == payload.student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Ученик не найден")
+    fr = models.Freeze(
+        student_id=payload.student_id,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        reason=payload.reason,
+    )
+    db.add(fr)
+    db.commit()
+    db.refresh(fr)
+    return {"id": fr.id, "detail": "Заморозка оформлена"}
 
 @app.get("/", include_in_schema=False)
 def serve_app():

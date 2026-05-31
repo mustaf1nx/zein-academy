@@ -339,3 +339,29 @@ class SlotInfo(BaseModel):
 class GroupSizeDistribution(BaseModel):
     size: int
     count: int
+
+
+# ─── Freezes (Заморозки) ──────────────────────────────────────────────────────
+
+class FreezeCreate(BaseModel):
+    student_id: int
+    start_date: date
+    end_date: date
+    reason: Optional[str] = None
+
+    @field_validator("end_date")
+    @classmethod
+    def end_after_start(cls, v, info):
+        start = info.data.get("start_date")
+        if start and v < start:
+            raise ValueError("Дата окончания не может быть раньше начала")
+        return v
+
+class FreezeOut(BaseModel):
+    id: int
+    student_id: int
+    start_date: date
+    end_date: date
+    reason: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}

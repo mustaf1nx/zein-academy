@@ -703,6 +703,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 .att-present { background: #dcfce7; border-color: #86efac; color: #16a34a; }
 .att-absent { background: #fee2e2; border-color: #fca5a5; color: var(--danger-600); }
 .att-none { background: #fff; color: var(--text-3); }
+.att-frozen { background: #dbeafe; border-color: #93c5fd; color: #2563eb; cursor: not-allowed; }
 .score-input {
   width: 50px; padding: 4px 6px; border: 1.5px solid var(--line);
   border-radius: 5px; font-size: 12px; text-align: center;
@@ -2468,23 +2469,33 @@ async function openAttendanceModal(groupId, groupName) {
   const tbody = document.getElementById('report-tbody');
   tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">Загрузка учеников...</td></tr>';
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const [students, existing] = await Promise.all([
+    const today = localDate();
+    const [students, existing, frozenResp] = await Promise.all([
       api(`/api/groups/${groupId}/students`),
-      api(`/api/attendance/?group_id=${groupId}&date_from=${today}&date_to=${today}`)
+      api(`/api/attendance/?group_id=${groupId}&date_from=${today}&date_to=${today}`),
+      api(`/api/attendance/frozen?on=${today}`).catch(()=>({frozen_ids:[]}))
     ]);
     const existMap = {};
     (existing||[]).forEach(r => existMap[r.student_id] = r);
+    const frozenSet = new Set((frozenResp?.frozen_ids)||[]);
     if (!students?.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">В группе нет учеников</td></tr>'; return;
     }
     tbody.innerHTML = students.map(s => {
       const rec = existMap[s.id];
-      const st = rec?.status||'none';
+      const frozen = frozenSet.has(s.id);
+      const present = rec?.status==='present';
+      if (frozen) {
+        return `<tr data-student-id="${s.id}" data-frozen="1" style="opacity:.6">
+          <td><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
+          <td style="text-align:center"><button class="attendance-btn att-frozen" title="Ученик заморожен" disabled>❄</button></td>
+          <td colspan="2" style="text-align:center;font-size:12px;color:#2563eb;font-weight:600">Заморожен</td>
+        </tr>`;
+      }
       return `<tr data-student-id="${s.id}">
         <td><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
         <td style="text-align:center">
-          <button class="attendance-btn ${st==='present'?'att-present':st==='absent'?'att-absent':'att-none'}" onclick="toggleAttendance(this)">${st==='present'?'✓':st==='absent'?'✗':'?'}</button>
+          <button class="attendance-btn ${present?'att-present':'att-none'}" onclick="toggleAttendance(this)">${present?'✓':''}</button>
         </td>
         <td style="text-align:center"><input class="score-input" type="number" min="0" max="10" step="0.5" placeholder="—" value="${rec?.score_1!=null?rec.score_1:''}"></td>
         <td style="text-align:center"><input class="score-input" type="number" min="0" max="10" step="0.5" placeholder="—" value="${rec?.score_2!=null?rec.score_2:''}"></td>
@@ -2495,16 +2506,19 @@ async function openAttendanceModal(groupId, groupName) {
 
 async function saveAttendanceReport() {
   if (!attendanceGroupId) return;
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDate();
   const rows = document.querySelectorAll('#report-tbody tr[data-student-id]');
   const records = [];
   rows.forEach(row => {
     const studentId = parseInt(row.dataset.studentId);
+    if (row.dataset.frozen === '1') {
+      // заморожен — фиксируем как "не отмечен", без баллов
+      records.push({ student_id: studentId, status: 'none', score_1: null, score_2: null });
+      return;
+    }
     const btn = row.querySelector('.attendance-btn');
     const inputs = row.querySelectorAll('.score-input');
-    let status = 'none';
-    if (btn.classList.contains('att-present')) status = 'present';
-    else if (btn.classList.contains('att-absent')) status = 'absent';
+    const status = btn.classList.contains('att-present') ? 'present' : 'absent';
     records.push({
       student_id: studentId, status,
       score_1: inputs[0]?.value ? parseFloat(inputs[0].value) : null,
@@ -4316,10 +4330,23 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
 });
 
+// Локальная дата (Астана) в формате YYYY-MM-DD — без UTC-сдвига
+function localDate(d) {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// Присутствие: галочка / пусто (два состояния)
 function toggleAttendance(btn) {
-  if(btn.classList.contains('att-none')) { btn.classList.replace('att-none','att-present'); btn.textContent='✓'; }
-  else if(btn.classList.contains('att-present')) { btn.classList.replace('att-present','att-absent'); btn.textContent='✗'; }
-  else { btn.classList.replace('att-absent','att-none'); btn.textContent='?'; }
+  if (btn.classList.contains('att-frozen')) return; // заморожен — нельзя
+  if (btn.classList.contains('att-present')) {
+    btn.classList.replace('att-present','att-none'); btn.textContent='';
+  } else {
+    btn.classList.add('att-present'); btn.classList.remove('att-none'); btn.textContent='✓';
+  }
 }
 function switchTab(btn) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
 

@@ -314,3 +314,18 @@ class ForbiddenDate(Base):
     date = Column(Date, unique=True, nullable=False)
     added_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─── Freezes (Заморозки) ─────────────────────────────────────────────────────
+
+class Freeze(Base):
+    __tablename__ = "freezes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    reason = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    student = relationship("Student")
