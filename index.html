@@ -61,6 +61,7 @@
 
 /* ── Тёмная тема: общие переменные ── */
 :root.theme-dark {
+  color-scheme: dark;
   --paper:      #0e0e11;
   --paper-2:    #16161a;
   --surface:    #1b1b20;
@@ -82,6 +83,7 @@
 /* авто-тёмная по настройкам телефона, если пользователь не выбрал вручную */
 @media (prefers-color-scheme: dark) {
   :root:not(.theme-light):not(.theme-dark) {
+    color-scheme: dark;
     --paper:#0e0e11; --paper-2:#16161a; --surface:#1b1b20;
     --line:#2c2c33; --line-soft:#232329;
     --text:#f0ede6; --text-2:#a8a59d; --text-3:#6f6d68;
@@ -89,6 +91,7 @@
     --shadow:0 6px 28px rgba(0,0,0,.45); --shadow-lg:0 18px 50px rgba(0,0,0,.6);
   }
 }
+:root.theme-light { color-scheme: light; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-body); background: var(--paper); color: var(--text); display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
@@ -551,9 +554,11 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   border-radius: 8px;
   font-size: 13px;
   background: var(--surface);
+  color: var(--text);
   outline: none;
   position: relative;
 }
+.search-input::placeholder { color: var(--text-3); }
 .search-wrap { position: relative; flex: 1; }
 .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); width: 16px; height: 16px; }
 .search-input:focus { border-color: var(--ink); }
@@ -589,7 +594,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 .badge-not-started { background: var(--line-soft); color: var(--text-2); }
 .badge-return { background: rgba(239,68,68,.16); color: #f87171; }
 .badge-kaz { background: rgba(234,179,8,.16); color: #fbbf24; }
-.badge-rus { background: #dbeafe; color: #2563eb; }
+.badge-rus { background: rgba(59,130,246,.16); color: #60a5fa; }
 
 /* ACTION MENU */
 .action-menu { position: relative; display: inline-block; }
@@ -641,8 +646,11 @@ tbody td { padding: 11px 14px; color: var(--text); }
   font-family: inherit;
   outline: none;
   background: var(--surface);
+  color: var(--text);
   transition: border-color 0.15s;
 }
+.form-select option, .mentor-select option { background: var(--surface); color: var(--text); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-3); }
 .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--ink); }
 .form-textarea { resize: vertical; min-height: 80px; }
 .form-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 16px 0 10px; border-bottom: 1px solid var(--line-soft); padding-bottom: 6px; }
@@ -803,7 +811,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 /* MENTOR ASSIGN */
 .mentor-select {
   padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 6px;
-  font-size: 12px; outline: none; background: var(--surface); min-width: 100px;
+  font-size: 12px; outline: none; background: var(--surface); color: var(--text); min-width: 100px;
 }
 .assign-btn {
   padding: 6px 12px; background: var(--ink); color: #fff;
