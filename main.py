@@ -27,6 +27,22 @@ from routers.extra import (
 
 models.Base.metadata.create_all(bind=engine)
 
+
+# ── Лёгкая авто-миграция: добавляем недостающие колонки в существующие таблицы ──
+def _ensure_columns():
+    from sqlalchemy import inspect, text
+    try:
+        insp = inspect(engine)
+        cols = [c["name"] for c in insp.get_columns("users")]
+        if "hourly_rate" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN hourly_rate INTEGER"))
+            print("✅ Миграция: добавлена колонка users.hourly_rate")
+    except Exception as e:
+        print(f"⚠ Миграция hourly_rate пропущена: {e}")
+
+_ensure_columns()
+
 app = FastAPI(title="Zein Academy API", version="1.0.0", docs_url="/docs")
 
 app.add_middleware(

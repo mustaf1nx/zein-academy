@@ -37,6 +37,7 @@ class UserBase(BaseModel):
     role: RoleEnum
     phone: Optional[str] = None
     subject: Optional[str] = None
+    hourly_rate: Optional[int] = None
     branch: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -47,6 +48,7 @@ class UserUpdate(BaseModel):
     initials: Optional[str] = None
     phone: Optional[str] = None
     subject: Optional[str] = None
+    hourly_rate: Optional[int] = None
     branch: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None

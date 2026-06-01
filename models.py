@@ -83,7 +83,8 @@ class User(Base):
     initials = Column(String(10))
     role = Column(SAEnum(RoleEnum), nullable=False)
     phone = Column(String(20))
-    subject = Column(String(100))          # для учителей
+    subject = Column(String(100))          # для учителей — предмет
+    hourly_rate = Column(Integer, nullable=True)   # ставка за час (тенге), для учителей
     branch = Column(String(100))           # филиал
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
