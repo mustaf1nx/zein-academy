@@ -10,7 +10,7 @@ from sqlalchemy import func
 from typing import List, Optional
 from datetime import date
 from database import get_db
-from dependencies import get_current_user, require_admin, require_admin_or_manager
+from dependencies import get_current_user, require_admin, require_admin_or_manager, log_action
 import models, schemas
 
 
@@ -519,6 +519,7 @@ def create_freeze(
     db.add(fr)
     db.commit()
     db.refresh(fr)
+    log_action(db, _, "create", "freeze", fr.id, f"Заморозка ученика #{fr.student_id}: {fr.start_date}—{fr.end_date}")
     return fr
 
 
@@ -533,3 +534,25 @@ def delete_freeze(
         db.delete(fr)
         db.commit()
     return None
+
+
+# ══════════════════════════════════════════════════════
+# AUDIT LOG (Журнал действий) — только админ
+# ══════════════════════════════════════════════════════
+audit_router = APIRouter(prefix="/api/audit", tags=["Audit"])
+
+
+@audit_router.get("/", response_model=List[schemas.AuditLogOut])
+def list_audit(
+    limit: int = Query(200, le=1000),
+    entity: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin),
+):
+    q = db.query(models.AuditLog)
+    if entity:
+        q = q.filter(models.AuditLog.entity == entity)
+    if user_id is not None:
+        q = q.filter(models.AuditLog.user_id == user_id)
+    return q.order_by(models.AuditLog.created_at.desc()).limit(limit).all()
