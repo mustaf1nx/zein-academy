@@ -1500,6 +1500,23 @@ tbody td { padding: 11px 14px; color: var(--text); }
   </div>
 </div>
 
+<!-- EDIT STAFF MODAL -->
+<div class="modal-overlay" id="edit-staff-modal">
+  <div class="modal">
+    <div class="modal-title">Редактировать сотрудника</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">ФИО *</label><input class="form-input" id="estaff-name" placeholder="Фамилия Имя Отчество"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="estaff-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+      <div class="form-group"><label class="form-label">Предмет / специализация</label><input class="form-input" id="estaff-subject" placeholder="Математика, Физика..."></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Новый пароль</label><input class="form-input" id="estaff-pass" type="password" placeholder="Оставьте пустым, чтобы не менять"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('edit-staff-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitEditStaff()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD TASK MODAL -->
 <div class="modal-overlay" id="add-task-modal">
   <div class="modal">
@@ -2162,6 +2179,7 @@ async function _loadStaffData(role, tbodyId, extraCol, search) {
           <div class="action-menu">
             <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
             <div class="action-dropdown">
+              <div class="action-dropdown-item" onclick="openEditStaff(${s.id},'${role}')">✏️ Редактировать</div>
               <div class="action-dropdown-item" onclick="toggleUserActive(${s.id},${s.is_active})">${s.is_active?'Деактивировать':'Активировать'}</div>
               <div class="action-dropdown-item danger" onclick="deleteUser(${s.id},'${role}')">🗑 Удалить</div>
             </div>
@@ -2191,6 +2209,43 @@ async function toggleUserActive(id, isActive) {
     showToast(isActive ? 'Деактивирован' : 'Активирован');
     ['mentor','teacher','lidoruby','manager'].forEach((r,i) =>
       loadStaff(r, ['mentors-tbody','teachers-tbody','lidoruby-tbody','managers-tbody'][i], r==='teacher'));
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function openEditStaff(id, role) {
+  try {
+    const users = await api(`/api/users/?role=${role}`);
+    const u = (users||[]).find(x => x.id === id);
+    if (!u) { showToast('Сотрудник не найден','error'); return; }
+    const modal = document.getElementById('edit-staff-modal');
+    modal.dataset.id = id;
+    modal.dataset.role = role;
+    document.getElementById('estaff-name').value = u.full_name || '';
+    document.getElementById('estaff-phone').value = u.phone || '';
+    document.getElementById('estaff-subject').value = u.subject || '';
+    document.getElementById('estaff-pass').value = '';
+    openModal('edit-staff-modal');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitEditStaff() {
+  const modal = document.getElementById('edit-staff-modal');
+  const id = modal.dataset.id;
+  const role = modal.dataset.role;
+  const name = document.getElementById('estaff-name').value.trim();
+  const phone = document.getElementById('estaff-phone').value.trim();
+  const subject = document.getElementById('estaff-subject').value.trim();
+  const pass = document.getElementById('estaff-pass').value.trim();
+  if (!name) { showToast('Введите ФИО','error'); return; }
+  if (pass && pass.length < 6) { showToast('Пароль минимум 6 символов','error'); return; }
+  const payload = { full_name: name, phone, subject };
+  if (pass) payload.password = pass;
+  try {
+    await api(`/api/users/${id}`, { method:'PUT', body: JSON.stringify(payload) });
+    showToast('Данные сохранены');
+    closeModal('edit-staff-modal');
+    const map = {mentor:'mentors-tbody', teacher:'teachers-tbody', lidoruby:'lidoruby-tbody', manager:'managers-tbody'};
+    if (map[role]) _loadStaffData(role, map[role], role==='teacher', '');
   } catch(e) { showToast(e.message,'error'); }
 }
 
