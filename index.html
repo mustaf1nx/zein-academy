@@ -1279,10 +1279,6 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="page-body">
       <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:28px;max-width:800px;margin:0 auto">
         <div class="form-section-title">Данные ученика</div>
-        <div class="form-group" style="margin-bottom:14px">
-          <label class="form-label">Менеджер клиента *</label>
-          <select class="form-select" id="ns-manager"><option value="">Выберите менеджера</option></select>
-        </div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Язык обучения *</label><select class="form-select" id="ns-lang"><option value="KAZ">KAZ</option><option value="RUS">RUS</option></select></div>
           <div class="form-group"><label class="form-label">Фамилия ученика *</label><input class="form-input" id="ns-last" placeholder="Фамилия"></div>
@@ -1508,8 +1504,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="modal">
     <div class="modal-title">Редактировать сотрудника</div>
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">ФИО *</label><input class="form-input" id="estaff-name" placeholder="Фамилия Имя Отчество"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="estaff-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Телефон</label><input class="form-input" id="estaff-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Предмет / специализация</label><input class="form-input" id="estaff-subject" placeholder="Математика, Физика..."></div>
       <div class="form-group"><label class="form-label">Ставка/час (₸)</label><input class="form-input" id="estaff-rate" type="number" min="0" step="100" placeholder="напр. 3000"></div>
@@ -1953,12 +1948,6 @@ async function _prefillSelects() {
       taskSel.innerHTML = '<option value="">— Выбрать —</option>' +
         [...(mentors||[])].map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
     }
-    // New student manager
-    const mgrSel = document.getElementById('ns-manager');
-    if (mgrSel && managers) {
-      mgrSel.innerHTML = '<option value="">Выберите менеджера</option>' +
-        (managers||[]).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
-    }
     // New student group
     const grpSel = document.getElementById('ns-group');
     if (grpSel && groups) {
@@ -2107,7 +2096,6 @@ async function submitNewStudent() {
   const groupId = document.getElementById('ns-group')?.value;
   const bought = document.getElementById('ns-bought')?.value;
   const gift   = document.getElementById('ns-gift')?.value;
-  const managerId = document.getElementById('ns-manager')?.value;
   const fullName = [last, first].filter(Boolean).join(' ');
   if (!fullName) { showToast('Введите имя ученика', 'error'); return; }
   try {
@@ -4083,11 +4071,6 @@ async function loadNewStudentPage() {
       api('/api/users/?role=manager'),
       api('/api/groups/'),
     ]);
-    const mgrSel = document.getElementById('ns-manager');
-    if (mgrSel) {
-      mgrSel.innerHTML = '<option value="">Выберите менеджера</option>' +
-        (managers||[]).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
-    }
     const grpSel = document.getElementById('ns-group');
     if (grpSel) {
       grpSel.innerHTML = '<option value="">Выберите группу</option>' +
