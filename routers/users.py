@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from dependencies import get_current_user, require_admin
+from dependencies import get_current_user, require_admin, log_action
 from auth import hash_password
 import models, schemas
 
@@ -28,7 +28,7 @@ def list_users(
 def create_user(
     data: schemas.UserCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     if db.query(models.User).filter(models.User.iin == data.iin).first():
         raise HTTPException(status_code=400, detail="Пользователь с таким ИИН уже существует")
@@ -40,11 +40,17 @@ def create_user(
         role=data.role,
         phone=data.phone,
         subject=data.subject,
+        hourly_rate=data.hourly_rate,
         branch=data.branch,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Не удалось создать сотрудника. Проверьте, что ИИН уникален.")
     db.refresh(user)
+    log_action(db, current_user, "create", "user", user.id, f"Добавлен сотрудник: {user.full_name} ({user.role})")
     return user
 
 
@@ -82,6 +88,7 @@ def update_user(
             setattr(user, field, val)
     db.commit()
     db.refresh(user)
+    log_action(db, current_user, "update", "user", user.id, f"Изменён сотрудник: {user.full_name}")
     return user
 
 
@@ -89,7 +96,7 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -105,5 +112,7 @@ def delete_user(
     db.query(models.Group).filter(
         models.Group.teacher_id == user_id).update(
         {models.Group.teacher_id: None}, synchronize_session=False)
+    uname = user.full_name
     db.delete(user)
     db.commit()
+    log_action(db, current_user, "delete", "user", user_id, f"Удалён сотрудник: {uname}")
