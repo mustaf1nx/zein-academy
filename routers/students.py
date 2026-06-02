@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from dependencies import get_current_user, require_admin
+from dependencies import get_current_user, require_admin, log_action
 import models, schemas
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
@@ -38,12 +38,13 @@ def list_students(
 def create_student(
     data: schemas.StudentCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     student = models.Student(**data.model_dump())
     db.add(student)
     db.commit()
     db.refresh(student)
+    log_action(db, current_user, "create", "student", student.id, f"Добавлен ученик: {student.full_name}")
     return student
 
 
@@ -64,7 +65,7 @@ def update_student(
     student_id: int,
     data: schemas.StudentUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     s = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not s:
@@ -73,6 +74,7 @@ def update_student(
         setattr(s, field, val)
     db.commit()
     db.refresh(s)
+    log_action(db, current_user, "update", "student", s.id, f"Изменён ученик: {s.full_name}")
     return s
 
 
@@ -80,7 +82,7 @@ def update_student(
 def delete_student(
     student_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     s = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not s:
@@ -94,5 +96,7 @@ def delete_student(
         models.MentorAssignment.student_id == student_id).delete(synchronize_session=False)
     db.query(models.Return).filter(
         models.Return.student_id == student_id).delete(synchronize_session=False)
+    name = s.full_name
     db.delete(s)
     db.commit()
+    log_action(db, current_user, "delete", "student", student_id, f"Удалён ученик: {name}")

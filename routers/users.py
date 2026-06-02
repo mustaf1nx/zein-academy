@@ -50,7 +50,8 @@ def create_user(
         db.rollback()
         raise HTTPException(status_code=400, detail="Не удалось создать сотрудника. Проверьте, что ИИН уникален.")
     db.refresh(user)
-    log_action(db, current_user, "create", "user", user.id, f"Добавлен сотрудник: {user.full_name} ({user.role})")
+    role_label = {"teacher":"преподаватель","mentor":"ментор","manager":"менеджер","lidoruby":"лидоруб","admin":"админ"}.get(getattr(user.role,'value',str(user.role)), getattr(user.role,'value',str(user.role)))
+    log_action(db, current_user, "create", "user", user.id, f"Добавлен сотрудник: {user.full_name} ({role_label})")
     return user
 
 
