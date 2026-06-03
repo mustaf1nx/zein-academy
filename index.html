@@ -756,6 +756,13 @@ tbody td { padding: 11px 14px; color: var(--text); }
 @keyframes scoreShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
 
 /* TABS */
+.lesson-subtab {
+  padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; background: none; color: var(--text-3);
+  border-bottom: 2px solid transparent; margin-bottom: -1.5px;
+}
+.lesson-subtab.active { color: var(--text); border-bottom-color: var(--gold); }
+.lesson-subtab:hover { color: var(--text-2); }
 .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); margin-bottom: 16px; }
 .tab-btn {
   padding: 10px 18px; font-size: 13px; font-weight: 600;
@@ -1192,8 +1199,8 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="page-header"><div class="page-title">Мои уроки</div></div>
     <div class="page-body">
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab(this,'today')">Сегодня</button>
-        <button class="tab-btn" onclick="switchTab(this,'all')">Все</button>
+        <button class="tab-btn active" onclick="setMyLessonsTab(this,'today')">Сегодня</button>
+        <button class="tab-btn" onclick="setMyLessonsTab(this,'all')">Все</button>
       </div>
       <div id="my-groups-body"></div>
     </div>
@@ -2547,6 +2554,7 @@ async function submitAddTask() {
 }
 
 // ══ MY GROUPS (Teacher) ═══════════════════════════════════════════
+let _myLessonsTab = 'today';
 async function loadMyGroups() {
   const container = document.getElementById('my-groups-body');
   if (!container) return;
@@ -2555,14 +2563,27 @@ async function loadMyGroups() {
     const data = await api('/api/groups/');
     if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
-    container.innerHTML = data.map(g => {
+    // текущий день недели в формате MON..SUN
+    const dowMap = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const todayDow = dowMap[new Date().getDay()];
+
+    // фильтрация по вкладке "Сегодня"
+    let groups = data;
+    if (_myLessonsTab === 'today') {
+      groups = data.filter(g => (g.schedule_slots||[]).some(s => s.day_of_week === todayDow));
+    }
+    if (!groups.length) {
+      container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
+      return;
+    }
+
+    container.innerHTML = groups.map(g => {
       const slots = g.schedule_slots||[];
-      const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'Нет расписания';
       const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
       const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       return `
-        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden">
-          <div style="padding:16px 18px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden">
+          <div style="padding:16px 18px;border-bottom:1px solid var(--line-soft)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
               <div>
                 <b style="font-size:15px">${g.name}</b>
@@ -2571,18 +2592,58 @@ async function loadMyGroups() {
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-              <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">📅 ${daysStr}</span>
               ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
               ${roomStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🚪 ${roomStr}</span>`:''}
               <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">👥 ${g.student_count} уч.</span>
             </div>
           </div>
-          <div style="display:none;padding:14px 18px;border-top:1px solid var(--line-soft)">
-            <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
+          <div style="padding:14px 18px">
+            <div style="display:flex;gap:0;border-bottom:1.5px solid var(--line);margin-bottom:14px">
+              <button class="lesson-subtab active" onclick="switchLessonSubtab(this,${g.id},'journal')">Журнал</button>
+              <button class="lesson-subtab" onclick="switchLessonSubtab(this,${g.id},'characteristics')">Характеристики</button>
+            </div>
+            <div id="lesson-tab-journal-${g.id}">
+              <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
+            </div>
+            <div id="lesson-tab-characteristics-${g.id}" style="display:none">
+              <textarea class="form-textarea" id="char-text-${g.id}" placeholder="Характеристики учеников группы, заметки о прогрессе..." style="min-height:120px"></textarea>
+              <div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveCharacteristics(${g.id})">Сохранить характеристики</button></div>
+            </div>
           </div>
         </div>`;
     }).join('');
   } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
+// переключение под-вкладок внутри карточки урока (Журнал / Характеристики)
+function switchLessonSubtab(btn, groupId, tab) {
+  const card = btn.closest('div').parentElement;
+  card.querySelectorAll('.lesson-subtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`lesson-tab-journal-${groupId}`).style.display = tab==='journal'?'block':'none';
+  document.getElementById(`lesson-tab-characteristics-${groupId}`).style.display = tab==='characteristics'?'block':'none';
+  if (tab==='characteristics') loadCharacteristics(groupId);
+}
+
+// характеристики хранятся в localStorage (на время; при наличии API можно заменить)
+function loadCharacteristics(groupId) {
+  const ta = document.getElementById(`char-text-${groupId}`);
+  if (!ta || ta.dataset.loaded) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem('zein_characteristics')||'{}');
+    ta.value = saved[groupId] || '';
+  } catch {}
+  ta.dataset.loaded = '1';
+}
+function saveCharacteristics(groupId) {
+  const ta = document.getElementById(`char-text-${groupId}`);
+  if (!ta) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem('zein_characteristics')||'{}');
+    saved[groupId] = ta.value;
+    localStorage.setItem('zein_characteristics', JSON.stringify(saved));
+    showToast('Характеристики сохранены');
+  } catch(e) { showToast('Не удалось сохранить','error'); }
 }
 
 // ══ ATTENDANCE ════════════════════════════════════════════════════
@@ -4498,6 +4559,12 @@ function toggleAttendance(btn) {
   }
 }
 function switchTab(btn) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+function setMyLessonsTab(btn, tab) {
+  document.querySelectorAll('#page-my-groups .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  _myLessonsTab = tab;
+  loadMyGroups();
+}
 
 // ── Журнал действий (аудит) ───────────────────────────────────────
 const AUDIT_ACTION = { create:'Создание', update:'Изменение', delete:'Удаление' };
