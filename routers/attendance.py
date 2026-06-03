@@ -43,6 +43,8 @@ def save_attendance(
             status=status,
             score_1=score_1,
             score_2=score_2,
+            lesson_topic=data.lesson_topic,
+            homework=data.homework,
             recorded_by=current_user.id,
         )
         db.add(att)
