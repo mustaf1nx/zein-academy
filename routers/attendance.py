@@ -95,6 +95,8 @@ def get_attendance(
             status=r.status,
             score_1=r.score_1,
             score_2=r.score_2,
+            lesson_topic=r.lesson_topic,
+            homework=r.homework,
         ))
     return result
 
