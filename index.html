@@ -142,12 +142,15 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
     position: fixed;
     left: -300px; top: 0;
     width: 282px; height: 100dvh;
-    z-index: 9999;
+    z-index: 10000;
     overflow-y: auto; -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     transition: left 0.28s ease;
   }
   .sidebar.mobile-open { left: 0; box-shadow: 8px 0 30px rgba(0,0,0,.35); }
+  .sidebar .nav, .sidebar .nav-item, .sidebar .nav-sub-item {
+    position: relative; z-index: 1; pointer-events: auto; touch-action: manipulation;
+  }
   .mobile-header {
     display: flex !important;
     position: fixed; top: 0; left: 0; right: 0;
@@ -2089,6 +2092,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   observer.observe(sidebar, {attributes: true, attributeFilter: ['class']});
 }
+    // Надёжная обработка тапов по навигации (делегирование — работает и на тач-экранах)
+    const navEl = document.getElementById('nav');
+    if (navEl) {
+      navEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.nav-item, .nav-sub-item');
+        if (!item || !item.id) return;
+        const pageId = item.id.replace('nav-', 'page-');
+        showPage(pageId);
+      });
+    }
   const s = document.querySelector('#page-students .search-input');
   if (s) { let t; s.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { _studentFilters.search = e.target.value; loadStudents(); }, 400); }); }
 });
