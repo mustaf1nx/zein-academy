@@ -4806,7 +4806,7 @@ function setMyLessonsTab(btn, tab) {
 
 // ── Журнал действий (аудит) ───────────────────────────────────────
 const AUDIT_ACTION = { create:'Создание', update:'Изменение', delete:'Удаление' };
-const AUDIT_ENTITY = { student:'Ученики', group:'Группы', classroom:'Кабинеты', user:'Сотрудники', freeze:'Заморозки', attendance:'Журнал' };
+const AUDIT_ENTITY = { student:'Ученики', group:'Группы', classroom:'Кабинеты', user:'Сотрудники', freeze:'Заморозки', attendance:'Журнал', characteristic:'Характеристики' };
 async function loadAudit() {
   const tb = document.getElementById('audit-tbody');
   if (!tb) return;

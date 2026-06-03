@@ -195,6 +195,16 @@ def create_freeze_public(payload: schemas.FreezeCreate, db: Session = Depends(ge
     db.add(fr)
     db.commit()
     db.refresh(fr)
+    # Запись в журнал действий (заморозка оформлена по публичной ссылке)
+    try:
+        from dependencies import log_action
+        class _LinkUser:
+            id = None
+            full_name = "По ссылке (ученик)"
+        log_action(db, _LinkUser(), "create", "freeze", fr.id,
+                   f"Заморозка ученика {student.full_name}: {fr.start_date}—{fr.end_date}")
+    except Exception:
+        pass
     return {"id": fr.id, "detail": "Заморозка оформлена"}
 
 @app.get("/", include_in_schema=False)
