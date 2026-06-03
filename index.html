@@ -171,6 +171,27 @@ body { font-family: var(--font-body); background: var(--paper); color: var(--tex
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 560px; }
 
+  /* Журнал посещаемости → карточки на телефоне (без горизонтального скролла) */
+  #report-modal .table-wrap { overflow-x: visible; }
+  .report-table { min-width: 0; width: 100%; display: block; }
+  .report-table thead { display: none; }
+  .report-table tbody { display: block; }
+  .report-table tr {
+    display: block; background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+  }
+  .report-table td {
+    display: flex; align-items: center; justify-content: space-between;
+    border: none !important; padding: 7px 0 !important; text-align: left !important; gap: 12px;
+  }
+  .report-table td::before {
+    content: attr(data-label); color: var(--text-2); font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .report-table td[data-label=""]::before { content: none; }
+  .report-table td[colspan="2"] { justify-content: center; }
+  .report-table .score-input { width: 90px; }
+  .report-table .attendance-btn { margin: 0; }
+
   /* forms & search stack */
   .form-row { flex-direction: column; gap: 12px; }
   .search-bar { flex-direction: column; gap: 10px; }
@@ -2934,18 +2955,18 @@ async function openAttendanceModal(groupId, groupName) {
       const present = rec?.status==='present';
       if (frozen) {
         return `<tr data-student-id="${s.id}" data-frozen="1" style="opacity:.6">
-          <td><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
-          <td style="text-align:center"><button class="attendance-btn att-frozen" title="Ученик заморожен" disabled>❄</button></td>
-          <td colspan="2" style="text-align:center;font-size:12px;color:#2563eb;font-weight:600">Заморожен</td>
+          <td data-label="Ученик"><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
+          <td data-label="Присутствие" style="text-align:center"><button class="attendance-btn att-frozen" title="Ученик заморожен" disabled>❄</button></td>
+          <td colspan="2" data-label="" style="text-align:center;font-size:12px;color:#2563eb;font-weight:600">Заморожен</td>
         </tr>`;
       }
       return `<tr data-student-id="${s.id}">
-        <td><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
-        <td style="text-align:center">
+        <td data-label="Ученик"><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
+        <td data-label="Присутствие" style="text-align:center">
           <button class="attendance-btn ${present?'att-present':'att-none'}" onclick="toggleAttendance(this)">${present?'✓':''}</button>
         </td>
-        <td style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_1!=null?rec.score_1:''}"></td>
-        <td style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_2!=null?rec.score_2:''}"></td>
+        <td data-label="Балл за урок" style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_1!=null?rec.score_1:''}"></td>
+        <td data-label="Балл за д/з" style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_2!=null?rec.score_2:''}"></td>
       </tr>`;
     }).join('');
   } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger);padding:16px">${e.message}</td></tr>`; }
