@@ -519,7 +519,7 @@ def create_freeze(
     db.add(fr)
     db.commit()
     db.refresh(fr)
-    log_action(db, _, "create", "freeze", fr.id, f"Заморозка ученика #{fr.student_id}: {fr.start_date}—{fr.end_date}")
+    log_action(db, _, "create", "freeze", fr.id, f"Заморозка ученика {student.full_name}: {fr.start_date}—{fr.end_date}")
     return fr
 
 
