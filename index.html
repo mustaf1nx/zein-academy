@@ -747,7 +747,13 @@ tbody td { padding: 11px 14px; color: var(--text); }
 .score-input {
   width: 50px; padding: 4px 6px; border: 1.5px solid var(--line);
   border-radius: 5px; font-size: 12px; text-align: center;
+  background: var(--surface); color: var(--text);
 }
+.score-input.score-error {
+  border-color: var(--danger); background: rgba(239,68,68,.12);
+  animation: scoreShake .3s;
+}
+@keyframes scoreShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
 
 /* TABS */
 .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); margin-bottom: 16px; }
@@ -1651,6 +1657,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
 <div class="modal-overlay" id="report-modal">
   <div class="modal modal-lg">
     <div class="modal-title" id="report-modal-title">Отчет — 5 коу A1 — Понедельник 09:00</div>
+    <div id="report-status" style="display:none;margin:-6px 0 14px"></div>
     <div class="table-wrap">
       <table class="report-table">
         <thead><tr><th>Ученик</th><th>Присутствие</th><th>Балл за урок</th><th>Балл за д/з</th></tr></thead>
@@ -1663,7 +1670,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('report-modal')">Отмена</button>
-      <button class="btn btn-primary" onclick="saveAttendanceReport()">Сохранить отчет</button>
+      <button class="btn btn-primary" id="report-save-btn" onclick="saveAttendanceReport()">Сохранить отчёт</button>
     </div>
   </div>
 </div>
@@ -2552,19 +2559,26 @@ async function loadMyGroups() {
       const slots = g.schedule_slots||[];
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'Нет расписания';
       const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
+      const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       return `
-        <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden">
-          <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-            <div>
-              <b style="font-size:14px">${g.name}</b>
-              <span style="margin-left:10px;font-size:12px;color:var(--text-3)">${g.teacher_name||''}</span>
-              <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:6px">${g.language}</span>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden">
+          <div style="padding:16px 18px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+              <div>
+                <b style="font-size:15px">${g.name}</b>
+                <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
+                <div style="font-size:12px;color:var(--text-2);margin-top:3px">${g.teacher_name||'Преподаватель не назначен'}</div>
+              </div>
             </div>
-            <div style="font-size:12px;color:var(--ink);font-weight:600">${daysStr} ${timeStr} · ${g.student_count} уч.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">📅 ${daysStr}</span>
+              ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
+              ${roomStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🚪 ${roomStr}</span>`:''}
+              <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">👥 ${g.student_count} уч.</span>
+            </div>
           </div>
-          <div style="display:none;padding:14px 18px;border-top:1px solid var(--line-soft);display:flex;gap:10px">
+          <div style="display:none;padding:14px 18px;border-top:1px solid var(--line-soft)">
             <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
-            <button class="btn btn-outline btn-sm" onclick="showAttendanceSummary(${g.id},'${g.name}')">📊 Статистика</button>
           </div>
         </div>`;
     }).join('');
@@ -2573,6 +2587,26 @@ async function loadMyGroups() {
 
 // ══ ATTENDANCE ════════════════════════════════════════════════════
 let attendanceGroupId = null;
+
+// Ограничение балла 1–10 с предупреждением
+function clampScore(input) {
+  const v = parseFloat(input.value);
+  if (input.value === '') { input.classList.remove('score-error'); return; }
+  if (isNaN(v)) return;
+  if (v > 10) {
+    input.value = 10;
+    input.classList.add('score-error');
+    showToast('Балл не может быть больше 10', 'error');
+    setTimeout(()=>input.classList.remove('score-error'), 1500);
+  } else if (v < 1 && input.value !== '') {
+    input.value = 1;
+    input.classList.add('score-error');
+    showToast('Балл не может быть меньше 1', 'error');
+    setTimeout(()=>input.classList.remove('score-error'), 1500);
+  } else {
+    input.classList.remove('score-error');
+  }
+}
 
 async function openAttendanceModal(groupId, groupName) {
   attendanceGroupId = groupId;
@@ -2591,6 +2625,20 @@ async function openAttendanceModal(groupId, groupName) {
     const existMap = {};
     (existing||[]).forEach(r => existMap[r.student_id] = r);
     const frozenSet = new Set((frozenResp?.frozen_ids)||[]);
+    // Урок считается завершённым, если за сегодня уже есть сохранённые записи
+    const alreadySubmitted = (existing||[]).length > 0;
+    const statusEl = document.getElementById('report-status');
+    const saveBtn = document.getElementById('report-save-btn');
+    if (statusEl) {
+      if (alreadySubmitted) {
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">✓ Урок завершён · отчёт сдан</span>';
+      } else {
+        statusEl.style.display = 'none';
+        statusEl.innerHTML = '';
+      }
+    }
+    if (saveBtn) saveBtn.textContent = alreadySubmitted ? 'Изменить отчёт' : 'Сохранить отчёт';
     if (!students?.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">В группе нет учеников</td></tr>'; return;
     }
@@ -2640,30 +2688,16 @@ async function saveAttendanceReport() {
   });
   try {
     await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records }) });
-    showToast(`Отчёт сохранён! ${records.filter(r=>r.status==='present').length} присутствовали`);
-    closeModal('report-modal');
-  } catch(e) { showToast(e.message,'error'); }
-}
-
-async function showAttendanceSummary(groupId, groupName) {
-  try {
-    const data = await api(`/api/attendance/summary/${groupId}`);
-    if (!data?.length) { showToast('Нет данных посещаемости','warn'); return; }
-    const rows = data.map(s => `
-      <tr>
-        <td>${s.student_name}</td>
-        <td style="text-align:center">${s.total_lessons}</td>
-        <td style="text-align:center;color:#22c55e;font-weight:700">${s.present}</td>
-        <td style="text-align:center;color:var(--danger);font-weight:700">${s.absent}</td>
-        <td style="text-align:center;font-weight:700">${s.attendance_rate}%</td>
-        <td style="text-align:center">${s.avg_score!=null?s.avg_score:'—'}</td>
-      </tr>`).join('');
-    const w = window.open('','_blank','width=700,height=500');
-    w.document.write(`<html><head><title>Статистика — ${groupName}</title>
-      <style>body{font-family:Inter,sans-serif;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:8px 12px;font-size:13px}th{background:var(--paper-2);font-weight:600}</style></head>
-      <body><h2 style="font-size:18px;margin-bottom:16px">📊 Статистика посещаемости — ${groupName}</h2>
-      <table><thead><tr><th>Ученик</th><th>Всего</th><th>✓ Был</th><th>✗ Отсутствовал</th><th>%</th><th>Ср. балл</th></tr></thead>
-      <tbody>${rows}</tbody></table></body></html>`);
+    const presentCount = records.filter(r=>r.status==='present').length;
+    showToast(`Отчёт сдан! Присутствовали: ${presentCount}`);
+    // показать статус "завершён" и переключить кнопку на "Изменить"
+    const statusEl = document.getElementById('report-status');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">✓ Урок завершён · отчёт сдан</span>';
+    }
+    const saveBtn = document.getElementById('report-save-btn');
+    if (saveBtn) saveBtn.textContent = 'Изменить отчёт';
   } catch(e) { showToast(e.message,'error'); }
 }
 
