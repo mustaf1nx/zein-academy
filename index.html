@@ -1208,26 +1208,13 @@ tbody td { padding: 11px 14px; color: var(--text); }
 
   <!-- MY REPORTS -->
   <div class="page" id="page-my-reports">
-    <div class="page-header"><div class="page-title">Мои отчеты</div></div>
+    <div class="page-header">
+      <div class="page-title">Мои отчеты</div>
+      <div class="page-actions"><button class="btn btn-outline btn-sm" onclick="loadMyReports()">Обновить</button></div>
+    </div>
     <div class="page-body">
-      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Дата от</label>
-          <input type="date" class="form-input">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Дата до</label>
-          <input type="date" class="form-input">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:18px">
-          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg> Фильтр</button>
-          <button class="btn btn-outline">Очистить</button>
-        </div>
-      </div>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17H7A5 5 0 017 7h2"/><path d="M15 7h2a5 5 0 010 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        <p>Отчетов не найдено</p>
-      </div>
+      <div style="color:var(--text-2);font-size:13px;margin-bottom:14px">История сданных отчётов по урокам</div>
+      <div id="my-reports-body"><div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div></div>
     </div>
   </div>
 
@@ -1481,6 +1468,15 @@ tbody td { padding: 11px 14px; color: var(--text); }
           <tbody id="audit-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:16px">Загрузка...</td></tr></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- CHARACTERISTICS (ADMIN, read-only) -->
+  <div class="page" id="page-characteristics-admin">
+    <div class="page-header"><div class="page-title">Характеристики</div></div>
+    <div class="page-body">
+      <div id="chadm-groups-view"></div>
+      <div id="chadm-students-view" style="display:none"></div>
     </div>
   </div>
 
@@ -2564,6 +2560,46 @@ async function submitAddTask() {
 
 // ══ MY GROUPS (Teacher) ═══════════════════════════════════════════
 let _myLessonsTab = 'today';
+
+// История сданных отчётов преподавателя
+async function loadMyReports() {
+  const body = document.getElementById('my-reports-body');
+  if (!body) return;
+  body.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  try {
+    const groups = await api('/api/groups/');
+    if (!groups?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
+    // собираем записи посещаемости по всем группам
+    const all = [];
+    await Promise.all(groups.map(async g => {
+      try {
+        const recs = await api(`/api/attendance/?group_id=${g.id}`);
+        // группируем по дате
+        const byDate = {};
+        (recs||[]).forEach(r => {
+          if (!byDate[r.date]) byDate[r.date] = { present:0, total:0 };
+          byDate[r.date].total++;
+          if (r.status === 'present') byDate[r.date].present++;
+        });
+        Object.entries(byDate).forEach(([date,st]) => {
+          all.push({ group: g.name, language: g.language, date, present: st.present, total: st.total });
+        });
+      } catch {}
+    }));
+    if (!all.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов пока нет</p></div>'; return; }
+    all.sort((a,b) => b.date.localeCompare(a.date));
+    body.innerHTML = all.map(r => `
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <b style="font-size:14px">${r.group}</b>
+          <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
+          <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
+      </div>`).join('');
+  } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
 async function loadMyGroups() {
   const container = document.getElementById('my-groups-body');
   if (!container) return;
@@ -2668,31 +2704,45 @@ function _charMonthKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
-function _charStore() {
-  try { return JSON.parse(localStorage.getItem('zein_characteristics')||'{}'); } catch { return {}; }
+const _monthNames = ['','январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+function _periodLabel(p) {
+  const [y,m] = (p||'').split('-');
+  return m ? `${_monthNames[parseInt(m)]} ${y}` : p;
 }
 
+let _charPeriod = null;
 async function openCharStudents(groupId, groupName) {
   const gv = document.getElementById('char-groups-view');
   const sv = document.getElementById('char-students-view');
   gv.style.display = 'none';
   sv.style.display = 'block';
   sv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка учеников...</div>';
-  const monthNames = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-  const monthLabel = `${monthNames[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  _charPeriod = _charPeriod || _charMonthKey();
   try {
     const students = await api(`/api/groups/${groupId}/students`);
-    const store = _charStore();
-    const mk = _charMonthKey();
+    // тянем характеристики всех учеников за выбранный месяц
+    const existing = {};
+    await Promise.all((students||[]).map(async s => {
+      try {
+        const recs = await api(`/api/characteristics/?student_id=${s.id}&period=${_charPeriod}`);
+        // берём запись текущего автора (или первую)
+        existing[s.id] = (recs||[])[0]?.text || '';
+      } catch { existing[s.id] = ''; }
+    }));
+    // выбор месяца
+    const months = [];
+    const now = new Date();
+    for (let i=0;i<6;i++){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`); }
+    const monthOpts = months.map(m=>`<option value="${m}" ${m===_charPeriod?'selected':''}>${_periodLabel(m)}</option>`).join('');
     const header = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="loadCharGroups()">← Назад к группам</button>
-        <div><b style="font-size:16px">${groupName}</b>
-        <span style="color:var(--text-2);font-size:13px;margin-left:8px">обратная связь за ${monthLabel}</span></div>
+        <b style="font-size:16px">${groupName}</b>
+        <select class="form-select" style="width:auto;min-width:160px" onchange="_charPeriod=this.value;openCharStudents(${groupId},'${groupName.replace(/'/g,"\\'")}')">${monthOpts}</select>
       </div>`;
     if (!students?.length) { sv.innerHTML = header + '<div style="text-align:center;color:var(--text-3);padding:30px">В группе нет учеников</div>'; return; }
     sv.innerHTML = header + students.map(s => {
-      const saved = (store[`${groupId}:${s.id}:${mk}`])||'';
+      const saved = existing[s.id] || '';
       return `
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:16px 18px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -2700,24 +2750,75 @@ async function openCharStudents(groupId, groupName) {
             <span style="color:var(--text-3);font-size:12px;margin-left:6px">${s.grade} класс</span></div>
             ${saved?'<span style="font-size:11px;color:#22c55e;font-weight:600">✓ заполнено</span>':''}
           </div>
-          <textarea class="form-textarea" id="charta-${groupId}-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:90px">${saved}</textarea>
+          <textarea class="form-textarea" id="charta-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:90px">${saved}</textarea>
           <div style="margin-top:8px;text-align:right">
-            <button class="btn btn-primary btn-sm" onclick="saveCharFeedback(${groupId},${s.id})">Сохранить</button>
+            <button class="btn btn-primary btn-sm" onclick="saveCharFeedback(${s.id})">Сохранить</button>
           </div>
         </div>`;
     }).join('');
   } catch(e) { sv.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
-function saveCharFeedback(groupId, studentId) {
-  const ta = document.getElementById(`charta-${groupId}-${studentId}`);
+async function saveCharFeedback(studentId) {
+  const ta = document.getElementById(`charta-${studentId}`);
   if (!ta) return;
   try {
-    const store = _charStore();
-    store[`${groupId}:${studentId}:${_charMonthKey()}`] = ta.value;
-    localStorage.setItem('zein_characteristics', JSON.stringify(store));
+    await api('/api/characteristics/', { method:'POST', body: JSON.stringify({
+      student_id: studentId, period: _charPeriod || _charMonthKey(), text: ta.value
+    })});
     showToast('Характеристика сохранена');
-  } catch(e) { showToast('Не удалось сохранить','error'); }
+  } catch(e) { showToast(e.message || 'Не удалось сохранить','error'); }
+}
+
+// ── Админ: просмотр характеристик (только чтение) ──
+async function loadCharAdminGroups() {
+  const gv = document.getElementById('chadm-groups-view');
+  const sv = document.getElementById('chadm-students-view');
+  if (!gv) return;
+  sv.style.display = 'none'; gv.style.display = 'block';
+  gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  try {
+    const data = await api('/api/groups/');
+    if (!data?.length) { gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
+    gv.innerHTML = `<div style="color:var(--text-2);font-size:13px;margin-bottom:14px">Выберите группу для просмотра характеристик учеников</div>` +
+      data.map(g => `
+        <div onclick="openCharAdminStudents(${g.id},'${g.name.replace(/'/g,"\\'")}')"
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px"
+          onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--line)'">
+          <div><b style="font-size:15px">${g.name}</b>
+            <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
+            <div style="font-size:12px;color:var(--text-2);margin-top:3px">👥 ${g.student_count} уч.</div></div>
+          <span style="color:var(--text-3);font-size:20px">→</span>
+        </div>`).join('');
+  } catch(e) { gv.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
+async function openCharAdminStudents(groupId, groupName) {
+  const gv = document.getElementById('chadm-groups-view');
+  const sv = document.getElementById('chadm-students-view');
+  gv.style.display = 'none'; sv.style.display = 'block';
+  sv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  try {
+    const students = await api(`/api/groups/${groupId}/students`);
+    const header = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button class="btn btn-outline btn-sm" onclick="loadCharAdminGroups()">← Назад к группам</button>
+      <b style="font-size:16px">${groupName}</b></div>`;
+    if (!students?.length) { sv.innerHTML = header + '<div style="text-align:center;color:var(--text-3);padding:30px">В группе нет учеников</div>'; return; }
+    const blocks = await Promise.all(students.map(async s => {
+      let recs = [];
+      try { recs = await api(`/api/characteristics/?student_id=${s.id}`); } catch {}
+      const history = (recs||[]).length
+        ? recs.map(r=>`<div style="border-left:3px solid var(--gold);padding:6px 12px;margin-top:8px">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:2px">${_periodLabel(r.period)} · ${r.author_name||'—'}</div>
+            <div style="font-size:13px;white-space:pre-wrap">${(r.text||'').replace(/</g,'&lt;')||'<i style=\"color:var(--text-3)\">пусто</i>'}</div></div>`).join('')
+        : '<div style="font-size:12px;color:var(--text-3);margin-top:6px">Характеристик пока нет</div>';
+      return `<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:16px 18px">
+        <b style="font-size:14px">${s.full_name}</b>
+        <span style="color:var(--text-3);font-size:12px;margin-left:6px">${s.grade} класс</span>
+        ${history}</div>`;
+    }));
+    sv.innerHTML = header + blocks.join('');
+  } catch(e) { sv.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
 // ══ ATTENDANCE ════════════════════════════════════════════════════
@@ -3765,7 +3866,7 @@ async function openStudentProfile(studentId) {
 
       <div style="background:var(--surface);border-radius:0 0 16px 16px">
         <div style="display:flex;border-bottom:1px solid var(--line);padding:0 28px;overflow-x:auto">
-          ${['Задачи','Комментарии','Группы','Результаты уроков','Абонементы','Заморозки'].map((tab,i) => `
+          ${['Задачи','Комментарии','Группы','Результаты уроков','Абонементы','Заморозки','Характеристики'].map((tab,i) => `
             <button onclick="switchStudentTab(this,'sp-tab-${i}',${studentId})"
               class="sp-tab-btn"
               style="padding:12px 16px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
@@ -3780,11 +3881,13 @@ async function openStudentProfile(studentId) {
           <div id="sp-tab-3">${renderStudentAttendanceTab(studentId)}</div>
           <div id="sp-tab-4"><div style="text-align:center;color:var(--text-3);padding:20px">Нет абонементов</div></div>
           <div id="sp-tab-5"><div style="text-align:center;color:var(--text-3);padding:20px">Нет заморозок</div></div>
+          <div id="sp-tab-6"><div style="text-align:center;color:var(--text-3);padding:20px">Загрузка характеристик...</div></div>
         </div>
       </div>`;
 
     loadStudentGroups(studentId);
     loadStudentTasks(studentId);
+    loadStudentCharacteristics(studentId);
 
     // Загрузить ментора
     api('/api/mentors/assignments').then(assignments => {
@@ -3800,7 +3903,7 @@ async function openStudentProfile(studentId) {
     });
 
     setTimeout(() => {
-      for (let i = 1; i < 6; i++) {
+      for (let i = 1; i < 7; i++) {
         const el = document.getElementById('sp-tab-' + i);
         if (el) el.style.display = 'none';
       }
@@ -3821,6 +3924,25 @@ function renderStudentTasksTab(studentId) {
       <button class="btn btn-primary btn-sm" onclick="createStudentTask(${studentId})">Создать</button>
     </div>
     <div id="sp-tasks-list"><div style="text-align:center;color:var(--text-3);padding:20px">Загрузка задач...</div></div>`;
+}
+
+async function loadStudentCharacteristics(studentId) {
+  const el = document.getElementById('sp-tab-6');
+  if (!el) return;
+  try {
+    const recs = await api(`/api/characteristics/?student_id=${studentId}`);
+    if (!recs?.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:20px">Характеристик пока нет</div>';
+      return;
+    }
+    el.innerHTML = recs.map(r => `
+      <div style="border-left:3px solid var(--gold);padding:8px 14px;margin-bottom:12px;background:var(--paper-2);border-radius:0 8px 8px 0">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:4px">${_periodLabel(r.period)} · ${r.author_name||'—'}</div>
+        <div style="font-size:13px;white-space:pre-wrap">${(r.text||'').replace(/</g,'&lt;')||'<i style="color:var(--text-3)">пусто</i>'}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`;
+  }
 }
 
 function renderStudentCommentsTab(studentId) {
@@ -4328,6 +4450,7 @@ const adminNav = [
   {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
   {id:'forbidden-dates',label:'Недоступные даты',icon:'calendar-x'},
   {id:'slots',label:'Слоты',icon:'grid'},
+  {id:'characteristics-admin',label:'Характеристики',icon:'clipboard'},
   {id:'audit',label:'Журнал действий',icon:'history'},
 ];
 const teacherNav = [
@@ -4453,6 +4576,7 @@ const pageLoaders = {
   'page-my-tasks':      ()=>loadTasks('my-tasks-body',true),
   'page-all-tasks':     ()=>loadTasks('all-tasks-body',false),
   'page-my-groups':     loadMyGroups,
+  'page-my-reports':    loadMyReports,
   'page-characteristics': loadCharGroups,
   'page-returns':       loadReturns,
   'page-return-form':   loadReturnFormPage,
@@ -4462,6 +4586,7 @@ const pageLoaders = {
   'page-forbidden-dates': loadForbiddenDates,
   'page-slots':         loadSlots,
   'page-audit':         loadAudit,
+  'page-characteristics-admin': loadCharAdminGroups,
 };
 
 function showPage(pageId) {

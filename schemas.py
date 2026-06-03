@@ -381,3 +381,21 @@ class AuditLogOut(BaseModel):
     summary: Optional[str] = None
     created_at: datetime
     model_config = {"from_attributes": True}
+
+
+# ─── Характеристики ─────────────────────────────────────────────────────────
+class CharacteristicIn(BaseModel):
+    student_id: int
+    period: str          # YYYY-MM
+    text: str = ""
+
+class CharacteristicOut(BaseModel):
+    id: int
+    student_id: int
+    author_id: Optional[int] = None
+    author_name: Optional[str] = None
+    period: str
+    text: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    model_config = {"from_attributes": True}

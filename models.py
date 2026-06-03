@@ -345,3 +345,17 @@ class AuditLog(Base):
     entity_id = Column(Integer, nullable=True)
     summary = Column(String(400), nullable=True)       # человекочитаемое описание
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+# ─── Характеристики учеников (месячная обратная связь) ───────────────────────
+class Characteristic(Base):
+    __tablename__ = "characteristics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    author_name = Column(String(200), nullable=True)   # имя преподавателя на момент записи
+    period = Column(String(7), nullable=False, index=True)  # формат YYYY-MM
+    text = Column(Text, nullable=False, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
