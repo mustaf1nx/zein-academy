@@ -1231,6 +1231,15 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
+  <!-- CHARACTERISTICS (TEACHER) -->
+  <div class="page" id="page-characteristics">
+    <div class="page-header"><div class="page-title">Характеристики</div></div>
+    <div class="page-body">
+      <div id="char-groups-view"></div>
+      <div id="char-students-view" style="display:none"></div>
+    </div>
+  </div>
+
   <!-- RETURNS LIST -->
   <div class="page" id="page-returns">
     <div class="page-header"><div class="page-title">Возвраты</div></div>
@@ -2582,14 +2591,18 @@ async function loadMyGroups() {
       const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
       const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       return `
-        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden">
-          <div style="padding:16px 18px;border-bottom:1px solid var(--line-soft)">
+        <div onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s"
+          onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'"
+          onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'">
+          <div style="padding:16px 18px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
               <div>
                 <b style="font-size:15px">${g.name}</b>
                 <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
                 <div style="font-size:12px;color:var(--text-2);margin-top:3px">${g.teacher_name||'Преподаватель не назначен'}</div>
               </div>
+              <span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
               ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
@@ -2597,52 +2610,92 @@ async function loadMyGroups() {
               <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">👥 ${g.student_count} уч.</span>
             </div>
           </div>
-          <div style="padding:14px 18px">
-            <div style="display:flex;gap:0;border-bottom:1.5px solid var(--line);margin-bottom:14px">
-              <button class="lesson-subtab active" onclick="switchLessonSubtab(this,${g.id},'journal')">Журнал</button>
-              <button class="lesson-subtab" onclick="switchLessonSubtab(this,${g.id},'characteristics')">Характеристики</button>
-            </div>
-            <div id="lesson-tab-journal-${g.id}">
-              <button class="btn btn-primary btn-sm" onclick="openAttendanceModal(${g.id},'${g.name}')">📋 Журнал посещаемости</button>
-            </div>
-            <div id="lesson-tab-characteristics-${g.id}" style="display:none">
-              <textarea class="form-textarea" id="char-text-${g.id}" placeholder="Характеристики учеников группы, заметки о прогрессе..." style="min-height:120px"></textarea>
-              <div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveCharacteristics(${g.id})">Сохранить характеристики</button></div>
-            </div>
-          </div>
         </div>`;
     }).join('');
   } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
-// переключение под-вкладок внутри карточки урока (Журнал / Характеристики)
-function switchLessonSubtab(btn, groupId, tab) {
-  const card = btn.closest('div').parentElement;
-  card.querySelectorAll('.lesson-subtab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(`lesson-tab-journal-${groupId}`).style.display = tab==='journal'?'block':'none';
-  document.getElementById(`lesson-tab-characteristics-${groupId}`).style.display = tab==='characteristics'?'block':'none';
-  if (tab==='characteristics') loadCharacteristics(groupId);
+// ══ ХАРАКТЕРИСТИКИ (обратная связь по ученикам) ════════════════════
+// Страница: список групп → ученики группы → поле характеристики на каждого.
+async function loadCharGroups() {
+  const gv = document.getElementById('char-groups-view');
+  const sv = document.getElementById('char-students-view');
+  if (!gv) return;
+  sv.style.display = 'none';
+  gv.style.display = 'block';
+  gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  try {
+    const data = await api('/api/groups/');
+    if (!data?.length) { gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
+    gv.innerHTML = `<div style="color:var(--text-2);font-size:13px;margin-bottom:14px">Выберите группу, чтобы оставить характеристику на учеников за месяц</div>` +
+      data.map(g => `
+        <div onclick="openCharStudents(${g.id},'${g.name.replace(/'/g,"\\'")}')"
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:border-color .15s,box-shadow .15s"
+          onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'"
+          onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'">
+          <div>
+            <b style="font-size:15px">${g.name}</b>
+            <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
+            <div style="font-size:12px;color:var(--text-2);margin-top:3px">👥 ${g.student_count} уч.</div>
+          </div>
+          <span style="color:var(--text-3);font-size:20px">→</span>
+        </div>`).join('');
+  } catch(e) { gv.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
-// характеристики хранятся в localStorage (на время; при наличии API можно заменить)
-function loadCharacteristics(groupId) {
-  const ta = document.getElementById(`char-text-${groupId}`);
-  if (!ta || ta.dataset.loaded) return;
-  try {
-    const saved = JSON.parse(localStorage.getItem('zein_characteristics')||'{}');
-    ta.value = saved[groupId] || '';
-  } catch {}
-  ta.dataset.loaded = '1';
+function _charMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
-function saveCharacteristics(groupId) {
-  const ta = document.getElementById(`char-text-${groupId}`);
+function _charStore() {
+  try { return JSON.parse(localStorage.getItem('zein_characteristics')||'{}'); } catch { return {}; }
+}
+
+async function openCharStudents(groupId, groupName) {
+  const gv = document.getElementById('char-groups-view');
+  const sv = document.getElementById('char-students-view');
+  gv.style.display = 'none';
+  sv.style.display = 'block';
+  sv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка учеников...</div>';
+  const monthNames = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  const monthLabel = `${monthNames[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  try {
+    const students = await api(`/api/groups/${groupId}/students`);
+    const store = _charStore();
+    const mk = _charMonthKey();
+    const header = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="loadCharGroups()">← Назад к группам</button>
+        <div><b style="font-size:16px">${groupName}</b>
+        <span style="color:var(--text-2);font-size:13px;margin-left:8px">обратная связь за ${monthLabel}</span></div>
+      </div>`;
+    if (!students?.length) { sv.innerHTML = header + '<div style="text-align:center;color:var(--text-3);padding:30px">В группе нет учеников</div>'; return; }
+    sv.innerHTML = header + students.map(s => {
+      const saved = (store[`${groupId}:${s.id}:${mk}`])||'';
+      return `
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:16px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div><b style="font-size:14px">${s.full_name}</b>
+            <span style="color:var(--text-3);font-size:12px;margin-left:6px">${s.grade} класс</span></div>
+            ${saved?'<span style="font-size:11px;color:#22c55e;font-weight:600">✓ заполнено</span>':''}
+          </div>
+          <textarea class="form-textarea" id="charta-${groupId}-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:90px">${saved}</textarea>
+          <div style="margin-top:8px;text-align:right">
+            <button class="btn btn-primary btn-sm" onclick="saveCharFeedback(${groupId},${s.id})">Сохранить</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) { sv.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
+function saveCharFeedback(groupId, studentId) {
+  const ta = document.getElementById(`charta-${groupId}-${studentId}`);
   if (!ta) return;
   try {
-    const saved = JSON.parse(localStorage.getItem('zein_characteristics')||'{}');
-    saved[groupId] = ta.value;
-    localStorage.setItem('zein_characteristics', JSON.stringify(saved));
-    showToast('Характеристики сохранены');
+    const store = _charStore();
+    store[`${groupId}:${studentId}:${_charMonthKey()}`] = ta.value;
+    localStorage.setItem('zein_characteristics', JSON.stringify(store));
+    showToast('Характеристика сохранена');
   } catch(e) { showToast('Не удалось сохранить','error'); }
 }
 
@@ -4264,6 +4317,7 @@ const adminNav = [
 const teacherNav = [
   {id:'my-groups',label:'Мои уроки',icon:'users-round'},
   {id:'my-reports',label:'Мои отчёты',icon:'file-text'},
+  {id:'characteristics',label:'Характеристики',icon:'clipboard'},
 ];
 
 function icon(name) {
@@ -4383,6 +4437,7 @@ const pageLoaders = {
   'page-my-tasks':      ()=>loadTasks('my-tasks-body',true),
   'page-all-tasks':     ()=>loadTasks('all-tasks-body',false),
   'page-my-groups':     loadMyGroups,
+  'page-characteristics': loadCharGroups,
   'page-returns':       loadReturns,
   'page-return-form':   loadReturnFormPage,
   'page-form-history':  loadFormHistory,
