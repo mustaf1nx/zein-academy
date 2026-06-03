@@ -2781,7 +2781,7 @@ async function openCharStudents(groupId, groupName) {
             <span style="color:var(--text-3);font-size:12px;margin-left:6px">${s.grade} класс</span></div>
             ${saved?'<span style="font-size:11px;color:#22c55e;font-weight:600">✓ заполнено</span>':''}
           </div>
-          <textarea class="form-textarea" id="charta-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:240px;line-height:1.6;font-size:14px">${saved}</textarea>
+          <textarea class="form-textarea" id="charta-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="width:100%;box-sizing:border-box;min-height:130px;line-height:1.6;font-size:14px">${saved}</textarea>
           <div style="margin-top:8px;text-align:right">
             <button class="btn btn-primary btn-sm" onclick="saveCharFeedback(${s.id})">Сохранить</button>
           </div>
