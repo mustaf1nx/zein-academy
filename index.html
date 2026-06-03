@@ -2350,7 +2350,7 @@ async function loadGroups() {
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
     tbody.innerHTML = data.map(g => {
       const slots = g.schedule_slots||[];
-      const timeStr = slots[0] ? `${slots[0].start_time}–${slots[0].end_time}` : '—';
+      const timeStr = slots[0] ? `${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}` : '—';
       const daysStr = [...new Set(slots.map(s=>days[s.day_of_week]||s.day_of_week))].join(', ')||'—';
       return `<tr onclick="openEditGroupModal(${g.id})" style="cursor:pointer" onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
         <td><b>${g.name}</b></td>
@@ -2668,7 +2668,7 @@ async function loadMyGroups() {
 
     container.innerHTML = groups.map(g => {
       const slots = g.schedule_slots||[];
-      const timeStr = slots[0]?`${slots[0].start_time}–${slots[0].end_time}`:'';
+      const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'';
       const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       const done = submitted[g.id];
       // кнопка только на вкладке "Сегодня"
