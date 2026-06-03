@@ -2804,14 +2804,7 @@ async function saveAttendanceReport() {
     await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records }) });
     const presentCount = records.filter(r=>r.status==='present').length;
     showToast(`Отчёт сдан! Присутствовали: ${presentCount}`);
-    // показать статус "завершён" и переключить кнопку на "Изменить"
-    const statusEl = document.getElementById('report-status');
-    if (statusEl) {
-      statusEl.style.display = 'block';
-      statusEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">✓ Урок завершён · отчёт сдан</span>';
-    }
-    const saveBtn = document.getElementById('report-save-btn');
-    if (saveBtn) saveBtn.textContent = 'Изменить отчёт';
+    closeModal('report-modal');
   } catch(e) { showToast(e.message,'error'); }
 }
 
