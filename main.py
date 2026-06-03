@@ -39,6 +39,18 @@ def _ensure_columns():
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE users ADD COLUMN hourly_rate INTEGER"))
             print("✅ Миграция: добавлена колонка users.hourly_rate")
+        # колонки темы урока и домашки в attendance
+        try:
+            acols = [c["name"] for c in insp.get_columns("attendance")]
+            with engine.begin() as conn:
+                if "lesson_topic" not in acols:
+                    conn.execute(text("ALTER TABLE attendance ADD COLUMN lesson_topic TEXT"))
+                    print("✅ Миграция: добавлена колонка attendance.lesson_topic")
+                if "homework" not in acols:
+                    conn.execute(text("ALTER TABLE attendance ADD COLUMN homework TEXT"))
+                    print("✅ Миграция: добавлена колонка attendance.homework")
+        except Exception as e:
+            print(f"⚠ Миграция attendance пропущена: {e}")
     except Exception as e:
         print(f"⚠ Миграция hourly_rate пропущена: {e}")
 

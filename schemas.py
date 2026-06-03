@@ -194,6 +194,8 @@ class AttendanceSaveRequest(BaseModel):
     group_id: int
     date: date
     records: List[AttendanceRecord]
+    lesson_topic: Optional[str] = None
+    homework: Optional[str] = None
 
 class AttendanceOut(BaseModel):
     id: int
@@ -204,6 +206,8 @@ class AttendanceOut(BaseModel):
     status: AttendanceStatus
     score_1: Optional[float] = None
     score_2: Optional[float] = None
+    lesson_topic: Optional[str] = None
+    homework: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class AttendanceSummary(BaseModel):

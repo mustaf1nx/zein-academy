@@ -212,6 +212,8 @@ class Attendance(Base):
     status = Column(SAEnum(AttendanceStatus), default=AttendanceStatus.none)
     score_1 = Column(Float, nullable=True)   # оценка 1
     score_2 = Column(Float, nullable=True)   # оценка 2
+    lesson_topic = Column(Text, nullable=True)   # тема урока
+    homework = Column(Text, nullable=True)       # домашнее задание
     recorded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

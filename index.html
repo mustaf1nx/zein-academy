@@ -1213,7 +1213,13 @@ tbody td { padding: 11px 14px; color: var(--text); }
       <div class="page-actions"><button class="btn btn-outline btn-sm" onclick="loadMyReports()">Обновить</button></div>
     </div>
     <div class="page-body">
-      <div style="color:var(--text-2);font-size:13px;margin-bottom:14px">История сданных отчётов по урокам</div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="margin:0"><label class="form-label">Группа</label><select class="form-select" id="mr-group" style="min-width:160px"><option value="">Все группы</option></select></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Дата от</label><input type="date" class="form-input" id="mr-from"></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Дата до</label><input type="date" class="form-input" id="mr-to"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadMyReports()">Применить</button>
+        <button class="btn btn-outline btn-sm" onclick="clearMyReportsFilter()">Очистить</button>
+      </div>
       <div id="my-reports-body"><div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div></div>
     </div>
   </div>
@@ -1676,9 +1682,9 @@ tbody td { padding: 11px 14px; color: var(--text); }
         <tbody id="report-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-3)">Загрузка...</td></tr></tbody>
       </table>
     </div>
-    <div class="form-group" style="margin:14px 0 0">
-      <label class="form-label">Комментарий к уроку</label>
-      <textarea class="form-textarea" placeholder="Тема урока, замечания..."></textarea>
+    <div class="form-row" style="margin:14px 0 0">
+      <div class="form-group"><label class="form-label">Тема урока *</label><textarea class="form-textarea" id="report-topic" placeholder="Что проходили на уроке" style="min-height:70px"></textarea></div>
+      <div class="form-group"><label class="form-label">Домашнее задание *</label><textarea class="form-textarea" id="report-homework" placeholder="Что задано на дом" style="min-height:70px"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('report-modal')">Отмена</button>
@@ -2566,38 +2572,63 @@ async function loadMyReports() {
   const body = document.getElementById('my-reports-body');
   if (!body) return;
   body.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  const fGroup = document.getElementById('mr-group')?.value || '';
+  const fFrom = document.getElementById('mr-from')?.value || '';
+  const fTo = document.getElementById('mr-to')?.value || '';
   try {
     const groups = await api('/api/groups/');
     if (!groups?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
-    // собираем записи посещаемости по всем группам
+    // заполнить список групп в фильтре (один раз)
+    const gsel = document.getElementById('mr-group');
+    if (gsel && gsel.options.length <= 1) {
+      gsel.innerHTML = '<option value="">Все группы</option>' + groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+      if (fGroup) gsel.value = fGroup;
+    }
+    // какие группы опрашивать
+    const targetGroups = fGroup ? groups.filter(g=>String(g.id)===String(fGroup)) : groups;
     const all = [];
-    await Promise.all(groups.map(async g => {
+    await Promise.all(targetGroups.map(async g => {
       try {
-        const recs = await api(`/api/attendance/?group_id=${g.id}`);
-        // группируем по дате
+        let url = `/api/attendance/?group_id=${g.id}`;
+        if (fFrom) url += `&date_from=${fFrom}`;
+        if (fTo) url += `&date_to=${fTo}`;
+        const recs = await api(url);
         const byDate = {};
         (recs||[]).forEach(r => {
-          if (!byDate[r.date]) byDate[r.date] = { present:0, total:0 };
+          if (!byDate[r.date]) byDate[r.date] = { present:0, total:0, topic:r.lesson_topic, homework:r.homework };
           byDate[r.date].total++;
           if (r.status === 'present') byDate[r.date].present++;
         });
         Object.entries(byDate).forEach(([date,st]) => {
-          all.push({ group: g.name, language: g.language, date, present: st.present, total: st.total });
+          all.push({ group: g.name, language: g.language, date, present: st.present, total: st.total, topic: st.topic, homework: st.homework });
         });
       } catch {}
     }));
-    if (!all.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов пока нет</p></div>'; return; }
+    if (!all.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов не найдено</p></div>'; return; }
     all.sort((a,b) => b.date.localeCompare(a.date));
     body.innerHTML = all.map(r => `
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <b style="font-size:14px">${r.group}</b>
-          <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
-          <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <b style="font-size:14px">${r.group}</b>
+            <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
+            <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
         </div>
-        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
+        ${(r.topic||r.homework)?`<div style="margin-top:10px;border-top:1px solid var(--line-soft);padding-top:10px;font-size:13px">
+          ${r.topic?`<div style="margin-bottom:4px"><b>Тема:</b> ${r.topic.replace(/</g,'&lt;')}</div>`:''}
+          ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
+        </div>`:''}
       </div>`).join('');
   } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
+function clearMyReportsFilter() {
+  const g=document.getElementById('mr-group'); if(g) g.value='';
+  const f=document.getElementById('mr-from'); if(f) f.value='';
+  const t=document.getElementById('mr-to'); if(t) t.value='';
+  loadMyReports();
 }
 
 async function loadMyGroups() {
@@ -2750,7 +2781,7 @@ async function openCharStudents(groupId, groupName) {
             <span style="color:var(--text-3);font-size:12px;margin-left:6px">${s.grade} класс</span></div>
             ${saved?'<span style="font-size:11px;color:#22c55e;font-weight:600">✓ заполнено</span>':''}
           </div>
-          <textarea class="form-textarea" id="charta-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:90px">${saved}</textarea>
+          <textarea class="form-textarea" id="charta-${s.id}" placeholder="Какие темы прошли, как ведёт себя, как учится, прогресс и рекомендации..." style="min-height:160px;line-height:1.5">${saved}</textarea>
           <div style="margin-top:8px;text-align:right">
             <button class="btn btn-primary btn-sm" onclick="saveCharFeedback(${s.id})">Сохранить</button>
           </div>
@@ -2875,6 +2906,12 @@ async function openAttendanceModal(groupId, groupName) {
       }
     }
     if (saveBtn) saveBtn.textContent = alreadySubmitted ? 'Изменить отчёт' : 'Сохранить отчёт';
+    // подставить тему и домашку, если уже были сохранены
+    const topicEl = document.getElementById('report-topic');
+    const hwEl = document.getElementById('report-homework');
+    const firstRec = (existing||[])[0];
+    if (topicEl) topicEl.value = firstRec?.lesson_topic || '';
+    if (hwEl) hwEl.value = firstRec?.homework || '';
     if (!students?.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">В группе нет учеников</td></tr>'; return;
     }
@@ -2903,6 +2940,10 @@ async function openAttendanceModal(groupId, groupName) {
 
 async function saveAttendanceReport() {
   if (!attendanceGroupId) return;
+  const topic = document.getElementById('report-topic')?.value?.trim();
+  const homework = document.getElementById('report-homework')?.value?.trim();
+  if (!topic) { showToast('Укажите тему урока', 'error'); document.getElementById('report-topic')?.focus(); return; }
+  if (!homework) { showToast('Укажите домашнее задание', 'error'); document.getElementById('report-homework')?.focus(); return; }
   const today = localDate();
   const rows = document.querySelectorAll('#report-tbody tr[data-student-id]');
   const records = [];
@@ -2923,7 +2964,7 @@ async function saveAttendanceReport() {
     });
   });
   try {
-    await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records }) });
+    await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records, lesson_topic: topic, homework }) });
     const presentCount = records.filter(r=>r.status==='present').length;
     showToast(`Отчёт сдан! Присутствовали: ${presentCount}`);
     closeModal('report-modal');
