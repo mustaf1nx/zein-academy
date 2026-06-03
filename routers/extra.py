@@ -556,3 +556,65 @@ def list_audit(
     if user_id is not None:
         q = q.filter(models.AuditLog.user_id == user_id)
     return q.order_by(models.AuditLog.created_at.desc()).limit(limit).all()
+
+
+# ══════════════════════════════════════════════════════
+# ХАРАКТЕРИСТИКИ (месячная обратная связь по ученикам)
+# Пишут только преподаватели; читают преподаватели и админы.
+# ══════════════════════════════════════════════════════
+characteristics_router = APIRouter(prefix="/api/characteristics", tags=["Characteristics"])
+
+
+@characteristics_router.get("/", response_model=List[schemas.CharacteristicOut])
+def list_characteristics(
+    student_id: Optional[int] = Query(None),
+    period: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    q = db.query(models.Characteristic)
+    if student_id is not None:
+        q = q.filter(models.Characteristic.student_id == student_id)
+    if period:
+        q = q.filter(models.Characteristic.period == period)
+    return q.order_by(models.Characteristic.period.desc(), models.Characteristic.id.desc()).all()
+
+
+@characteristics_router.post("/", response_model=schemas.CharacteristicOut)
+def upsert_characteristic(
+    data: schemas.CharacteristicIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    # Только преподаватели могут писать/редактировать
+    if current_user.role != models.RoleEnum.teacher:
+        raise HTTPException(status_code=403, detail="Только преподаватель может писать характеристики")
+    # Одна запись на (ученик, месяц, автор) — обновляем если уже есть
+    existing = (
+        db.query(models.Characteristic)
+        .filter(
+            models.Characteristic.student_id == data.student_id,
+            models.Characteristic.period == data.period,
+            models.Characteristic.author_id == current_user.id,
+        )
+        .first()
+    )
+    if existing:
+        existing.text = data.text
+        existing.author_name = current_user.full_name
+        db.commit()
+        db.refresh(existing)
+        log_action(db, current_user, "update", "characteristic", existing.id, f"Характеристика ученика #{data.student_id} за {data.period}")
+        return existing
+    rec = models.Characteristic(
+        student_id=data.student_id,
+        author_id=current_user.id,
+        author_name=current_user.full_name,
+        period=data.period,
+        text=data.text,
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "characteristic", rec.id, f"Характеристика ученика #{data.student_id} за {data.period}")
+    return rec
