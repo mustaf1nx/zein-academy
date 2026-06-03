@@ -4015,7 +4015,7 @@ window.switchStudentTab = function(btn, tabId, studentId) {
   btn.style.fontWeight = '700';
 
   // Скрыть/показать контент
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     const el = document.getElementById('sp-tab-' + i);
     if (!el) continue;
     el.style.display = ('sp-tab-' + i === tabId) ? 'block' : 'none';
@@ -4027,6 +4027,7 @@ window.switchStudentTab = function(btn, tabId, studentId) {
   if (n === 0) loadStudentTasks(studentId);
   if (n === 2) loadStudentGroups(studentId);
   if (n === 3) loadStudentAttendance(studentId);
+  if (n === 6) loadStudentCharacteristics(studentId);
 };
 
 async function loadStudentTasks(studentId) {
