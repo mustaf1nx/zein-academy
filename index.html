@@ -2420,7 +2420,7 @@ async function loadGroups() {
       return `<tr onclick="openEditGroupModal(${g.id})" style="cursor:pointer" onmouseover="this.style.background='var(--ink-softer)'" onmouseout="this.style.background=''">
         <td><b>${g.name}</b></td>
         <td>${g.teacher_name||'—'}</td>
-        <td>${g.language}</td>
+        <td>${g.subject||'—'}</td>
         <td>${g.branch||'—'} – ${g.classroom_name||'—'}</td>
         <td>${timeStr}</td>
         <td>${daysStr}</td>
