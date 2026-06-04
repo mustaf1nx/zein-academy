@@ -142,8 +142,9 @@ class Group(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    grade = Column(Integer, nullable=False)
-    language = Column(SAEnum(LangEnum), nullable=False)
+    subject = Column(String(150), nullable=True)
+    grade = Column(Integer, nullable=True)
+    language = Column(SAEnum(LangEnum), nullable=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     classroom_id = Column(Integer, ForeignKey("classrooms.id"), nullable=True)
     capacity = Column(Integer, default=15)

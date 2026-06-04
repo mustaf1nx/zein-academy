@@ -135,8 +135,9 @@ class ScheduleSlotOut(ScheduleSlotBase):
 
 class GroupBase(BaseModel):
     name: str
-    grade: int
-    language: LangEnum
+    subject: Optional[str] = None
+    grade: Optional[int] = None
+    language: Optional[LangEnum] = None
     teacher_id: Optional[int] = None
     classroom_id: Optional[int] = None
     capacity: int = 15
@@ -147,6 +148,7 @@ class GroupCreate(GroupBase):
 
 class GroupUpdate(BaseModel):
     name: Optional[str] = None
+    subject: Optional[str] = None
     grade: Optional[int] = None
     language: Optional[LangEnum] = None
     teacher_id: Optional[int] = None

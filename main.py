@@ -51,6 +51,15 @@ def _ensure_columns():
                     print("✅ Миграция: добавлена колонка attendance.homework")
         except Exception as e:
             print(f"⚠ Миграция attendance пропущена: {e}")
+        # колонка предмета у групп
+        try:
+            gcols = [c["name"] for c in insp.get_columns("groups")]
+            if "subject" not in gcols:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE groups ADD COLUMN subject VARCHAR(150)"))
+                print("✅ Миграция: добавлена колонка groups.subject")
+        except Exception as e:
+            print(f"⚠ Миграция groups.subject пропущена: {e}")
     except Exception as e:
         print(f"⚠ Миграция hourly_rate пропущена: {e}")
 

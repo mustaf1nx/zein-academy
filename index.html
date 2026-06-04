@@ -1145,7 +1145,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
           Фильтр
         </button>
-        <button class="btn btn-primary" onclick="openModal('add-group-modal')">+ Добавить</button>
+        <button class="btn btn-primary" onclick="openAddGroup()">+ Добавить</button>
       </div>
     </div>
     <div class="page-body">
@@ -1589,28 +1589,28 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="modal modal-lg">
     <div class="modal-title">Добавить группу</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Название группы *</label><input class="form-input" placeholder="5 коу A1"></div>
-      <div class="form-group"><label class="form-label">Предмет *</label><select class="form-select"><option>Математика и логика</option><option>Русский язык</option><option>Английский язык</option><option>Физика</option><option>Алгебра и геометрия</option></select></div>
+      <div class="form-group"><label class="form-label">Название группы *</label><input class="form-input" id="ag-name" placeholder="5 коу A1"></div>
+      <div class="form-group"><label class="form-label">Предмет *</label><input class="form-input" id="ag-subject" placeholder="Математика и логика"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Преподаватель *</label><select class="form-select"><option>Выберите преподавателя</option></select></div>
-      <div class="form-group"><label class="form-label">Филиал *</label><select class="form-select"><option>Мәңгілік Ел 36</option></select></div>
+      <div class="form-group"><label class="form-label">Преподаватель *</label><select class="form-select" id="ag-teacher"><option value="">— Выберите преподавателя —</option></select></div>
+      <div class="form-group"><label class="form-label">Филиал *</label><select class="form-select" id="ag-branch"><option>Мәңгілік Ел 36</option></select></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Кабинет *</label><select class="form-select"><option>101</option><option>102</option><option>103</option></select></div>
-      <div class="form-group"><label class="form-label">Начало</label><input type="time" class="form-input" value="09:00"></div>
-      <div class="form-group"><label class="form-label">Окончание</label><input type="time" class="form-input" value="10:00"></div>
+      <div class="form-group"><label class="form-label">Кабинет *</label><select class="form-select" id="ag-classroom"><option value="">— Выберите кабинет —</option></select></div>
+      <div class="form-group"><label class="form-label">Начало</label><input type="time" class="form-input" id="ag-start"></div>
+      <div class="form-group"><label class="form-label">Окончание</label><input type="time" class="form-input" id="ag-end"></div>
     </div>
     <div class="form-group" style="margin-bottom:14px">
       <label class="form-label">Дни обучения</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ПН</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ВТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> СР</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ЧТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ПТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> СБ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> ВС</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="MON"> ПН</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="TUE"> ВТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="WED"> СР</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="THU"> ЧТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="FRI"> ПТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="SAT"> СБ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="SUN"> ВС</label>
       </div>
     </div>
     <div class="modal-footer">
@@ -2438,43 +2438,51 @@ async function deleteGroup(id) {
   catch(e) { showToast(e.message,'error'); }
 }
 
-async function submitAddGroup() {
-  const modal = document.getElementById('add-group-modal');
-  const name  = modal.querySelector('input[placeholder="5 коу А1"], input[placeholder="5 коу A1"], .form-input')?.value?.trim();
-  const sels  = modal.querySelectorAll('select');
-  
-  // Найти нужные селекты по содержимому
-  let gradeVal='5', langVal='KAZ', teacherVal='', branchVal='', classroomVal='';
-  sels.forEach(s => {
-    const html = s.innerHTML;
-    if (html.includes('KAZ') || html.includes('RUS')) langVal = s.value;
-    else if (html.includes('преподавател') || html.includes('Выберите преподавател')) teacherVal = s.value;
-    else if (html.includes('Мәңгілік') || html.includes('Ел 36') || html.includes('Кенесары') || html.includes('Туран') || html.includes('Мангил')) branchVal = s.value;
-    else if (/^\d+$/.test(s.options[s.selectedIndex]?.text)) classroomVal = s.value;
-    else if (s.options[0]?.text?.match(/^\d+$/) || s.innerHTML.includes('<option>5</option>')) gradeVal = s.value;
-  });
+async function openAddGroup() {
+  // сброс полей
+  ['ag-name','ag-subject','ag-start','ag-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.querySelectorAll('#add-group-modal input[type=checkbox]').forEach(c=>c.checked=false);
+  window._agStudents = {};
+  const list = document.getElementById('ag-students-list'); if (list) list.innerHTML='';
+  try {
+    const [teachers, classrooms, branches] = await Promise.all([
+      api('/api/users/?role=teacher'),
+      api('/api/classrooms/').catch(()=>[]),
+      api('/api/branches/').catch(()=>null),
+    ]);
+    const tSel = document.getElementById('ag-teacher');
+    if (tSel) tSel.innerHTML = '<option value="">— Выберите преподавателя —</option>' +
+      (teachers||[]).map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
+    const cSel = document.getElementById('ag-classroom');
+    if (cSel) cSel.innerHTML = '<option value="">— Выберите кабинет —</option>' +
+      (classrooms||[]).map(c=>`<option value="${c.id}">${c.name}${c.branch?` (${c.branch})`:''}</option>`).join('');
+  } catch(e) {}
+  openModal('add-group-modal');
+}
 
-  const timeInputs = modal.querySelectorAll('input[type=time]');
-  const tStart = timeInputs[0]?.value || '09:00';
-  const tEnd   = timeInputs[1]?.value || '10:00';
-  const dayMap = {ПН:'MON',ВТ:'TUE',СР:'WED',ЧТ:'THU',ПТ:'FRI',СБ:'SAT',ВС:'SUN'};
-  const selectedDays = [...modal.querySelectorAll('input[type=checkbox]:checked')]
-    .map(c => dayMap[c.parentElement.textContent.trim()]).filter(Boolean);
+async function submitAddGroup() {
+  const name      = document.getElementById('ag-name')?.value?.trim();
+  const subject   = document.getElementById('ag-subject')?.value?.trim();
+  const teacherVal= document.getElementById('ag-teacher')?.value;
+  const branchVal = document.getElementById('ag-branch')?.value?.trim();
+  const classroomVal = document.getElementById('ag-classroom')?.value;
+  const tStart    = document.getElementById('ag-start')?.value;
+  const tEnd      = document.getElementById('ag-end')?.value;
+  const selectedDays = [...document.querySelectorAll('#add-group-modal input[type=checkbox]:checked')].map(c => c.value);
 
   if (!name) { showToast('Введите название группы','error'); return; }
 
   try {
     const group = await api('/api/groups/', { method:'POST', body: JSON.stringify({
       name,
-      grade: parseInt(gradeVal) || 5,
-      language: langVal || 'KAZ',
+      subject: subject || null,
       branch: branchVal || '',
-      capacity: 15,
       teacher_id: teacherVal ? parseInt(teacherVal) : null,
+      classroom_id: classroomVal ? parseInt(classroomVal) : null,
     })});
 
     for (const day of selectedDays) {
-      if (group?.id) {
+      if (group?.id && tStart && tEnd) {
         await api(`/api/groups/${group.id}/schedule`, {
           method:'POST',
           body: JSON.stringify({
@@ -3745,8 +3753,8 @@ async function openEditGroupModal(groupId) {
 
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
     const activeDays = (group.schedule_slots||[]).map(s => s.day_of_week);
-    const startTime = group.schedule_slots?.[0]?.start_time?.slice(0,5) || '09:00';
-    const endTime   = group.schedule_slots?.[0]?.end_time?.slice(0,5)   || '10:00';
+    const startTime = group.schedule_slots?.[0]?.start_time?.slice(0,5) || '';
+    const endTime   = group.schedule_slots?.[0]?.end_time?.slice(0,5)   || '';
 
     document.getElementById('edit-group-content').innerHTML = `
       <div class="form-row">
@@ -3755,20 +3763,11 @@ async function openEditGroupModal(groupId) {
           <input class="form-input" id="eg-name" value="${group.name}">
         </div>
         <div class="form-group">
-          <label class="form-label">Класс</label>
-          <select class="form-select" id="eg-grade">
-            ${[0,1,2,3,4,5,6,7,8,9,10,11].map(g=>`<option value="${g}" ${group.grade===g?'selected':''}>${g}</option>`).join('')}
-          </select>
+          <label class="form-label">Предмет</label>
+          <input class="form-input" id="eg-subject" value="${group.subject||''}" placeholder="Математика и логика">
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Язык</label>
-          <select class="form-select" id="eg-lang">
-            <option value="KAZ" ${group.language==='KAZ'?'selected':''}>KAZ</option>
-            <option value="RUS" ${group.language==='RUS'?'selected':''}>RUS</option>
-          </select>
-        </div>
         <div class="form-group">
           <label class="form-label">Преподаватель</label>
           <select class="form-select" id="eg-teacher">
@@ -3776,12 +3775,12 @@ async function openEditGroupModal(groupId) {
             ${(teachers||[]).map(t=>`<option value="${t.id}" ${group.teacher_id===t.id?'selected':''}>${t.full_name}</option>`).join('')}
           </select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Филиал</label>
-          <input class="form-input" id="eg-branch" value="Мәңгілік Ел 36">
+          <input class="form-input" id="eg-branch" value="${group.branch||'Мәңгілік Ел 36'}">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Кабинет</label>
           <select class="form-select" id="eg-classroom">
@@ -3789,12 +3788,6 @@ async function openEditGroupModal(groupId) {
             ${(classrooms||[]).map(c=>`<option value="${c.id}" ${group.classroom_id===c.id?'selected':''}>${c.name} (${c.branch||'—'})</option>`).join('')}
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Вместимость</label>
-          <input class="form-input" id="eg-capacity" type="number" value="${group.capacity||12}">
-        </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Начало</label>
           <input class="form-input" id="eg-start" type="time" value="${startTime}">
@@ -3874,14 +3867,11 @@ async function openEditGroupModal(groupId) {
 
 async function saveEditGroup(groupId) {
   const name     = document.getElementById('eg-name')?.value?.trim();
-  const grade    = parseInt(document.getElementById('eg-grade')?.value||5);
-  const lang     = document.getElementById('eg-lang')?.value||'KAZ';
+  const subject  = document.getElementById('eg-subject')?.value?.trim();
   const teacher  = document.getElementById('eg-teacher')?.value;
   const branch   = document.getElementById('eg-branch')?.value?.trim();
-  const capacity = parseInt(document.getElementById('eg-capacity')?.value||15);
-  const tStart   = document.getElementById('eg-start')?.value||'09:00';
-  const tEnd     = document.getElementById('eg-end')?.value||'10:00';
-  const dayMap   = {ПН:'MON',ВТ:'TUE',СР:'WED',ЧТ:'THU',ПТ:'FRI',СБ:'SAT',ВС:'SUN'};
+  const tStart   = document.getElementById('eg-start')?.value;
+  const tEnd     = document.getElementById('eg-end')?.value;
   const modal    = document.getElementById('edit-group-content');
   const checks   = modal.querySelectorAll('input[type=checkbox]:checked');
   const newDays  = [...checks].map(c => c.value);
@@ -3889,7 +3879,7 @@ async function saveEditGroup(groupId) {
   if (!name) { showToast('Введите название','error'); return; }
   try {
     await api(`/api/groups/${groupId}`, { method:'PUT', body: JSON.stringify({
-      name, grade, language: lang, branch, capacity,
+      name, subject: subject || null, branch,
       teacher_id: teacher ? parseInt(teacher) : null,
       classroom_id: document.getElementById('eg-classroom')?.value ? parseInt(document.getElementById('eg-classroom').value) : null,
     })});
@@ -3899,10 +3889,12 @@ async function saveEditGroup(groupId) {
       await api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{});
     }
     for (const day of newDays) {
-      await api(`/api/groups/${groupId}/schedule`, {
-        method:'POST',
-        body: JSON.stringify({ day_of_week: day, start_time: tStart+':00', end_time: tEnd+':00' })
-      }).catch(()=>{});
+      if (tStart && tEnd) {
+        await api(`/api/groups/${groupId}/schedule`, {
+          method:'POST',
+          body: JSON.stringify({ day_of_week: day, start_time: tStart+':00', end_time: tEnd+':00' })
+        }).catch(()=>{});
+      }
     }
     showToast('Группа обновлена!');
     document.getElementById('edit-group-modal').style.display='none';
