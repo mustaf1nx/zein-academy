@@ -116,9 +116,9 @@ def delete_user(
     db.query(models.Attendance).filter(
         models.Attendance.recorded_by == user_id).update(
         {models.Attendance.recorded_by: None}, synchronize_session=False)
-    db.query(models.Student).filter(
-        models.Student.manager_id == user_id).update(
-        {models.Student.manager_id: None}, synchronize_session=False)
+    db.query(models.EnrollmentForm).filter(
+        models.EnrollmentForm.manager_id == user_id).update(
+        {models.EnrollmentForm.manager_id: None}, synchronize_session=False)
     db.query(models.Characteristic).filter(
         models.Characteristic.author_id == user_id).update(
         {models.Characteristic.author_id: None}, synchronize_session=False)
