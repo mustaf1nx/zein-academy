@@ -102,18 +102,34 @@ def delete_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    # Удалить связанные данные
+    # Удалить/обнулить связанные данные, чтобы снять ссылки на пользователя
     db.query(models.MentorAssignment).filter(
         models.MentorAssignment.mentor_id == user_id).delete(synchronize_session=False)
     db.query(models.Task).filter(
         models.Task.assigned_to == user_id).delete(synchronize_session=False)
     db.query(models.Task).filter(
         models.Task.created_by == user_id).delete(synchronize_session=False)
-    # Убрать teacher_id из групп
+    # Обнулить ссылки там, где поле допускает NULL (данные сохраняются)
     db.query(models.Group).filter(
         models.Group.teacher_id == user_id).update(
         {models.Group.teacher_id: None}, synchronize_session=False)
+    db.query(models.Attendance).filter(
+        models.Attendance.recorded_by == user_id).update(
+        {models.Attendance.recorded_by: None}, synchronize_session=False)
+    db.query(models.Student).filter(
+        models.Student.manager_id == user_id).update(
+        {models.Student.manager_id: None}, synchronize_session=False)
+    db.query(models.Characteristic).filter(
+        models.Characteristic.author_id == user_id).update(
+        {models.Characteristic.author_id: None}, synchronize_session=False)
+    db.query(models.AuditLog).filter(
+        models.AuditLog.user_id == user_id).update(
+        {models.AuditLog.user_id: None}, synchronize_session=False)
     uname = user.full_name
     db.delete(user)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Не удалось удалить сотрудника: есть связанные записи")
     log_action(db, current_user, "delete", "user", user_id, f"Удалён сотрудник: {uname}")
