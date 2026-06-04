@@ -2481,23 +2481,19 @@ async function submitAddGroup() {
       classroom_id: classroomVal ? parseInt(classroomVal) : null,
     })});
 
-    for (const day of selectedDays) {
-      if (group?.id && tStart && tEnd) {
-        await api(`/api/groups/${group.id}/schedule`, {
+    if (group?.id && tStart && tEnd) {
+      await Promise.all(selectedDays.map(day =>
+        api(`/api/groups/${group.id}/schedule`, {
           method:'POST',
-          body: JSON.stringify({
-            day_of_week: day,
-            start_time: tStart + ':00',
-            end_time: tEnd + ':00'
-          })
-        }).catch(()=>{});
-      }
+          body: JSON.stringify({ day_of_week: day, start_time: tStart + ':00', end_time: tEnd + ':00' })
+        }).catch(()=>{})
+      ));
     }
     // Добавить выбранных учеников
     if (window._agStudents && group?.id) {
-      for (const studentId of Object.keys(window._agStudents)) {
-        await api(`/api/groups/${group.id}/students/${studentId}`, {method:'POST'}).catch(()=>{});
-      }
+      await Promise.all(Object.keys(window._agStudents).map(studentId =>
+        api(`/api/groups/${group.id}/students/${studentId}`, {method:'POST'}).catch(()=>{})
+      ));
       window._agStudents = {};
       if (window._agStudentDiv) window._agStudentDiv.innerHTML = '';
     }
@@ -2505,14 +2501,6 @@ async function submitAddGroup() {
     closeModal('add-group-modal');
     loadGroups();
     loadMyGroups();
-    // Добавить учеников если выбраны
-    const studentSelects = modal.querySelectorAll('.student-to-add');
-    for (const s of studentSelects) {
-      if (s.value && group?.id) {
-        await api(`/api/groups/${group.id}/students/${s.value}`, {method:'POST'}).catch(()=>{});
-      }
-}
-    
   } catch(e) {
     // Показать читаемую ошибку
     let msg = e.message;
@@ -3828,7 +3816,7 @@ async function openEditGroupModal(groupId) {
         <button class="btn btn-danger btn-sm" onclick="deleteGroupAndClose(${groupId})">Удалить группу</button>
         <div style="display:flex;gap:8px">
           <button class="btn btn-outline" onclick="document.getElementById('edit-group-modal').style.display='none'">Отмена</button>
-          <button class="btn btn-primary" onclick="saveEditGroup(${groupId})">Сохранить</button>
+          <button class="btn btn-primary" onclick="lockBtn(this, () => saveEditGroup(${groupId}))">Сохранить</button>
         </div>
       </div>`;
 
@@ -3883,18 +3871,18 @@ async function saveEditGroup(groupId) {
       teacher_id: teacher ? parseInt(teacher) : null,
       classroom_id: document.getElementById('eg-classroom')?.value ? parseInt(document.getElementById('eg-classroom').value) : null,
     })});
-    // Обновить расписание — удалить старые слоты и добавить новые
+    // Обновить расписание: удалить старые слоты и создать новые — параллельно
     const group = await api(`/api/groups/${groupId}`);
-    for (const slot of (group.schedule_slots||[])) {
-      await api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{});
-    }
-    for (const day of newDays) {
-      if (tStart && tEnd) {
-        await api(`/api/groups/${groupId}/schedule`, {
+    await Promise.all((group.schedule_slots||[]).map(slot =>
+      api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{})
+    ));
+    if (tStart && tEnd) {
+      await Promise.all(newDays.map(day =>
+        api(`/api/groups/${groupId}/schedule`, {
           method:'POST',
           body: JSON.stringify({ day_of_week: day, start_time: tStart+':00', end_time: tEnd+':00' })
-        }).catch(()=>{});
-      }
+        }).catch(()=>{})
+      ));
     }
     showToast('Группа обновлена!');
     document.getElementById('edit-group-modal').style.display='none';
@@ -4355,7 +4343,7 @@ async function openEditStudentModal(studentId) {
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
           <button class="btn btn-outline" onclick="document.getElementById('edit-student-modal').style.display='none'">Отмена</button>
-          <button class="btn btn-primary" onclick="saveEditStudent(${studentId})">Сохранить</button>
+          <button class="btn btn-primary" onclick="lockBtn(this, () => saveEditStudent(${studentId}))">Сохранить</button>
         </div>
       </div>`;
     modal.style.display = 'flex';
