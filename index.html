@@ -4578,7 +4578,12 @@ function icon(name) {
 
 function renderNav(role) {
   const nav = document.getElementById('nav');
-  const items = role === 'admin' ? adminNav : teacherNav;
+  let items = role === 'admin' ? adminNav : teacherNav;
+  // У Хайбуллина Минтимера (ИИН 777777777777) скрыть Журнал действий
+  const iin = (CURRENT_USER && CURRENT_USER.iin) || '';
+  if (iin === '777777777777') {
+    items = items.filter(i => i.id !== 'audit');
+  }
   nav.innerHTML = '';
   items.forEach(item => {
     if (item.divider) { nav.innerHTML += '<div class="nav-divider"></div>'; return; }
