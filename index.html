@@ -1151,7 +1151,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="page-body">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Название группы</th><th>ФИ преподавателя</th><th>Предмет</th><th>Филиал – Кабинет</th><th>Начало – Окончание</th><th>Дни обучения</th><th>Уч-ки</th></tr></thead>
+          <thead><tr><th>Название группы</th><th>ФИ преподавателя</th><th>Предмет</th><th>Филиал – Кабинет</th><th>Начало – Окончание</th><th>Дни обучения</th></tr></thead>
           <tbody id="groups-tbody"></tbody>
         </table>
       </div>
@@ -2406,11 +2406,11 @@ async function assignMentor(studentId, mentorId) {
 async function loadGroups() {
   const tbody = document.getElementById('groups-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
   try {
     const data = await api('/api/groups/');
     if (!data?.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px">Групп нет</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:20px">Групп нет</td></tr>'; return;
     }
     const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
     tbody.innerHTML = data.map(g => {
@@ -2424,11 +2424,10 @@ async function loadGroups() {
         <td>${g.branch||'—'} – ${g.classroom_name||'—'}</td>
         <td>${timeStr}</td>
         <td>${daysStr}</td>
-        <td>${g.student_count}/${g.capacity}</td>
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`;
   }
 }
 
