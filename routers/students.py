@@ -96,7 +96,15 @@ def delete_student(
         models.MentorAssignment.student_id == student_id).delete(synchronize_session=False)
     db.query(models.Return).filter(
         models.Return.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Freeze).filter(
+        models.Freeze.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Characteristic).filter(
+        models.Characteristic.student_id == student_id).delete(synchronize_session=False)
     name = s.full_name
     db.delete(s)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Не удалось удалить ученика: есть связанные записи")
     log_action(db, current_user, "delete", "student", student_id, f"Удалён ученик: {name}")
