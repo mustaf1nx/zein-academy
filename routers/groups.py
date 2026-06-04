@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from dependencies import get_current_user, require_admin
+from dependencies import get_current_user, require_admin, log_action
 import models, schemas
 from models import GroupStudent, ScheduleSlot, Attendance
 
@@ -13,6 +13,7 @@ def _build_group_out(g: models.Group) -> schemas.GroupOut:
     return schemas.GroupOut(
         id=g.id,
         name=g.name,
+        subject=getattr(g, 'subject', None),
         grade=g.grade,
         language=g.language,
         teacher_id=g.teacher_id,
@@ -61,12 +62,13 @@ def list_groups(
 def create_group(
     data: schemas.GroupCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     g = models.Group(**data.model_dump())
     db.add(g)
     db.commit()
     db.refresh(g)
+    log_action(db, current_user, "create", "group", g.id, f"Создана группа: {g.name}")
     return _build_group_out(g)
 
 
@@ -87,7 +89,7 @@ def update_group(
     group_id: int,
     data: schemas.GroupUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     g = db.query(models.Group).filter(models.Group.id == group_id).first()
     if not g:
@@ -96,6 +98,7 @@ def update_group(
         setattr(g, field, val)
     db.commit()
     db.refresh(g)
+    log_action(db, current_user, "update", "group", g.id, f"Изменена группа: {g.name}")
     return _build_group_out(g)
 
 
@@ -103,7 +106,7 @@ def update_group(
 def delete_group(
     group_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    current_user: models.User = Depends(require_admin),
 ):
     g = db.query(models.Group).filter(models.Group.id == group_id).first()
     if not g:
@@ -114,8 +117,10 @@ def delete_group(
         models.ScheduleSlot.group_id == group_id).delete(synchronize_session=False)
     db.query(models.Attendance).filter(
         models.Attendance.group_id == group_id).delete(synchronize_session=False)
+    gname = g.name
     db.delete(g)
     db.commit()
+    log_action(db, current_user, "delete", "group", group_id, f"Удалена группа: {gname}")
 
 # ── Students in group ──────────────────────────────────────────────────────────
 
