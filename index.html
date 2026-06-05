@@ -1326,19 +1326,6 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
-  <!-- FORM HISTORY -->
-  <div class="page" id="page-form-history">
-    <div class="page-header"><div class="page-title">История заполнения формы</div></div>
-    <div class="page-body">
-      <div class="table-wrap" style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Создано</th><th>Менеджер</th><th>Ученик</th><th>Класс</th><th>Язык</th><th>Тел. ученика</th><th>Родитель</th><th>Тел. родителя</th><th>Филиал</th><th>Старт</th><th>Платн./Подар.</th></tr></thead>
-          <tbody id="form-history-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- NEW STUDENT -->
   <div class="page" id="page-new-student">
     <div class="page-header"><div class="page-title">Запись ученика</div></div>
@@ -4617,7 +4604,6 @@ const adminNav = [
   {divider:true},
   {id:'returns',label:'Возвраты',icon:'rotate-ccw'},
   {id:'return-form',label:'Форма возврата',icon:'clipboard'},
-  {id:'form-history',label:'История форм',icon:'history'},
   {id:'new-student',label:'Новый ученик',icon:'user-plus'},
   {id:'analytics',label:'Аналитика',icon:'trending-up'},
   {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
@@ -4759,7 +4745,6 @@ const pageLoaders = {
   'page-characteristics': loadCharGroups,
   'page-returns':       loadReturns,
   'page-return-form':   loadReturnFormPage,
-  'page-form-history':  loadFormHistory,
   'page-analytics':     loadAnalytics,
   'page-ent':           loadENT,
   'page-forbidden-dates': loadForbiddenDates,
