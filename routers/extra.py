@@ -618,3 +618,73 @@ def upsert_characteristic(
     db.refresh(rec)
     log_action(db, current_user, "create", "characteristic", rec.id, f"Характеристика ученика #{data.student_id} за {data.period}")
     return rec
+
+
+# ─── Cancelled Lessons (отмена урока админом) ───────────────────────────────
+cancelled_router = APIRouter(prefix="/api/cancelled-lessons", tags=["Cancelled Lessons"])
+
+@cancelled_router.get("/", response_model=List[schemas.CancelledLessonOut])
+def list_cancelled(
+    group_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    q = db.query(models.CancelledLesson)
+    if group_id:
+        q = q.filter(models.CancelledLesson.group_id == group_id)
+    rows = q.order_by(models.CancelledLesson.date.desc()).all()
+    out = []
+    for r in rows:
+        out.append(schemas.CancelledLessonOut(
+            id=r.id, group_id=r.group_id, date=r.date, reason=r.reason,
+            cancelled_by=r.cancelled_by,
+            group_name=r.group.name if r.group else None,
+            created_at=r.created_at,
+        ))
+    return out
+
+@cancelled_router.post("/", response_model=schemas.CancelledLessonOut, status_code=201)
+def cancel_lesson(
+    data: schemas.CancelledLessonIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="Группа не найдена")
+    # уже отменён на эту дату?
+    existing = db.query(models.CancelledLesson).filter(
+        models.CancelledLesson.group_id == data.group_id,
+        models.CancelledLesson.date == data.date,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Урок на эту дату уже отменён")
+    rec = models.CancelledLesson(
+        group_id=data.group_id, date=data.date, reason=data.reason,
+        cancelled_by=current_user.id,
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "cancelled_lesson", rec.id,
+               f"Отменён урок группы {group.name} на {data.date}")
+    return schemas.CancelledLessonOut(
+        id=rec.id, group_id=rec.group_id, date=rec.date, reason=rec.reason,
+        cancelled_by=rec.cancelled_by, group_name=group.name, created_at=rec.created_at,
+    )
+
+@cancelled_router.delete("/{cancel_id}", status_code=204)
+def restore_lesson(
+    cancel_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    rec = db.query(models.CancelledLesson).filter(models.CancelledLesson.id == cancel_id).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Запись не найдена")
+    gname = rec.group.name if rec.group else "?"
+    gdate = rec.date
+    db.delete(rec)
+    db.commit()
+    log_action(db, current_user, "delete", "cancelled_lesson", cancel_id,
+               f"Восстановлен урок группы {gname} на {gdate}")

@@ -16,6 +16,13 @@ def save_attendance(
     current_user: models.User = Depends(get_current_user),
 ):
     """Save / overwrite attendance for a group on a specific date."""
+    # Урок отменён администратором на эту дату — отчёт заполнять нельзя
+    cancelled = db.query(models.CancelledLesson).filter(
+        models.CancelledLesson.group_id == data.group_id,
+        models.CancelledLesson.date == data.date,
+    ).first()
+    if cancelled:
+        raise HTTPException(status_code=400, detail="Урок на эту дату отменён администратором — отчёт заполнить нельзя")
     # Determine which students are frozen on this date (server-side guard)
     frozen_ids = {
         f.student_id for f in db.query(models.Freeze).filter(
