@@ -362,3 +362,17 @@ class Characteristic(Base):
     text = Column(Text, nullable=False, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+# ─── Отменённые уроки (админ отменяет урок группы на дату) ────────────────────
+class CancelledLesson(Base):
+    __tablename__ = "cancelled_lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    reason = Column(Text, nullable=True)
+    cancelled_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    group = relationship("Group")

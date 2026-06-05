@@ -405,3 +405,20 @@ class CharacteristicOut(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
+
+
+# ─── Cancelled Lessons ──────────────────────────────────────────────────────
+class CancelledLessonIn(BaseModel):
+    group_id: int
+    date: date
+    reason: Optional[str] = None
+
+class CancelledLessonOut(BaseModel):
+    id: int
+    group_id: int
+    date: date
+    reason: Optional[str] = None
+    cancelled_by: Optional[int] = None
+    group_name: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}

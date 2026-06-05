@@ -1158,6 +1158,31 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
+  <!-- CANCEL LESSONS -->
+  <div class="page" id="page-cancel-lessons">
+    <div class="page-header">
+      <div class="page-title">Отмена уроков</div>
+    </div>
+    <div class="page-body">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px">
+        <div style="font-weight:600;margin-bottom:12px">Отменить урок</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Группа *</label><select class="form-select" id="cl-group"><option value="">— Выберите группу —</option></select></div>
+          <div class="form-group"><label class="form-label">Дата *</label><input type="date" class="form-input" id="cl-date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Причина</label><input class="form-input" id="cl-reason" placeholder="Например: ученик не придёт"></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="lockBtn(this, () => submitCancelLesson())">Отменить урок</button></div>
+      </div>
+      <div style="font-weight:600;margin-bottom:10px">Отменённые уроки</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Группа</th><th>Дата</th><th>Причина</th><th></th></tr></thead>
+          <tbody id="cancel-lessons-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- CLASSROOMS -->
   <div class="page" id="page-classrooms">
     <div class="page-header">
@@ -2403,6 +2428,57 @@ async function assignMentor(studentId, mentorId) {
 }
 
 // ══ GROUPS ════════════════════════════════════════════════════════
+async function loadCancelLessons() {
+  // заполнить список групп
+  try {
+    const groups = await api('/api/groups/');
+    const sel = document.getElementById('cl-group');
+    if (sel) sel.innerHTML = '<option value="">— Выберите группу —</option>' +
+      (groups||[]).map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  } catch(e) {}
+  // список отменённых
+  const tbody = document.getElementById('cancel-lessons-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
+  try {
+    const rows = await api('/api/cancelled-lessons/');
+    if (!rows?.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:20px">Отменённых уроков нет</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><b>${r.group_name||'—'}</b></td>
+        <td>${new Date(r.date).toLocaleDateString('ru')}</td>
+        <td>${r.reason ? r.reason.replace(/</g,'&lt;') : '—'}</td>
+        <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="restoreLesson(${r.id})">Вернуть урок</button></td>
+      </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`; }
+}
+
+async function submitCancelLesson() {
+  const groupId = document.getElementById('cl-group')?.value;
+  const date = document.getElementById('cl-date')?.value;
+  const reason = document.getElementById('cl-reason')?.value?.trim();
+  if (!groupId) { showToast('Выберите группу','error'); return; }
+  if (!date) { showToast('Выберите дату','error'); return; }
+  try {
+    await api('/api/cancelled-lessons/', { method:'POST', body: JSON.stringify({
+      group_id: parseInt(groupId), date, reason: reason || null
+    })});
+    showToast('Урок отменён');
+    document.getElementById('cl-reason').value = '';
+    loadCancelLessons();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function restoreLesson(id) {
+  showConfirm('Вернуть урок?', 'Преподаватель снова сможет заполнить отчёт', async () => {
+    try {
+      await api(`/api/cancelled-lessons/${id}`, {method:'DELETE'});
+      showToast('Урок восстановлен');
+      loadCancelLessons();
+    } catch(e) { showToast(e.message,'error'); }
+  });
+}
+
 async function loadGroups() {
   const tbody = document.getElementById('groups-tbody');
   if (!tbody) return;
@@ -2717,6 +2793,7 @@ async function loadMyGroups() {
     // для вкладки "Сегодня" узнаём, по каким группам отчёт уже сдан сегодня
     const today = localDate();
     const submitted = {};
+    const cancelledToday = {};
     if (!isAll) {
       await Promise.all(groups.map(async g => {
         try {
@@ -2724,6 +2801,11 @@ async function loadMyGroups() {
           submitted[g.id] = (rec||[]).length > 0;
         } catch { submitted[g.id] = false; }
       }));
+      // отменённые уроки на сегодня
+      try {
+        const cancels = await api('/api/cancelled-lessons/');
+        (cancels||[]).forEach(c => { if (c.date === today) cancelledToday[c.group_id] = c.reason || ''; });
+      } catch {}
     }
 
     container.innerHTML = groups.map(g => {
@@ -2731,17 +2813,20 @@ async function loadMyGroups() {
       const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'';
       const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       const done = submitted[g.id];
+      const isCancelled = !isAll && (g.id in cancelledToday);
       // кнопка только на вкладке "Сегодня"
-      const btn = isAll ? '' : (done
+      const btn = isAll ? '' : (isCancelled
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🚫 Урок отменён</span>`
+        : (done
         ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">✓ Отчёт заполнен</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>`);
-      // кликабельность только на "Сегодня"
-      const clickAttr = isAll ? '' : `onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"`;
-      const hoverAttrs = isAll ? '' : `onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'"`;
-      const cursor = isAll ? 'default' : 'pointer';
+        : `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>`));
+      // кликабельность только на "Сегодня" и если не отменён
+      const clickAttr = (isAll || isCancelled) ? '' : `onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"`;
+      const hoverAttrs = (isAll || isCancelled) ? '' : `onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'"`;
+      const cursor = (isAll || isCancelled) ? 'default' : 'pointer';
       return `
         <div ${clickAttr}
-          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:${cursor};transition:border-color .15s,box-shadow .15s"
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:${cursor};transition:border-color .15s,box-shadow .15s;${isCancelled?'opacity:.7':''}"
           ${hoverAttrs}>
           <div style="padding:16px 18px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
@@ -2752,6 +2837,7 @@ async function loadMyGroups() {
               </div>
               ${btn}
             </div>
+            ${isCancelled && cancelledToday[g.id] ? `<div style="margin-top:8px;font-size:12px;color:#ef4444">Причина: ${cancelledToday[g.id].replace(/</g,'&lt;')}</div>` : ''}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
               ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
               ${roomStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🚪 ${roomStr}</span>`:''}
@@ -4524,6 +4610,7 @@ const adminNav = [
   {id:'mentor-assign',label:'Назначение менторов',icon:'user-check'},
   {id:'schedule',label:'Расписание',icon:'calendar'},
   {id:'groups',label:'Группы',icon:'users-2'},
+  {id:'cancel-lessons',label:'Отмена уроков',icon:'calendar-x'},
   {id:'classrooms',label:'Кабинеты',icon:'door-open'},
   {id:'my-tasks',label:'Мои задачи',icon:'check-circle'},
   {id:'all-tasks',label:'Все задачи',icon:'list-checks'},
@@ -4663,6 +4750,7 @@ const pageLoaders = {
   'page-mentor-assign': loadMentorAssignments,
   'page-schedule':      buildSchedule,
   'page-groups':        loadGroups,
+  'page-cancel-lessons': loadCancelLessons,
   'page-classrooms':    loadClassrooms,
   'page-my-tasks':      ()=>loadTasks('my-tasks-body',true),
   'page-all-tasks':     ()=>loadTasks('all-tasks-body',false),
@@ -4855,7 +4943,7 @@ function setMyLessonsTab(btn, tab) {
 
 // ── Журнал действий (аудит) ───────────────────────────────────────
 const AUDIT_ACTION = { create:'Создание', update:'Изменение', delete:'Удаление' };
-const AUDIT_ENTITY = { student:'Ученики', group:'Группы', classroom:'Кабинеты', user:'Сотрудники', freeze:'Заморозки', attendance:'Журнал', characteristic:'Характеристики' };
+const AUDIT_ENTITY = { student:'Ученики', group:'Группы', classroom:'Кабинеты', user:'Сотрудники', freeze:'Заморозки', attendance:'Журнал', characteristic:'Характеристики', cancelled_lesson:'Отмена урока' };
 async function loadAudit() {
   const tb = document.getElementById('audit-tbody');
   if (!tb) return;
