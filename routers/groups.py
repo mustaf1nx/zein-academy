@@ -64,7 +64,13 @@ def create_group(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
-    g = models.Group(**data.model_dump())
+    payload = data.model_dump()
+    # Класс/язык убраны из UI, но в старой БД колонки могут быть NOT NULL — подставляем дефолты
+    if payload.get("grade") is None:
+        payload["grade"] = 0
+    if payload.get("language") is None:
+        payload["language"] = models.LangEnum.KAZ
+    g = models.Group(**payload)
     db.add(g)
     db.commit()
     db.refresh(g)
