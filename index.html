@@ -2506,6 +2506,11 @@ async function openAddGroup() {
   document.querySelectorAll('#add-group-modal input[type=checkbox]').forEach(c=>c.checked=false);
   window._agStudents = {};
   const list = document.getElementById('ag-students-list'); if (list) list.innerHTML='';
+  // при фокусе на пустом поле времени подставить круглое :00 (можно изменить)
+  const st = document.getElementById('ag-start');
+  const en = document.getElementById('ag-end');
+  if (st && !st.dataset._defBound) { st.dataset._defBound='1'; st.addEventListener('focus', ()=>{ if(!st.value) st.value='09:00'; }); }
+  if (en && !en.dataset._defBound) { en.dataset._defBound='1'; en.addEventListener('focus', ()=>{ if(!en.value) en.value='10:00'; }); }
   try {
     const [teachers, classrooms, branches] = await Promise.all([
       api('/api/users/?role=teacher'),
