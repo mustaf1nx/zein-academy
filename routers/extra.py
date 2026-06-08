@@ -483,6 +483,109 @@ def group_size_distribution(db: Session = Depends(get_db), _: models.User = Depe
     return [schemas.GroupSizeDistribution(size=k, count=v) for k, v in sorted(dist.items())]
 
 
+@analytics_router.get("/overview")
+def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
+    """Подробная аналитика: посещаемость, баллы, распределения, нагрузка."""
+    from datetime import date, timedelta
+    today = date.today()
+    since = today - timedelta(days=30)
+
+    # ── Посещаемость за 30 дней ──
+    att = db.query(models.Attendance).filter(models.Attendance.date >= since).all()
+    present = sum(1 for a in att if a.status == models.AttendanceStatus.present)
+    absent = sum(1 for a in att if a.status == models.AttendanceStatus.absent)
+    marked = present + absent
+    attendance_rate = round(present / marked * 100, 1) if marked else 0.0
+
+    # ── Средние баллы (по отметкам за 30 дней) ──
+    s1 = [a.score_1 for a in att if a.score_1 is not None]
+    s2 = [a.score_2 for a in att if a.score_2 is not None]
+    avg_score_lesson = round(sum(s1) / len(s1), 2) if s1 else None
+    avg_score_hw = round(sum(s2) / len(s2), 2) if s2 else None
+
+    # ── Ученики по языкам ──
+    students = db.query(models.Student).all()
+    active_students = [s for s in students if s.status == models.StatusEnum.ACTIVE]
+    by_lang: dict = {}
+    for s in active_students:
+        k = s.language.value if hasattr(s.language, "value") else str(s.language)
+        by_lang[k] = by_lang.get(k, 0) + 1
+
+    # ── Ученики по классам ──
+    by_grade: dict = {}
+    for s in active_students:
+        by_grade[s.grade] = by_grade.get(s.grade, 0) + 1
+    by_grade_list = [{"grade": k, "count": v} for k, v in sorted(by_grade.items())]
+
+    # ── Группы по предметам ──
+    groups = db.query(models.Group).filter(models.Group.status == models.StatusEnum.ACTIVE).all()
+    by_subject: dict = {}
+    for g in groups:
+        subj = getattr(g, "subject", None) or "Без предмета"
+        by_subject[subj] = by_subject.get(subj, 0) + 1
+    by_subject_list = sorted(
+        [{"subject": k, "count": v} for k, v in by_subject.items()],
+        key=lambda x: -x["count"]
+    )
+
+    # ── Нагрузка преподавателей (групп на каждого) ──
+    teachers = db.query(models.User).filter(
+        models.User.role == models.RoleEnum.teacher, models.User.is_active == True).all()
+    teacher_load = []
+    for t in teachers:
+        cnt = sum(1 for g in groups if g.teacher_id == t.id)
+        teacher_load.append({"name": t.full_name, "groups": cnt})
+    teacher_load.sort(key=lambda x: -x["groups"])
+
+    # ── Заполняемость групп ──
+    sizes = []
+    for g in groups:
+        sizes.append(db.query(models.GroupStudent).filter_by(group_id=g.id).count())
+    avg_group_size = round(sum(sizes) / len(sizes), 1) if sizes else 0.0
+    max_group_size = max(sizes) if sizes else 0
+    min_group_size = min(sizes) if sizes else 0
+    empty_groups = sum(1 for x in sizes if x == 0)
+
+    # ── Активность за период ──
+    cancelled_30 = db.query(models.CancelledLesson).filter(models.CancelledLesson.date >= since).count()
+    freezes_active = db.query(models.Freeze).filter(
+        models.Freeze.start_date <= today, models.Freeze.end_date >= today).count()
+    lessons_recorded_30 = db.query(models.Attendance.group_id, models.Attendance.date).filter(
+        models.Attendance.date >= since).distinct().count()
+
+    # ── Топ преподавателей по сданным отчётам (30 дней) ──
+    report_by_teacher: dict = {}
+    seen = set()
+    for a in att:
+        key = (a.recorded_by, a.group_id, a.date)
+        if a.recorded_by and key not in seen:
+            seen.add(key)
+            report_by_teacher[a.recorded_by] = report_by_teacher.get(a.recorded_by, 0) + 1
+    tname = {t.id: t.full_name for t in teachers}
+    top_reporters = sorted(
+        [{"name": tname.get(uid, "—"), "reports": c} for uid, c in report_by_teacher.items()],
+        key=lambda x: -x["reports"]
+    )[:5]
+
+    return {
+        "attendance": {
+            "rate": attendance_rate, "present": present, "absent": absent,
+            "marked": marked, "lessons_recorded": lessons_recorded_30,
+        },
+        "scores": {"avg_lesson": avg_score_lesson, "avg_hw": avg_score_hw},
+        "by_language": by_lang,
+        "by_grade": by_grade_list,
+        "by_subject": by_subject_list,
+        "teacher_load": teacher_load,
+        "group_fill": {
+            "avg": avg_group_size, "max": max_group_size,
+            "min": min_group_size, "empty": empty_groups, "total": len(groups),
+        },
+        "activity": {"cancelled": cancelled_30, "freezes_active": freezes_active},
+        "top_reporters": top_reporters,
+    }
+
+
 # ══════════════════════════════════════════════════════
 # FREEZES (Заморозки)
 # ══════════════════════════════════════════════════════
