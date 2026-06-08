@@ -1073,20 +1073,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
-  <!-- LIDORUBY -->
-  <div class="page" id="page-lidoruby">
-    <div class="page-header">
-      <div class="page-title">Лидорубы</div>
-      <div class="page-actions"><button class="btn btn-primary" onclick="openAddStaffModal('lidoruby')">+ Добавить</button></div>
-    </div>
-    <div class="page-body">
-      <div class="search-bar"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Поиск..."></div></div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Статус</th><th>Действия</th></tr></thead>
-        <tbody id="lidoruby-tbody"></tbody></table>
-      </div>
-    </div>
-  </div>
+  <!-- LIDORUBY removed -->
 
   <!-- MANAGERS -->
   <div class="page" id="page-managers">
@@ -1528,7 +1515,6 @@ tbody td { padding: 11px 14px; color: var(--text); }
           <option value="mentor">Ментор</option>
           <option value="teacher">Преподаватель</option>
           <option value="manager">Менеджер</option>
-          <option value="lidoruby">Лидоруб</option>
           <option value="admin">Администратор</option>
         </select>
       </div>
@@ -2290,8 +2276,8 @@ async function toggleUserActive(id, isActive) {
   try {
     await api(`/api/users/${id}`, { method:'PUT', body: JSON.stringify({ is_active: !isActive }) });
     showToast(isActive ? 'Деактивирован' : 'Активирован');
-    ['mentor','teacher','lidoruby','manager'].forEach((r,i) =>
-      loadStaff(r, ['mentors-tbody','teachers-tbody','lidoruby-tbody','managers-tbody'][i], r==='teacher'));
+    ['mentor','teacher','manager'].forEach((r,i) =>
+      loadStaff(r, ['mentors-tbody','teachers-tbody','managers-tbody'][i], r==='teacher'));
   } catch(e) { showToast(e.message,'error'); }
 }
 
@@ -2352,8 +2338,8 @@ async function submitAddStaff() {
     closeModal('add-staff-modal');
     // Clear fields
     ['staff-iin','staff-name','staff-phone','staff-pass','staff-subject','staff-rate'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-    ['mentor','teacher','lidoruby','manager'].forEach((r,i) =>
-      loadStaff(r, ['mentors-tbody','teachers-tbody','lidoruby-tbody','managers-tbody'][i], r==='teacher'));
+    ['mentor','teacher','manager'].forEach((r,i) =>
+      loadStaff(r, ['mentors-tbody','teachers-tbody','managers-tbody'][i], r==='teacher'));
   } catch(e) { showToast(e.message,'error'); }
 }
 
@@ -4638,7 +4624,6 @@ const adminNav = [
   {id:'staff',label:'Сотрудники',icon:'briefcase',children:[
     {id:'mentors',label:'Менторы',icon:'shield'},
     {id:'teachers',label:'Преподаватели',icon:'book-open'},
-    {id:'lidoruby',label:'Лидорубы',icon:'zap'},
     {id:'managers',label:'Менеджеры',icon:'bar-chart'},
   ]},
   {id:'mentor-assign',label:'Назначение менторов',icon:'user-check'},
@@ -4826,7 +4811,6 @@ const pageLoaders = {
   'page-new-student':   loadNewStudentPage,
   'page-mentors':       ()=>loadStaff('mentor','mentors-tbody',false),
   'page-teachers':      ()=>loadStaff('teacher','teachers-tbody',true),
-  'page-lidoruby':      ()=>loadStaff('lidoruby','lidoruby-tbody',false),
   'page-managers':      ()=>loadStaff('manager','managers-tbody',false),
   'page-mentor-assign': loadMentorAssignments,
   'page-schedule':      buildSchedule,
