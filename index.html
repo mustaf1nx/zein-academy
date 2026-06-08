@@ -1391,22 +1391,10 @@ tbody td { padding: 11px 14px; color: var(--text); }
 
   <!-- ANALYTICS -->
   <div class="page" id="page-analytics">
-    <div class="page-header"><div class="page-title">Аналитика</div></div>
+    <div class="page-header"><div class="page-title">Аналитика</div><div class="page-actions"><button class="btn btn-outline btn-sm" onclick="loadAnalytics()">Обновить</button></div></div>
     <div class="page-body">
       <div id="analytics-summary"></div>
-      <div style="background:var(--surface);border-radius:10px;border:1px solid var(--line);padding:20px;">
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
-          <div style="font-weight:700;font-size:15px">Распределение по количеству учеников</div>
-          <span style="font-size:13px;color:var(--text-2)">Всего групп: <b>992</b></span>
-          <span style="font-size:13px;color:var(--text-2)">Средний размер: <b>6.9</b></span>
-          <div style="margin-left:auto;display:flex;gap:6px">
-            <button class="btn btn-primary btn-sm">Штуки</button>
-            <button class="btn btn-outline btn-sm">%</button>
-          </div>
-        </div>
-        <div id="analytics-chart"></div>
-        <div style="font-size:11px;color:var(--text-3);margin-top:12px">Оси: по горизонтали — «Количество учеников» (0..20+), по вертикали — «Количество групп».</div>
-      </div>
+      <div id="analytics-rich"></div>
     </div>
   </div>
 
@@ -3236,13 +3224,12 @@ async function loadFormHistory() {
 // ══ ANALYTICS ═════════════════════════════════════════════════════
 async function loadAnalytics() {
   try {
-    const [summary, dist] = await Promise.all([
+    const [summary, ov] = await Promise.all([
       api('/api/analytics/summary'),
-      api('/api/analytics/group-size-distribution'),
+      api('/api/analytics/overview').catch(()=>null),
     ]);
-    if (!summary) return;
     const summaryEl = document.getElementById('analytics-summary');
-    if (summaryEl) {
+    if (summaryEl && summary) {
       summaryEl.innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px">
           ${[['👥 Учеников',summary.total_students,'var(--ink)'],['✅ Активных',summary.active_students,'#22c55e'],
@@ -3250,25 +3237,81 @@ async function loadAnalytics() {
              ['🛡 Менторов',summary.total_mentors,'var(--ink-500)'],['📊 Менеджеров',summary.total_managers,'#ec4899'],
           ].map(([label,val,color])=>`
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 12px;text-align:center">
-              <div style="font-size:26px;font-weight:800;color:${color}">${val}</div>
+              <div style="font-size:26px;font-weight:800;color:${color}">${val ?? 0}</div>
               <div style="font-size:12px;color:var(--text-2);margin-top:4px">${label}</div>
             </div>`).join('')}
         </div>`;
     }
-    if (!dist?.length) return;
-    const max = Math.max(...dist.map(d=>d.count), 1);
-    const chartEl = document.getElementById('analytics-chart');
-    if (chartEl) {
-      chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:220px;padding:10px 0">
-        ${dist.map(d=>`
-          <div class="chart-bar-wrap">
-            <div class="chart-bar-val">${d.count}</div>
-            <div class="chart-bar" style="height:${Math.round((d.count/max)*180)}px"></div>
-            <div class="chart-bar-label">${d.size}</div>
-          </div>`).join('')}
+    const rich = document.getElementById('analytics-rich');
+    if (!rich) return;
+    if (!ov) { rich.innerHTML = '<div style="color:var(--text-3);padding:20px">Подробная аналитика недоступна</div>'; return; }
+
+    const card = (inner) => `<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px">${inner}</div>`;
+    const h = (t) => `<div style="font-weight:700;font-size:14px;margin-bottom:14px">${t}</div>`;
+    const bigStat = (val,label,color) => `<div style="text-align:center"><div style="font-size:30px;font-weight:800;color:${color||'var(--text)'}">${val}</div><div style="font-size:12px;color:var(--text-2);margin-top:2px">${label}</div></div>`;
+
+    // горизонтальная гистограмма из пар [label, value]
+    const barList = (pairs, color) => {
+      const max = Math.max(...pairs.map(p=>p[1]), 1);
+      return `<div style="display:flex;flex-direction:column;gap:8px">` + pairs.map(([label,val])=>`
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:130px;font-size:12px;color:var(--text-2);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
+          <div style="flex:1;background:var(--paper-2);border-radius:6px;height:22px;position:relative;overflow:hidden">
+            <div style="height:100%;width:${Math.round(val/max*100)}%;background:${color||'var(--gold)'};border-radius:6px;min-width:2px"></div>
+          </div>
+          <div style="width:38px;font-size:12px;font-weight:700;flex-shrink:0">${val}</div>
+        </div>`).join('') + `</div>`;
+    };
+
+    const a = ov.attendance||{}, sc = ov.scores||{}, gf = ov.group_fill||{}, act = ov.activity||{};
+    const langPairs = Object.entries(ov.by_language||{}).map(([k,v])=>[k,v]);
+    const gradePairs = (ov.by_grade||[]).map(g=>[`${g.grade} класс`, g.count]);
+    const subjPairs = (ov.by_subject||[]).map(s=>[s.subject, s.count]);
+    const loadPairs = (ov.teacher_load||[]).map(t=>[t.name, t.groups]);
+
+    rich.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+
+        ${card(h('📈 Посещаемость за 30 дней') + `
+          <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:space-around">
+            ${bigStat((a.rate??0)+'%','Посещаемость','#22c55e')}
+            ${bigStat(a.present??0,'Присутствий','#3b82f6')}
+            ${bigStat(a.absent??0,'Пропусков','#ef4444')}
+            ${bigStat(a.lessons_recorded??0,'Уроков проведено','var(--gold)')}
+          </div>`)}
+
+        ${card(h('⭐ Средние баллы за 30 дней') + `
+          <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:space-around">
+            ${bigStat(sc.avg_lesson ?? '—','За урок','var(--gold)')}
+            ${bigStat(sc.avg_hw ?? '—','За домашку','#3b82f6')}
+          </div>`)}
+
+        ${card(h('🌐 Ученики по языкам') + (langPairs.length?barList(langPairs,'#3b82f6'):'<div style="color:var(--text-3);font-size:13px">Нет данных</div>'))}
+
+        ${card(h('📊 Заполняемость групп') + `
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-around">
+            ${bigStat(gf.avg??0,'Средний размер','var(--gold)')}
+            ${bigStat(gf.max??0,'Максимум','#22c55e')}
+            ${bigStat(gf.empty??0,'Пустых групп',(gf.empty?'#ef4444':'var(--text)'))}
+            ${bigStat(gf.total??0,'Всего групп','#3b82f6')}
+          </div>`)}
+
+        ${card(h('🎓 Ученики по классам') + (gradePairs.length?barList(gradePairs,'#8b5cf6'):'<div style="color:var(--text-3);font-size:13px">Нет данных</div>'))}
+
+        ${card(h('📚 Группы по предметам') + (subjPairs.length?barList(subjPairs,'var(--gold)'):'<div style="color:var(--text-3);font-size:13px">Нет данных</div>'))}
+
+        ${card(h('👨‍🏫 Нагрузка преподавателей') + (loadPairs.length?barList(loadPairs,'#3b82f6'):'<div style="color:var(--text-3);font-size:13px">Нет данных</div>'))}
+
+        ${card(h('⚡ Активность за 30 дней') + `
+          <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:space-around">
+            ${bigStat(act.cancelled??0,'Отменено уроков','#ef4444')}
+            ${bigStat(act.freezes_active??0,'Активных заморозок','#3b82f6')}
+          </div>`)}
+
+        ${(ov.top_reporters&&ov.top_reporters.length)?card(h('🏆 Топ по сданным отчётам (30 дней)') + barList(ov.top_reporters.map(r=>[r.name,r.reports]),'#22c55e')):''}
+
       </div>`;
-    }
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error(e); const r=document.getElementById('analytics-rich'); if(r) r.innerHTML=`<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
 // ══ ENT ═══════════════════════════════════════════════════════════
