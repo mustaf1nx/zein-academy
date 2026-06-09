@@ -2678,7 +2678,11 @@ async function loadMyReports() {
   const fFrom = document.getElementById('mr-from')?.value || '';
   const fTo = document.getElementById('mr-to')?.value || '';
   try {
-    const groups = await api('/api/groups/');
+    const [groups, me] = await Promise.all([
+      api('/api/groups/'),
+      api('/api/auth/me').catch(()=>null),
+    ]);
+    const rate = (me && me.hourly_rate != null) ? me.hourly_rate : null;
     if (!groups?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
     // заполнить список групп в фильтре (один раз)
     const gsel = document.getElementById('mr-group');
@@ -2708,6 +2712,11 @@ async function loadMyReports() {
     }));
     if (!all.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов не найдено</p></div>'; return; }
     all.sort((a,b) => b.date.localeCompare(a.date));
+
+    const lessonsCount = all.length;
+    const totalSum = rate != null ? rate * lessonsCount : null;
+    const fmt = n => n.toLocaleString('ru');
+
     body.innerHTML = all.map(r => `
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -2716,13 +2725,22 @@ async function loadMyReports() {
             <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
             <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
           </div>
-          <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
+            ${rate!=null?`<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,150,30,.16);color:var(--gold);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700">${fmt(rate)} ₸</span>`:''}
+          </div>
         </div>
         ${(r.topic||r.homework)?`<div style="margin-top:10px;border-top:1px solid var(--line-soft);padding-top:10px;font-size:13px">
           ${r.topic?`<div style="margin-bottom:4px"><b>Тема:</b> ${r.topic.replace(/</g,'&lt;')}</div>`:''}
           ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
         </div>`:''}
-      </div>`).join('');
+      </div>`).join('') + `
+      <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;margin-top:16px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:14px;color:var(--text-2)">Проведено уроков: <b style="color:var(--text)">${lessonsCount}</b>${rate!=null?` · Ставка за урок: <b style="color:var(--text)">${fmt(rate)} ₸</b>`:''}</div>
+        <div style="font-size:18px;font-weight:800;color:var(--gold)">
+          ${totalSum!=null?`Итого: ${fmt(totalSum)} ₸`:'Ставка не указана'}
+        </div>
+      </div>`;
   } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
