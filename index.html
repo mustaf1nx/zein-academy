@@ -2789,6 +2789,7 @@ async function loadTeacherReports() {
 
     let html = '';
     let grandTotal = 0, grandLessons = 0;
+    let idx = 0;
     teachers.forEach(t => {
       // фильтрация отчётов по датам
       let reps = t.reports || [];
@@ -2799,17 +2800,24 @@ async function loadTeacherReports() {
       const sum = t.rate != null ? t.rate * count : null;
       if (sum != null) grandTotal += sum;
       grandLessons += count;
+      const secId = `tr-sec-${idx++}`;
 
       html += `
-        <div style="margin-bottom:22px">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gold)">
-            <div style="font-weight:800;font-size:16px">👤 ${t.teacher_name}</div>
+        <div style="margin-bottom:14px">
+          <div onclick="toggleTeacherSection('${secId}')"
+            style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;transition:border-color .15s"
+            onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--line)'">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="${secId}-arrow" style="font-size:12px;color:var(--text-3);transition:transform .15s">▶</span>
+              <span style="font-weight:800;font-size:16px">👤 ${t.teacher_name}</span>
+            </div>
             <div style="font-size:13px;color:var(--text-2)">
               Уроков: <b style="color:var(--text)">${count}</b>
               ${t.rate!=null?` · Ставка: <b style="color:var(--text)">${fmt(t.rate)} ₸</b>`:''}
               ${sum!=null?` · <span style="color:var(--gold);font-weight:800">Итого: ${fmt(sum)} ₸</span>`:' · <span style="color:var(--text-3)">ставка не указана</span>'}
             </div>
           </div>
+          <div id="${secId}" style="display:none;padding-top:10px">
           ${reps.map(r => `
             <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:12px 16px">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -2828,6 +2836,7 @@ async function loadTeacherReports() {
                 ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
               </div>`:''}
             </div>`).join('')}
+          </div>
         </div>`;
     });
 
@@ -2848,6 +2857,15 @@ function clearTeacherReportsFilter() {
   const f=document.getElementById('tr-from'); if(f) f.value='';
   const d=document.getElementById('tr-to'); if(d) d.value='';
   loadTeacherReports();
+}
+
+function toggleTeacherSection(secId) {
+  const el = document.getElementById(secId);
+  const arrow = document.getElementById(secId+'-arrow');
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
 }
 
 async function loadMyGroups() {
