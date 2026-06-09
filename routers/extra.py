@@ -553,20 +553,6 @@ def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(r
     lessons_recorded_30 = db.query(models.Attendance.group_id, models.Attendance.date).filter(
         models.Attendance.date >= since).distinct().count()
 
-    # ── Топ преподавателей по сданным отчётам (30 дней) ──
-    report_by_teacher: dict = {}
-    seen = set()
-    for a in att:
-        key = (a.recorded_by, a.group_id, a.date)
-        if a.recorded_by and key not in seen:
-            seen.add(key)
-            report_by_teacher[a.recorded_by] = report_by_teacher.get(a.recorded_by, 0) + 1
-    tname = {t.id: t.full_name for t in teachers}
-    top_reporters = sorted(
-        [{"name": tname.get(uid, "—"), "reports": c} for uid, c in report_by_teacher.items()],
-        key=lambda x: -x["reports"]
-    )[:5]
-
     return {
         "attendance": {
             "rate": attendance_rate, "present": present, "absent": absent,
@@ -582,8 +568,60 @@ def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(r
             "min": min_group_size, "empty": empty_groups, "total": len(groups),
         },
         "activity": {"cancelled": cancelled_30, "freezes_active": freezes_active},
-        "top_reporters": top_reporters,
     }
+
+
+@analytics_router.get("/teacher-reports")
+def teacher_reports(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
+    """Все отчёты всех преподавателей, сгруппированные по преподавателю. Со ставкой и суммой."""
+    teachers = db.query(models.User).filter(models.User.role == models.RoleEnum.teacher).all()
+    tinfo = {t.id: {"name": t.full_name, "rate": t.hourly_rate} for t in teachers}
+    groups = db.query(models.Group).all()
+    gname = {g.id: g.name for g in groups}
+    glang = {g.id: (g.language.value if hasattr(g.language, "value") else str(g.language)) for g in groups}
+
+    att = db.query(models.Attendance).all()
+    # сгруппировать по (преподаватель -> группа+дата = урок)
+    lessons = {}  # teacher_id -> { (group_id,date): {present,total,topic,homework} }
+    for a in att:
+        tid = a.recorded_by
+        if tid is None:
+            continue
+        key = (a.group_id, a.date)
+        lessons.setdefault(tid, {})
+        L = lessons[tid].setdefault(key, {"present": 0, "total": 0, "topic": a.lesson_topic, "homework": a.homework})
+        L["total"] += 1
+        if a.status == models.AttendanceStatus.present:
+            L["present"] += 1
+
+    out = []
+    for tid, lobj in lessons.items():
+        info = tinfo.get(tid, {"name": "—", "rate": None})
+        rate = info["rate"]
+        reps = []
+        for (gid, d), L in lobj.items():
+            reps.append({
+                "group": gname.get(gid, "—"),
+                "language": glang.get(gid, ""),
+                "date": str(d),
+                "present": L["present"],
+                "total": L["total"],
+                "topic": L["topic"],
+                "homework": L["homework"],
+            })
+        reps.sort(key=lambda r: r["date"], reverse=True)
+        count = len(reps)
+        out.append({
+            "teacher_id": tid,
+            "teacher_name": info["name"],
+            "rate": rate,
+            "lessons_count": count,
+            "total_sum": (rate * count) if rate is not None else None,
+            "reports": reps,
+        })
+    out.sort(key=lambda t: t["teacher_name"] or "")
+    return out
+
 
 
 # ══════════════════════════════════════════════════════
