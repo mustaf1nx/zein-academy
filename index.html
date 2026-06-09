@@ -1385,6 +1385,21 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
+  <!-- TEACHER REPORTS (только Акежан и Администратор) -->
+  <div class="page" id="page-teacher-reports">
+    <div class="page-header"><div class="page-title">Отчёты преподавателей</div><div class="page-actions"><button class="btn btn-outline btn-sm" onclick="loadTeacherReports()">Обновить</button></div></div>
+    <div class="page-body">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="margin:0"><label class="form-label">Преподаватель</label><select class="form-select" id="tr-teacher" style="min-width:200px"><option value="">Все преподаватели</option></select></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Дата от</label><input type="date" class="form-input" id="tr-from"></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Дата до</label><input type="date" class="form-input" id="tr-to"></div>
+        <button class="btn btn-primary btn-sm" onclick="loadTeacherReports()">Применить</button>
+        <button class="btn btn-outline btn-sm" onclick="clearTeacherReportsFilter()">Очистить</button>
+      </div>
+      <div id="teacher-reports-body"><div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div></div>
+    </div>
+  </div>
+
   <!-- ENT TESTS -->
   <div class="page" id="page-ent">
     <div class="page-header">
@@ -2751,6 +2766,90 @@ function clearMyReportsFilter() {
   loadMyReports();
 }
 
+async function loadTeacherReports() {
+  const body = document.getElementById('teacher-reports-body');
+  if (!body) return;
+  body.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  const fTeacher = document.getElementById('tr-teacher')?.value || '';
+  const fFrom = document.getElementById('tr-from')?.value || '';
+  const fTo = document.getElementById('tr-to')?.value || '';
+  try {
+    const data = await api('/api/analytics/teacher-reports');
+    if (!data?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
+    // заполнить фильтр преподавателей (один раз)
+    const tsel = document.getElementById('tr-teacher');
+    if (tsel && tsel.options.length <= 1) {
+      tsel.innerHTML = '<option value="">Все преподаватели</option>' +
+        data.map(t=>`<option value="${t.teacher_id}">${t.teacher_name}</option>`).join('');
+      if (fTeacher) tsel.value = fTeacher;
+    }
+    const fmt = n => n.toLocaleString('ru');
+    let teachers = data;
+    if (fTeacher) teachers = teachers.filter(t => String(t.teacher_id) === String(fTeacher));
+
+    let html = '';
+    let grandTotal = 0, grandLessons = 0;
+    teachers.forEach(t => {
+      // фильтрация отчётов по датам
+      let reps = t.reports || [];
+      if (fFrom) reps = reps.filter(r => r.date >= fFrom);
+      if (fTo) reps = reps.filter(r => r.date <= fTo);
+      if (!reps.length) return;
+      const count = reps.length;
+      const sum = t.rate != null ? t.rate * count : null;
+      if (sum != null) grandTotal += sum;
+      grandLessons += count;
+
+      html += `
+        <div style="margin-bottom:22px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gold)">
+            <div style="font-weight:800;font-size:16px">👤 ${t.teacher_name}</div>
+            <div style="font-size:13px;color:var(--text-2)">
+              Уроков: <b style="color:var(--text)">${count}</b>
+              ${t.rate!=null?` · Ставка: <b style="color:var(--text)">${fmt(t.rate)} ₸</b>`:''}
+              ${sum!=null?` · <span style="color:var(--gold);font-weight:800">Итого: ${fmt(sum)} ₸</span>`:' · <span style="color:var(--text-3)">ставка не указана</span>'}
+            </div>
+          </div>
+          ${reps.map(r => `
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:12px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <b style="font-size:13px">${r.group}</b>
+                  <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
+                  <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600">✓ ${r.present} из ${r.total}</span>
+                  ${t.rate!=null?`<span style="background:rgba(200,150,30,.16);color:var(--gold);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700">${fmt(t.rate)} ₸</span>`:''}
+                </div>
+              </div>
+              ${(r.topic||r.homework)?`<div style="margin-top:8px;border-top:1px solid var(--line-soft);padding-top:8px;font-size:12.5px">
+                ${r.topic?`<div style="margin-bottom:3px"><b>Тема:</b> ${r.topic.replace(/</g,'&lt;')}</div>`:''}
+                ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
+              </div>`:''}
+            </div>`).join('')}
+        </div>`;
+    });
+
+    if (!html) { body.innerHTML = '<div class="empty-state"><p>Отчётов не найдено</p></div>'; return; }
+
+    // общий итог по всем показанным преподавателям
+    html += `
+      <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
+        <div style="font-size:14px;color:var(--text-2)">Всего уроков: <b style="color:var(--text)">${grandLessons}</b></div>
+        <div style="font-size:18px;font-weight:800;color:var(--gold)">Общий итог: ${fmt(grandTotal)} ₸</div>
+      </div>`;
+    body.innerHTML = html;
+  } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
+
+function clearTeacherReportsFilter() {
+  const t=document.getElementById('tr-teacher'); if(t) t.value='';
+  const f=document.getElementById('tr-from'); if(f) f.value='';
+  const d=document.getElementById('tr-to'); if(d) d.value='';
+  loadTeacherReports();
+}
+
 async function loadMyGroups() {
   const container = document.getElementById('my-groups-body');
   if (!container) return;
@@ -3311,8 +3410,6 @@ async function loadAnalytics() {
             ${bigStat(act.cancelled??0,'Отменено уроков','#ef4444')}
             ${bigStat(act.freezes_active??0,'Активных заморозок','#3b82f6')}
           </div>`)}
-
-        ${(ov.top_reporters&&ov.top_reporters.length)?card(h('🏆 Топ по сданным отчётам (30 дней)') + barList(ov.top_reporters.map(r=>[r.name,r.reports]),'#22c55e')):''}
 
       </div>`;
   } catch(e) { console.error(e); const r=document.getElementById('analytics-rich'); if(r) r.innerHTML=`<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
@@ -4656,6 +4753,7 @@ const adminNav = [
   {id:'return-form',label:'Форма возврата',icon:'clipboard'},
   {id:'new-student',label:'Новый ученик',icon:'user-plus'},
   {id:'analytics',label:'Аналитика',icon:'trending-up'},
+  {id:'teacher-reports',label:'Отчёты преподавателей',icon:'file-text'},
   {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
   {id:'forbidden-dates',label:'Недоступные даты',icon:'calendar-x'},
   {id:'characteristics-admin',label:'Характеристики',icon:'clipboard'},
@@ -4706,6 +4804,11 @@ function renderNav(role) {
   const iin = (CURRENT_USER && CURRENT_USER.iin) || '';
   if (iin === '777777777777') {
     items = items.filter(i => i.id !== 'audit');
+  }
+  // "Отчёты преподавателей" — только для Акежана (666...) и Администратора (900...)
+  const REPORTS_ALLOWED = ['666666666666','900101350123'];
+  if (!REPORTS_ALLOWED.includes(iin)) {
+    items = items.filter(i => i.id !== 'teacher-reports');
   }
   nav.innerHTML = '';
   items.forEach(item => {
@@ -4842,6 +4945,7 @@ const pageLoaders = {
   'page-returns':       loadReturns,
   'page-return-form':   loadReturnFormPage,
   'page-analytics':     loadAnalytics,
+  'page-teacher-reports': loadTeacherReports,
   'page-ent':           loadENT,
   'page-forbidden-dates': loadForbiddenDates,
   'page-slots':         loadSlots,
