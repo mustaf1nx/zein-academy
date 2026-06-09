@@ -3325,14 +3325,14 @@ async function loadENT() {
           <div style="font-size:11px;color:var(--text-3);margin-top:2px">${e.progress}%</div>
         </td>
         <td>
-          <div class="action-menu">
-            <button class="action-dots" onclick="toggleMenu(this)">⋮</button>
+          <div class="action-menu" onclick="event.stopPropagation()">
+            <button class="action-dots" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
             <div class="action-dropdown">
-              <div class="action-dropdown-item" onclick="openENTEditor(${e.id},'${e.name}')">✏️ Ввести ответы</div>
-              <div class="action-dropdown-item" onclick="showENTLink(${e.id},'${e.name}')">🔗 Ссылка и QR</div>
-              <div class="action-dropdown-item" onclick="showENTResults(${e.id},'${e.name}')">📊 Результаты</div>
-              <div class="action-dropdown-item" onclick="toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
-              <div class="action-dropdown-item danger" onclick="deleteENT(${e.id})">${icon('trash')} Удалить</div>
+              <div class="action-dropdown-item" onclick="event.stopPropagation();openENTEditor(${e.id},'${e.name}')">✏️ Ввести ответы</div>
+              <div class="action-dropdown-item" onclick="event.stopPropagation();showENTLink(${e.id},'${e.name}')">🔗 Ссылка и QR</div>
+              <div class="action-dropdown-item" onclick="event.stopPropagation();showENTResults(${e.id},'${e.name}')">📊 Результаты</div>
+              <div class="action-dropdown-item" onclick="event.stopPropagation();toggleENTStatus(${e.id},'${e.status}')">${e.status==='ACTIVE'?'Деактивировать':'Активировать'}</div>
+              <div class="action-dropdown-item danger" onclick="event.stopPropagation();deleteENT(${e.id})">${icon('trash')} Удалить</div>
             </div>
           </div>
         </td>
