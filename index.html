@@ -3004,7 +3004,9 @@ async function openCharStudents(groupId, groupName) {
       try {
         const recs = await api(`/api/characteristics/?student_id=${s.id}&period=${_charPeriod}`);
         // берём запись текущего автора (или первую)
-        existing[s.id] = (recs||[])[0]?.text || '';
+        const myId = CURRENT_USER && CURRENT_USER.user_id;
+        const mine = (recs||[]).find(r => r.author_id === myId);
+        existing[s.id] = mine ? mine.text : '';
       } catch { existing[s.id] = ''; }
     }));
     // выбор месяца
