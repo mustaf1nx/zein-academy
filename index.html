@@ -1605,14 +1605,16 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="form-group" style="margin-bottom:14px">
       <label class="form-label">Дни обучения</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="MON"> ПН</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="TUE"> ВТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="WED"> СР</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="THU"> ЧТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="FRI"> ПТ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="SAT"> СБ</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" value="SUN"> ВС</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="MON" onchange="renderAdvSchedule('ag')"> ПН</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="TUE" onchange="renderAdvSchedule('ag')"> ВТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="WED" onchange="renderAdvSchedule('ag')"> СР</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="THU" onchange="renderAdvSchedule('ag')"> ЧТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="FRI" onchange="renderAdvSchedule('ag')"> ПТ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="SAT" onchange="renderAdvSchedule('ag')"> СБ</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" class="day-checkbox" value="SUN" onchange="renderAdvSchedule('ag')"> ВС</label>
       </div>
+      <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" onclick="toggleAdvSchedule('ag')">⚙ Расширенное расписание (своё время по дням)</button>
+      <div id="ag-adv-schedule" style="display:none;margin-top:10px"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('add-group-modal')">Отмена</button>
@@ -2495,6 +2497,8 @@ async function openAddGroup() {
   document.querySelectorAll('#add-group-modal input[type=checkbox]').forEach(c=>c.checked=false);
   window._agStudents = {};
   const list = document.getElementById('ag-students-list'); if (list) list.innerHTML='';
+  // сброс расширенного расписания
+  const adv = document.getElementById('ag-adv-schedule'); if (adv) { adv.style.display='none'; adv.innerHTML=''; }
   // при фокусе на пустом поле времени подставить круглое :00 (можно изменить)
   const st = document.getElementById('ag-start');
   const en = document.getElementById('ag-end');
@@ -2514,6 +2518,80 @@ async function openAddGroup() {
       (classrooms||[]).map(c=>`<option value="${c.id}">${c.name}${c.branch?` (${c.branch})`:''}</option>`).join('');
   } catch(e) {}
   openModal('add-group-modal');
+}
+
+// ══ Расширенное расписание: своё время по дням ══════════════════════
+const _DAY_LBL = {MON:'Понедельник',TUE:'Вторник',WED:'Среда',THU:'Четверг',FRI:'Пятница',SAT:'Суббота',SUN:'Воскресенье'};
+
+// prefix: 'ag' (добавление) или 'eg' (редактирование)
+function _advModalSelector(prefix) {
+  return prefix === 'ag' ? '#add-group-modal' : '#edit-group-modal';
+}
+
+function toggleAdvSchedule(prefix) {
+  const box = document.getElementById(`${prefix}-adv-schedule`);
+  if (!box) return;
+  const show = box.style.display === 'none' || !box.style.display;
+  box.style.display = show ? 'block' : 'none';
+  if (show) renderAdvSchedule(prefix);
+}
+
+// Перерисовать строки времени по выбранным дням, сохраняя уже введённые значения
+function renderAdvSchedule(prefix) {
+  const box = document.getElementById(`${prefix}-adv-schedule`);
+  if (!box || box.style.display === 'none') return;
+  const sel = _advModalSelector(prefix);
+  const checked = [...document.querySelectorAll(`${sel} .day-checkbox:checked, ${sel} input[type=checkbox][value]:checked`)]
+    .map(c => c.value).filter(v => _DAY_LBL[v]);
+  // общее время как значение по умолчанию
+  const defStart = document.getElementById(`${prefix}-start`)?.value || '09:00';
+  const defEnd   = document.getElementById(`${prefix}-end`)?.value || '10:00';
+  // сохранить уже введённые
+  const prev = {};
+  box.querySelectorAll('[data-adv-day]').forEach(row => {
+    const d = row.getAttribute('data-adv-day');
+    prev[d] = {
+      start: row.querySelector('.adv-start')?.value || '',
+      end: row.querySelector('.adv-end')?.value || '',
+    };
+  });
+  if (!checked.length) {
+    box.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:6px 0">Отметьте дни обучения выше, чтобы задать время для каждого.</div>';
+    return;
+  }
+  box.innerHTML = `<div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Время для каждого дня (по умолчанию общее ${defStart}–${defEnd}):</div>` +
+    checked.map(d => {
+      // приоритет: уже введённое в этом блоке → существующее время дня (в редактировании) → общее
+      const existing = (prefix === 'eg' && window._egDayTimes && window._egDayTimes[d]) ? window._egDayTimes[d] : null;
+      const st = prev[d]?.start || existing?.start || defStart;
+      const en = prev[d]?.end || existing?.end || defEnd;
+      return `<div data-adv-day="${d}" style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="width:120px;font-size:13px">${_DAY_LBL[d]}</div>
+        <input type="time" class="form-input adv-start" style="width:auto" value="${st}">
+        <span style="color:var(--text-3)">–</span>
+        <input type="time" class="form-input adv-end" style="width:auto" value="${en}">
+      </div>`;
+    }).join('');
+}
+
+// Собрать слоты: если расширенный блок открыт и заполнен — берём время по дням, иначе общее
+function collectDaySlots(prefix, selectedDays, defStart, defEnd) {
+  const box = document.getElementById(`${prefix}-adv-schedule`);
+  const advOpen = box && box.style.display !== 'none';
+  if (advOpen) {
+    const rows = [...box.querySelectorAll('[data-adv-day]')];
+    if (rows.length) {
+      return rows.map(row => {
+        const day = row.getAttribute('data-adv-day');
+        const start = row.querySelector('.adv-start')?.value || defStart;
+        const end = row.querySelector('.adv-end')?.value || defEnd;
+        return (start && end) ? { day, start, end } : null;
+      }).filter(Boolean);
+    }
+  }
+  // обычный режим — общее время на все выбранные дни
+  if (!defStart || !defEnd) return [];
+  return (selectedDays || []).map(day => ({ day, start: defStart, end: defEnd }));
 }
 
 async function submitAddGroup() {
@@ -2537,11 +2615,12 @@ async function submitAddGroup() {
       classroom_id: classroomVal ? parseInt(classroomVal) : null,
     })});
 
-    if (group?.id && tStart && tEnd) {
-      await Promise.all(selectedDays.map(day =>
+    if (group?.id) {
+      const slots = collectDaySlots('ag', selectedDays, tStart, tEnd);
+      await Promise.all(slots.map(sl =>
         api(`/api/groups/${group.id}/schedule`, {
           method:'POST',
-          body: JSON.stringify({ day_of_week: day, start_time: tStart + ':00', end_time: tEnd + ':00' })
+          body: JSON.stringify({ day_of_week: sl.day, start_time: sl.start + ':00', end_time: sl.end + ':00' })
         }).catch(()=>{})
       ));
     }
@@ -4031,9 +4110,11 @@ async function openEditGroupModal(groupId) {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
           ${Object.entries(days).map(([k,v])=>`
             <label style="display:flex;align-items:center;gap:4px;font-size:13px">
-              <input type="checkbox" value="${k}" ${activeDays.includes(k)?'checked':''}> ${v}
+              <input type="checkbox" class="day-checkbox" value="${k}" ${activeDays.includes(k)?'checked':''} onchange="renderAdvSchedule('eg')"> ${v}
             </label>`).join('')}
         </div>
+        <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" onclick="toggleAdvSchedule('eg')">⚙ Расширенное расписание (своё время по дням)</button>
+        <div id="eg-adv-schedule" style="display:none;margin-top:10px"></div>
       </div>
       <div style="margin-bottom:14px">
         <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Ученики (<span id="eg-student-count">${(students||[]).length}</span>)</div>
@@ -4089,6 +4170,22 @@ async function openEditGroupModal(groupId) {
       }
     });
 
+    // Существующее время по дням (для расширенного режима)
+    window._egDayTimes = {};
+    (group.schedule_slots||[]).forEach(s => {
+      window._egDayTimes[s.day_of_week] = {
+        start: (s.start_time||'').slice(0,5),
+        end: (s.end_time||'').slice(0,5),
+      };
+    });
+    // Если у разных дней разное время — сразу открыть расширенный блок
+    const _times = Object.values(window._egDayTimes);
+    const _mixed = _times.length > 1 && _times.some(t => t.start !== _times[0].start || t.end !== _times[0].end);
+    if (_mixed) {
+      const box = document.getElementById('eg-adv-schedule');
+      if (box) { box.style.display = 'block'; renderAdvSchedule('eg'); }
+    }
+
   } catch(e) {
     document.getElementById('edit-group-content').innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`;
   }
@@ -4102,8 +4199,8 @@ async function saveEditGroup(groupId) {
   const tStart   = document.getElementById('eg-start')?.value;
   const tEnd     = document.getElementById('eg-end')?.value;
   const modal    = document.getElementById('edit-group-content');
-  const checks   = modal.querySelectorAll('input[type=checkbox]:checked');
-  const newDays  = [...checks].map(c => c.value);
+  const checks   = modal.querySelectorAll('.day-checkbox:checked, input[type=checkbox][value]:checked');
+  const newDays  = [...checks].map(c => c.value).filter(v => ['MON','TUE','WED','THU','FRI','SAT','SUN'].includes(v));
 
   if (!name) { showToast('Введите название','error'); return; }
   try {
@@ -4117,14 +4214,13 @@ async function saveEditGroup(groupId) {
     await Promise.all((group.schedule_slots||[]).map(slot =>
       api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{})
     ));
-    if (tStart && tEnd) {
-      await Promise.all(newDays.map(day =>
-        api(`/api/groups/${groupId}/schedule`, {
-          method:'POST',
-          body: JSON.stringify({ day_of_week: day, start_time: tStart+':00', end_time: tEnd+':00' })
-        }).catch(()=>{})
-      ));
-    }
+    const slots = collectDaySlots('eg', newDays, tStart, tEnd);
+    await Promise.all(slots.map(sl =>
+      api(`/api/groups/${groupId}/schedule`, {
+        method:'POST',
+        body: JSON.stringify({ day_of_week: sl.day, start_time: sl.start+':00', end_time: sl.end+':00' })
+      }).catch(()=>{})
+    ));
     showToast('Группа обновлена!');
     document.getElementById('edit-group-modal').style.display='none';
     loadGroups();
