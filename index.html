@@ -1170,31 +1170,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
-  <!-- TRANSFER LESSONS -->
-  <div class="page" id="page-transfer-lessons">
-    <div class="page-header">
-      <div class="page-title">Перенос уроков</div>
-    </div>
-    <div class="page-body">
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px">
-        <div style="font-weight:600;margin-bottom:12px">Перенести урок</div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Группа *</label><select class="form-select" id="tl-group"><option value="">— Выберите группу —</option></select></div>
-          <div class="form-group"><label class="form-label">Дата урока *</label><input type="date" class="form-input" id="tl-date"></div>
-          <div class="form-group"><label class="form-label">Новая дата *</label><input type="date" class="form-input" id="tl-new-date"></div>
-        </div>
-        <div class="form-group"><label class="form-label">Причина</label><input class="form-input" id="tl-reason" placeholder="Например: ученик не придёт"></div>
-        <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="lockBtn(this, () => submitTransferLesson())">Перенести урок</button></div>
-      </div>
-      <div style="font-weight:600;margin-bottom:10px">Перенесённые уроки</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Группа</th><th>Дата</th><th>Новая дата</th><th>Причина</th><th></th></tr></thead>
-          <tbody id="transfer-lessons-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+
 
   <!-- CLASSROOMS -->
   <div class="page" id="page-classrooms">
