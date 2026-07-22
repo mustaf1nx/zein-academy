@@ -829,3 +829,75 @@ def restore_lesson(
     db.commit()
     log_action(db, current_user, "delete", "cancelled_lesson", cancel_id,
                f"Восстановлен урок группы {gname} на {gdate}")
+
+
+# ─── Transferred Lessons (админ переносит урок на другую дату) ─────────────
+transfer_router = APIRouter(prefix="/api/transfer-lessons", tags=["Transferred Lessons"])
+
+@transfer_router.get("/", response_model=List[schemas.TransferLessonOut])
+def list_transferred(
+    group_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    q = db.query(models.TransferredLesson)
+    if group_id:
+        q = q.filter(models.TransferredLesson.group_id == group_id)
+    rows = q.order_by(models.TransferredLesson.date.desc()).all()
+    out = []
+    for r in rows:
+        out.append(schemas.TransferLessonOut(
+            id=r.id, group_id=r.group_id, date=r.date, new_date=r.new_date, reason=r.reason,
+            transferred_by=r.transferred_by,
+            group_name=r.group.name if r.group else None,
+            created_at=r.created_at,
+        ))
+    return out
+
+@transfer_router.post("/", response_model=schemas.TransferLessonOut, status_code=201)
+def transfer_lesson(
+    data: schemas.TransferLessonIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="Группа не найдена")
+    if data.new_date == data.date:
+        raise HTTPException(status_code=400, detail="Новая дата совпадает с исходной")
+    # уже перенесён с этой даты?
+    existing = db.query(models.TransferredLesson).filter(
+        models.TransferredLesson.group_id == data.group_id,
+        models.TransferredLesson.date == data.date,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Урок на эту дату уже перенесён")
+    rec = models.TransferredLesson(
+        group_id=data.group_id, date=data.date, new_date=data.new_date, reason=data.reason,
+        transferred_by=current_user.id,
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "transferred_lesson", rec.id,
+               f"Перенесён урок группы {group.name} с {data.date} на {data.new_date}")
+    return schemas.TransferLessonOut(
+        id=rec.id, group_id=rec.group_id, date=rec.date, new_date=rec.new_date, reason=rec.reason,
+        transferred_by=rec.transferred_by, group_name=group.name, created_at=rec.created_at,
+    )
+
+@transfer_router.delete("/{transfer_id}", status_code=204)
+def cancel_transfer(
+    transfer_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    rec = db.query(models.TransferredLesson).filter(models.TransferredLesson.id == transfer_id).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Запись не найдена")
+    gname = rec.group.name if rec.group else "?"
+    gdate = rec.date
+    db.delete(rec)
+    db.commit()
+    log_action(db, current_user, "delete", "transferred_lesson", transfer_id,
+               f"Отменён перенос урока группы {gname} на {gdate}")
