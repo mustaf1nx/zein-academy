@@ -124,6 +124,7 @@ def seed_default_admin():
             ("555555555555", "zein4821", "Бекенов Берикбек", "ББ"),
             ("666666666666", "zein7263", "Айдынұлы Әкежан", "АӘ"),
             ("777777777777", "zein5934", "Хайбуллин Минтимер", "ХМ"),
+            ("888888888888", "zein2963", "Админ", "АД")
         ]
         for iin, password, full_name, initials in extra_admins:
             if not db.query(models.User).filter(models.User.iin == iin).first():
