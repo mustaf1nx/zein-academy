@@ -1170,6 +1170,32 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
+  <!-- TRANSFER LESSONS -->
+  <div class="page" id="page-transfer-lessons">
+    <div class="page-header">
+      <div class="page-title">Перенос уроков</div>
+    </div>
+    <div class="page-body">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px">
+        <div style="font-weight:600;margin-bottom:12px">Перенести урок</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Группа *</label><select class="form-select" id="tl-group"><option value="">— Выберите группу —</option></select></div>
+          <div class="form-group"><label class="form-label">Дата урока *</label><input type="date" class="form-input" id="tl-date"></div>
+          <div class="form-group"><label class="form-label">Новая дата *</label><input type="date" class="form-input" id="tl-new-date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Причина</label><input class="form-input" id="tl-reason" placeholder="Например: ученик не придёт"></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="lockBtn(this, () => submitTransferLesson())">Перенести урок</button></div>
+      </div>
+      <div style="font-weight:600;margin-bottom:10px">Перенесённые уроки</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Группа</th><th>Дата</th><th>Новая дата</th><th>Причина</th><th></th></tr></thead>
+          <tbody id="transfer-lessons-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- CLASSROOMS -->
   <div class="page" id="page-classrooms">
     <div class="page-header">
@@ -2453,6 +2479,62 @@ async function restoreLesson(id) {
       await api(`/api/cancelled-lessons/${id}`, {method:'DELETE'});
       showToast('Урок восстановлен');
       loadCancelLessons();
+    } catch(e) { showToast(e.message,'error'); }
+  });
+}
+
+// ══ TRANSFER LESSONS ═════════════════════════════════════════════
+async function loadTransferLessons() {
+  // заполнить список групп
+  try {
+    const groups = await api('/api/groups/');
+    const sel = document.getElementById('tl-group');
+    if (sel) sel.innerHTML = '<option value="">— Выберите группу —</option>' +
+      (groups||[]).map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  } catch(e) {}
+  // список перенесённых
+  const tbody = document.getElementById('transfer-lessons-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
+  try {
+    const rows = await api('/api/transfer-lessons/');
+    if (!rows?.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Перенесённых уроков нет</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><b>${r.group_name||'—'}</b></td>
+        <td>${new Date(r.date).toLocaleDateString('ru')}</td>
+        <td>${new Date(r.new_date).toLocaleDateString('ru')}</td>
+        <td>${r.reason ? r.reason.replace(/</g,'&lt;') : '—'}</td>
+        <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="cancelTransfer(${r.id})">Отменить перенос</button></td>
+      </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`; }
+}
+
+async function submitTransferLesson() {
+  const groupId = document.getElementById('tl-group')?.value;
+  const date = document.getElementById('tl-date')?.value;
+  const newDate = document.getElementById('tl-new-date')?.value;
+  const reason = document.getElementById('tl-reason')?.value?.trim();
+  if (!groupId) { showToast('Выберите группу','error'); return; }
+  if (!date) { showToast('Выберите дату','error'); return; }
+  if (!newDate) { showToast('Выберите новую дату','error'); return; }
+  try {
+    await api('/api/transfer-lessons/', { method:'POST', body: JSON.stringify({
+      group_id: parseInt(groupId), date, new_date: newDate, reason: reason || null
+    })});
+    showToast('Урок перенесён');
+    document.getElementById('tl-reason').value = '';
+    document.getElementById('tl-new-date').value = '';
+    loadTransferLessons();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function cancelTransfer(id) {
+  showConfirm('Отменить перенос?', 'Урок вернётся на исходную дату', async () => {
+    try {
+      await api(`/api/transfer-lessons/${id}`, {method:'DELETE'});
+      showToast('Перенос отменён');
+      loadTransferLessons();
     } catch(e) { showToast(e.message,'error'); }
   });
 }
@@ -4861,6 +4943,7 @@ const adminNav = [
   {id:'schedule',label:'Расписание',icon:'calendar'},
   {id:'groups',label:'Группы',icon:'users-2'},
   {id:'cancel-lessons',label:'Отмена уроков',icon:'calendar-x'},
+  {id:'transfer-lessons',label:'Перенос уроков',icon:'arrow-right-left'},
   {id:'classrooms',label:'Кабинеты',icon:'door-open'},
   {id:'my-tasks',label:'Мои задачи',icon:'check-circle'},
   {id:'all-tasks',label:'Все задачи',icon:'list-checks'},
@@ -5052,6 +5135,7 @@ const pageLoaders = {
   'page-schedule':      buildSchedule,
   'page-groups':        loadGroups,
   'page-cancel-lessons': loadCancelLessons,
+  'page-transfer-lessons': loadTransferLessons,
   'page-classrooms':    loadClassrooms,
   'page-my-tasks':      ()=>loadTasks('my-tasks-body',true),
   'page-all-tasks':     ()=>loadTasks('all-tasks-body',false),

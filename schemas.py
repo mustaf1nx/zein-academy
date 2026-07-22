@@ -422,3 +422,22 @@ class CancelledLessonOut(BaseModel):
     group_name: Optional[str] = None
     created_at: datetime
     model_config = {"from_attributes": True}
+
+
+# ─── Transferred Lessons ─────────────────────────────────────────────────────
+class TransferLessonIn(BaseModel):
+    group_id: int
+    date: date
+    new_date: date
+    reason: Optional[str] = None
+
+class TransferLessonOut(BaseModel):
+    id: int
+    group_id: int
+    date: date
+    new_date: date
+    reason: Optional[str] = None
+    transferred_by: Optional[int] = None
+    group_name: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}

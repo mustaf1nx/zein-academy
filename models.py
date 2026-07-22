@@ -376,3 +376,18 @@ class CancelledLesson(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     group = relationship("Group")
+
+
+# ─── Перенесённые уроки (админ переносит урок группы на другую дату) ──────────
+class TransferredLesson(Base):
+    __tablename__ = "transferred_lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)       # исходная дата урока
+    new_date = Column(Date, nullable=False, index=True)    # новая дата урока
+    reason = Column(Text, nullable=True)
+    transferred_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    group = relationship("Group")
