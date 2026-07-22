@@ -4922,7 +4922,7 @@ function renderNav(role) {
     items = items.filter(i => i.id !== 'audit');
   }
   // "Отчёты преподавателей" — только для Акежана (666...) и Администратора (900...)
-  const REPORTS_ALLOWED = ['666666666666','900101350123'];
+  const REPORTS_ALLOWED = ['666666666666','900101350123', '888888888888'];
   if (!REPORTS_ALLOWED.includes(iin)) {
     items = items.filter(i => i.id !== 'teacher-reports');
   }
