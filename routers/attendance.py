@@ -23,6 +23,16 @@ def save_attendance(
     ).first()
     if cancelled:
         raise HTTPException(status_code=400, detail="Урок на эту дату отменён администратором — отчёт заполнить нельзя")
+    # Урок перенесён администратором на другую дату — отчёт на исходную дату заполнять нельзя
+    transferred = db.query(models.TransferredLesson).filter(
+        models.TransferredLesson.group_id == data.group_id,
+        models.TransferredLesson.date == data.date,
+    ).first()
+    if transferred:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Урок перенесён администратором на {transferred.new_date.strftime('%d.%m.%Y')} — отчёт заполнить можно только в этот день",
+        )
     # Determine which students are frozen on this date (server-side guard)
     frozen_ids = {
         f.student_id for f in db.query(models.Freeze).filter(
