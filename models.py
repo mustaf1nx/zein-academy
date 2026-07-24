@@ -378,6 +378,20 @@ class CancelledLesson(Base):
     group = relationship("Group")
 
 
+# ─── Штрафы преподавателям ─────────────────────────────────────────────────
+class Fine(Base):
+    __tablename__ = "fines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    amount = Column(Integer, nullable=False)   # сумма штрафа, тенге
+    reason = Column(Text, nullable=True)
+    issued_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    teacher = relationship("User", foreign_keys=[teacher_id])
+
+
 # ─── Перенесённые уроки (админ переносит урок группы на другую дату) ──────────
 class TransferredLesson(Base):
     __tablename__ = "transferred_lessons"

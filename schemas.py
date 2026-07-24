@@ -424,6 +424,23 @@ class CancelledLessonOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ─── Fines (штрафы преподавателям) ───────────────────────────────────────────
+class FineIn(BaseModel):
+    teacher_id: int
+    amount: int
+    reason: Optional[str] = None
+
+class FineOut(BaseModel):
+    id: int
+    teacher_id: int
+    teacher_name: Optional[str] = None
+    amount: int
+    reason: Optional[str] = None
+    issued_by: Optional[int] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
 # ─── Transferred Lessons ─────────────────────────────────────────────────────
 class TransferLessonIn(BaseModel):
     group_id: int

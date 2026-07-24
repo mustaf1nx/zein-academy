@@ -1426,6 +1426,31 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
+  <!-- FINES -->
+  <div class="page" id="page-fines">
+    <div class="page-header">
+      <div class="page-title">Штрафы</div>
+    </div>
+    <div class="page-body">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px">
+        <div style="font-weight:600;margin-bottom:12px">Выписать штраф</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Преподаватель *</label><select class="form-select" id="fn-teacher"><option value="">— Выберите преподавателя —</option></select></div>
+          <div class="form-group"><label class="form-label">Сумма (₸) *</label><input type="number" class="form-input" id="fn-amount" min="1" placeholder="Например: 5000"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Причина</label><input class="form-input" id="fn-reason" placeholder="Например: опоздание на урок"></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="lockBtn(this, () => submitFine())">Выписать штраф</button></div>
+      </div>
+      <div style="font-weight:600;margin-bottom:10px">Выписанные штрафы</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Преподаватель</th><th>Сумма</th><th>Причина</th><th>Дата</th><th></th></tr></thead>
+          <tbody id="fines-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ENT TESTS -->
   <div class="page" id="page-ent">
     <div class="page-header">
@@ -2890,8 +2915,19 @@ async function loadMyReports() {
     all.sort((a,b) => b.date.localeCompare(a.date));
 
     const lessonsCount = all.length;
-    const totalSum = rate != null ? rate * lessonsCount : null;
     const fmt = n => n.toLocaleString('ru');
+
+    // штрафы (преподаватель видит только свои)
+    let fines = [];
+    try {
+      fines = await api('/api/fines/');
+      if (fFrom) fines = fines.filter(f => f.created_at.slice(0,10) >= fFrom);
+      if (fTo) fines = fines.filter(f => f.created_at.slice(0,10) <= fTo);
+    } catch {}
+    const finesSum = fines.reduce((s,f)=>s+f.amount, 0);
+
+    const grossSum = rate != null ? rate * lessonsCount : null;
+    const totalSum = grossSum != null ? grossSum - finesSum : null;
 
     body.innerHTML = all.map(r => `
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px">
@@ -2911,8 +2947,22 @@ async function loadMyReports() {
           ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
         </div>`:''}
       </div>`).join('') + `
+      ${fines.length ? `
+      <div style="font-weight:600;margin:18px 0 10px">Штрафы</div>
+      ${fines.map(f => `
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:12px;color:var(--text-2)">📅 ${new Date(f.created_at).toLocaleDateString('ru')}</div>
+            ${f.reason?`<div style="font-size:13px;margin-top:3px">${f.reason.replace(/</g,'&lt;')}</div>`:''}
+          </div>
+          <span style="background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700">-${fmt(f.amount)} ₸</span>
+        </div>`).join('')}
+      ` : ''}
       <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;margin-top:16px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="font-size:14px;color:var(--text-2)">Проведено уроков: <b style="color:var(--text)">${lessonsCount}</b>${rate!=null?` · Ставка за урок: <b style="color:var(--text)">${fmt(rate)} ₸</b>`:''}</div>
+        <div style="font-size:14px;color:var(--text-2)">
+          Проведено уроков: <b style="color:var(--text)">${lessonsCount}</b>${rate!=null?` · Ставка за урок: <b style="color:var(--text)">${fmt(rate)} ₸</b>`:''}
+          ${finesSum>0?` · Штрафы: <b style="color:#ef4444">-${fmt(finesSum)} ₸</b>`:''}
+        </div>
         <div style="font-size:18px;font-weight:800;color:var(--gold)">
           ${totalSum!=null?`Итого: ${fmt(totalSum)} ₸`:'Ставка не указана'}
         </div>
@@ -2935,7 +2985,10 @@ async function loadTeacherReports() {
   const fFrom = document.getElementById('tr-from')?.value || '';
   const fTo = document.getElementById('tr-to')?.value || '';
   try {
-    const data = await api('/api/analytics/teacher-reports');
+    const [data, allFines] = await Promise.all([
+      api('/api/analytics/teacher-reports'),
+      api('/api/fines/').catch(()=>[]),
+    ]);
     if (!data?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
     // заполнить фильтр преподавателей (один раз)
     const tsel = document.getElementById('tr-teacher');
@@ -2949,18 +3002,25 @@ async function loadTeacherReports() {
     if (fTeacher) teachers = teachers.filter(t => String(t.teacher_id) === String(fTeacher));
 
     let html = '';
-    let grandTotal = 0, grandLessons = 0;
+    let grandTotal = 0, grandLessons = 0, grandFines = 0;
     let idx = 0;
     teachers.forEach(t => {
       // фильтрация отчётов по датам
       let reps = t.reports || [];
       if (fFrom) reps = reps.filter(r => r.date >= fFrom);
       if (fTo) reps = reps.filter(r => r.date <= fTo);
-      if (!reps.length) return;
+      // штрафы этого преподавателя (с той же фильтрацией по датам, по дате выписки)
+      let fines = (allFines||[]).filter(f => f.teacher_id === t.teacher_id);
+      if (fFrom) fines = fines.filter(f => f.created_at.slice(0,10) >= fFrom);
+      if (fTo) fines = fines.filter(f => f.created_at.slice(0,10) <= fTo);
+      if (!reps.length && !fines.length) return;
       const count = reps.length;
-      const sum = t.rate != null ? t.rate * count : null;
+      const finesSum = fines.reduce((s,f)=>s+f.amount, 0);
+      const gross = t.rate != null ? t.rate * count : null;
+      const sum = gross != null ? gross - finesSum : null;
       if (sum != null) grandTotal += sum;
       grandLessons += count;
+      grandFines += finesSum;
       const secId = `tr-sec-${idx++}`;
 
       html += `
@@ -2975,6 +3035,7 @@ async function loadTeacherReports() {
             <div style="font-size:13px;color:var(--text-2)">
               Уроков: <b style="color:var(--text)">${count}</b>
               ${t.rate!=null?` · Ставка: <b style="color:var(--text)">${fmt(t.rate)} ₸</b>`:''}
+              ${finesSum>0?` · Штрафы: <b style="color:#ef4444">-${fmt(finesSum)} ₸</b>`:''}
               ${sum!=null?` · <span style="color:var(--gold);font-weight:800">Итого: ${fmt(sum)} ₸</span>`:' · <span style="color:var(--text-3)">ставка не указана</span>'}
             </div>
           </div>
@@ -2997,6 +3058,17 @@ async function loadTeacherReports() {
                 ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
               </div>`:''}
             </div>`).join('')}
+          ${fines.length ? `
+            <div style="font-weight:600;margin:12px 0 8px;font-size:13px;color:var(--text-2)">Штрафы</div>
+            ${fines.map(f => `
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:12px;color:var(--text-2)">📅 ${new Date(f.created_at).toLocaleDateString('ru')}</div>
+                  ${f.reason?`<div style="font-size:12.5px;margin-top:3px">${f.reason.replace(/</g,'&lt;')}</div>`:''}
+                </div>
+                <span style="background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700">-${fmt(f.amount)} ₸</span>
+              </div>`).join('')}
+          ` : ''}
           </div>
         </div>`;
     });
@@ -3006,7 +3078,7 @@ async function loadTeacherReports() {
     // общий итог по всем показанным преподавателям
     html += `
       <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
-        <div style="font-size:14px;color:var(--text-2)">Всего уроков: <b style="color:var(--text)">${grandLessons}</b></div>
+        <div style="font-size:14px;color:var(--text-2)">Всего уроков: <b style="color:var(--text)">${grandLessons}</b>${grandFines>0?` · Штрафы: <b style="color:#ef4444">-${fmt(grandFines)} ₸</b>`:''}</div>
         <div style="font-size:18px;font-weight:800;color:var(--gold)">Общий итог: ${fmt(grandTotal)} ₸</div>
       </div>`;
     body.innerHTML = html;
@@ -3027,6 +3099,61 @@ function toggleTeacherSection(secId) {
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : 'block';
   if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+// ══ FINES (Штрафы) ═══════════════════════════════════════════════
+async function loadFines() {
+  // заполнить список преподавателей
+  try {
+    const teachers = await api('/api/users/?role=teacher');
+    const sel = document.getElementById('fn-teacher');
+    if (sel) sel.innerHTML = '<option value="">— Выберите преподавателя —</option>' +
+      (teachers||[]).map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
+  } catch(e) {}
+  // список штрафов
+  const tbody = document.getElementById('fines-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr>';
+  try {
+    const rows = await api('/api/fines/');
+    if (!rows?.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Штрафов нет</td></tr>'; return; }
+    const fmt = n => n.toLocaleString('ru');
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><b>${r.teacher_name||'—'}</b></td>
+        <td style="color:#ef4444;font-weight:700">-${fmt(r.amount)} ₸</td>
+        <td>${r.reason ? r.reason.replace(/</g,'&lt;') : '—'}</td>
+        <td>${new Date(r.created_at).toLocaleDateString('ru')}</td>
+        <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="deleteFine(${r.id})">Удалить</button></td>
+      </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);text-align:center;padding:20px">${e.message}</td></tr>`; }
+}
+
+async function submitFine() {
+  const teacherId = document.getElementById('fn-teacher')?.value;
+  const amount = document.getElementById('fn-amount')?.value;
+  const reason = document.getElementById('fn-reason')?.value?.trim();
+  if (!teacherId) { showToast('Выберите преподавателя','error'); return; }
+  if (!amount || parseInt(amount) <= 0) { showToast('Укажите сумму штрафа','error'); return; }
+  try {
+    await api('/api/fines/', { method:'POST', body: JSON.stringify({
+      teacher_id: parseInt(teacherId), amount: parseInt(amount), reason: reason || null
+    })});
+    showToast('Штраф выписан');
+    document.getElementById('fn-amount').value = '';
+    document.getElementById('fn-reason').value = '';
+    loadFines();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteFine(id) {
+  showConfirm('Удалить штраф?', 'Сумма будет возвращена в зарплату преподавателя', async () => {
+    try {
+      await api(`/api/fines/${id}`, {method:'DELETE'});
+      showToast('Штраф удалён');
+      loadFines();
+    } catch(e) { showToast(e.message,'error'); }
+  });
 }
 
 async function loadMyGroups() {
@@ -4982,6 +5109,7 @@ const adminNav = [
   {id:'new-student',label:'Новый ученик',icon:'user-plus'},
   {id:'analytics',label:'Аналитика',icon:'trending-up'},
   {id:'teacher-reports',label:'Отчёты преподавателей',icon:'file-text'},
+  {id:'fines',label:'Штрафы',icon:'alert-triangle'},
   {id:'ent',label:'Тесты ЕНТ',icon:'help-circle'},
   {id:'forbidden-dates',label:'Недоступные даты',icon:'calendar-x'},
   {id:'characteristics-admin',label:'Характеристики',icon:'clipboard'},
@@ -5021,6 +5149,7 @@ function icon(name) {
     'arrow-left-circle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 8 8 12 12 16"/><line x1="16" y1="12" x2="8" y2="12"/></svg>',
     'arrow-right-left':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',
     'refresh-cw':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>',
+    'alert-triangle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
   };
   return icons[name]||'';
 }
@@ -5175,6 +5304,7 @@ const pageLoaders = {
   'page-return-form':   loadReturnFormPage,
   'page-analytics':     loadAnalytics,
   'page-teacher-reports': loadTeacherReports,
+  'page-fines':          loadFines,
   'page-ent':           loadENT,
   'page-forbidden-dates': loadForbiddenDates,
   'page-slots':         loadSlots,
