@@ -901,3 +901,71 @@ def cancel_transfer(
     db.commit()
     log_action(db, current_user, "delete", "transferred_lesson", transfer_id,
                f"Отменён перенос урока группы {gname} на {gdate}")
+
+
+# ─── Fines (штрафы преподавателям) ──────────────────────────────────────────
+fines_router = APIRouter(prefix="/api/fines", tags=["Fines"])
+
+@fines_router.get("/", response_model=List[schemas.FineOut])
+def list_fines(
+    teacher_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    q = db.query(models.Fine)
+    if current_user.role == models.RoleEnum.teacher:
+        # преподаватель видит только свои штрафы
+        q = q.filter(models.Fine.teacher_id == current_user.id)
+    elif teacher_id:
+        q = q.filter(models.Fine.teacher_id == teacher_id)
+    rows = q.order_by(models.Fine.created_at.desc()).all()
+    out = []
+    for r in rows:
+        out.append(schemas.FineOut(
+            id=r.id, teacher_id=r.teacher_id, amount=r.amount, reason=r.reason,
+            issued_by=r.issued_by,
+            teacher_name=r.teacher.full_name if r.teacher else None,
+            created_at=r.created_at,
+        ))
+    return out
+
+@fines_router.post("/", response_model=schemas.FineOut, status_code=201)
+def create_fine(
+    data: schemas.FineIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    teacher = db.query(models.User).filter(models.User.id == data.teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Преподаватель не найден")
+    if data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Сумма штрафа должна быть больше нуля")
+    rec = models.Fine(
+        teacher_id=data.teacher_id, amount=data.amount, reason=data.reason,
+        issued_by=current_user.id,
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "fine", rec.id,
+               f"Штраф {data.amount} ₸ преподавателю {teacher.full_name}")
+    return schemas.FineOut(
+        id=rec.id, teacher_id=rec.teacher_id, amount=rec.amount, reason=rec.reason,
+        issued_by=rec.issued_by, teacher_name=teacher.full_name, created_at=rec.created_at,
+    )
+
+@fines_router.delete("/{fine_id}", status_code=204)
+def delete_fine(
+    fine_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    rec = db.query(models.Fine).filter(models.Fine.id == fine_id).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Запись не найдена")
+    tname = rec.teacher.full_name if rec.teacher else "?"
+    amount = rec.amount
+    db.delete(rec)
+    db.commit()
+    log_action(db, current_user, "delete", "fine", fine_id,
+               f"Удалён штраф {amount} ₸ преподавателя {tname}")
