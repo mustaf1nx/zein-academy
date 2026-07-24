@@ -5021,7 +5021,7 @@ async function loadNewStudentPage() {
     const grpSel = document.getElementById('ns-group');
     if (grpSel) {
       grpSel.innerHTML = '<option value="">Выберите группу</option>' +
-        (groups||[]).map(g=>`<option value="${g.id}">${g.name} (${g.language})</option>`).join('');
+        (groups||[]).map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
     }
   } catch(e) { console.error(e); }
 }
