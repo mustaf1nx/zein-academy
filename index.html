@@ -1170,7 +1170,31 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
   </div>
 
-
+  <!-- TRANSFER LESSONS -->
+  <div class="page" id="page-transfer-lessons">
+    <div class="page-header">
+      <div class="page-title">Перенос уроков</div>
+    </div>
+    <div class="page-body">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px">
+        <div style="font-weight:600;margin-bottom:12px">Перенести урок</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Группа *</label><select class="form-select" id="tl-group"><option value="">— Выберите группу —</option></select></div>
+          <div class="form-group"><label class="form-label">Дата урока *</label><input type="date" class="form-input" id="tl-date"></div>
+          <div class="form-group"><label class="form-label">Новая дата *</label><input type="date" class="form-input" id="tl-new-date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Причина</label><input class="form-input" id="tl-reason" placeholder="Например: ученик не придёт"></div>
+        <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="lockBtn(this, () => submitTransferLesson())">Перенести урок</button></div>
+      </div>
+      <div style="font-weight:600;margin-bottom:10px">Перенесённые уроки</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Группа</th><th>Дата</th><th>Новая дата</th><th>Причина</th><th></th></tr></thead>
+          <tbody id="transfer-lessons-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- CLASSROOMS -->
   <div class="page" id="page-classrooms">
@@ -3022,28 +3046,51 @@ async function loadMyGroups() {
     if (_myLessonsTab === 'today') {
       groups = data.filter(g => (g.schedule_slots||[]).some(s => s.day_of_week === todayDow));
     }
-    if (!groups.length) {
-      container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
-      return;
-    }
 
     const isAll = _myLessonsTab === 'all';
     // для вкладки "Сегодня" узнаём, по каким группам отчёт уже сдан сегодня
     const today = localDate();
     const submitted = {};
     const cancelledToday = {};
+    const transferredAwayToday = {};   // group_id -> новая дата (урок сегодня перенесён на другой день)
+    const transferredInToday = {};     // group_id -> исходная дата (урок перенесён на сегодня с другого дня)
     if (!isAll) {
+      // отменённые уроки на сегодня
+      try {
+        const cancels = await api('/api/cancelled-lessons/');
+        (cancels||[]).forEach(c => { if (c.date === today) cancelledToday[c.group_id] = c.reason || ''; });
+      } catch {}
+      // перенесённые уроки
+      try {
+        const transfers = await api('/api/transfer-lessons/');
+        (transfers||[]).forEach(t => {
+          if (t.date === today) transferredAwayToday[t.group_id] = t.new_date;
+          if (t.new_date === today) transferredInToday[t.group_id] = t.date;
+        });
+      } catch {}
+      // добавляем в список группы, урок которых перенесён на сегодня
+      // (даже если сегодняшний день недели им обычно не расписан)
+      Object.keys(transferredInToday).forEach(gid => {
+        const id = parseInt(gid);
+        if (!groups.some(g => g.id === id)) {
+          const g = data.find(x => x.id === id);
+          if (g) groups.push(g);
+        }
+      });
+      if (!groups.length) {
+        container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
+        return;
+      }
       await Promise.all(groups.map(async g => {
         try {
           const rec = await api(`/api/attendance/?group_id=${g.id}&date_from=${today}&date_to=${today}`);
           submitted[g.id] = (rec||[]).length > 0;
         } catch { submitted[g.id] = false; }
       }));
-      // отменённые уроки на сегодня
-      try {
-        const cancels = await api('/api/cancelled-lessons/');
-        (cancels||[]).forEach(c => { if (c.date === today) cancelledToday[c.group_id] = c.reason || ''; });
-      } catch {}
+    }
+    if (!groups.length) {
+      container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
+      return;
     }
 
     container.innerHTML = groups.map(g => {
@@ -3051,20 +3098,25 @@ async function loadMyGroups() {
       const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'';
       const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
       const done = submitted[g.id];
+      const isTransferredAway = !isAll && (g.id in transferredAwayToday);
+      const isTransferredIn = !isAll && (g.id in transferredInToday);
       const isCancelled = !isAll && (g.id in cancelledToday);
+      const isBlocked = isCancelled || isTransferredAway;
       // кнопка только на вкладке "Сегодня"
       const btn = isAll ? '' : (isCancelled
         ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🚫 Урок отменён</span>`
+        : (isTransferredAway
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.16);color:#3b82f6;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🔄 Перенесён на ${new Date(transferredAwayToday[g.id]).toLocaleDateString('ru')}</span>`
         : (done
         ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">✓ Отчёт заполнен</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>`));
-      // кликабельность только на "Сегодня" и если не отменён
-      const clickAttr = (isAll || isCancelled) ? '' : `onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"`;
-      const hoverAttrs = (isAll || isCancelled) ? '' : `onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'"`;
-      const cursor = (isAll || isCancelled) ? 'default' : 'pointer';
+        : `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>`)));
+      // кликабельность только на "Сегодня" и если не отменён/не перенесён с этого дня
+      const clickAttr = (isAll || isBlocked) ? '' : `onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"`;
+      const hoverAttrs = (isAll || isBlocked) ? '' : `onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'"`;
+      const cursor = (isAll || isBlocked) ? 'default' : 'pointer';
       return `
         <div ${clickAttr}
-          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:${cursor};transition:border-color .15s,box-shadow .15s;${isCancelled?'opacity:.7':''}"
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:${cursor};transition:border-color .15s,box-shadow .15s;${isBlocked?'opacity:.7':''}"
           ${hoverAttrs}>
           <div style="padding:16px 18px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
@@ -3076,6 +3128,7 @@ async function loadMyGroups() {
               ${btn}
             </div>
             ${isCancelled && cancelledToday[g.id] ? `<div style="margin-top:8px;font-size:12px;color:#ef4444">Причина: ${cancelledToday[g.id].replace(/</g,'&lt;')}</div>` : ''}
+            ${isTransferredIn ? `<div style="margin-top:8px;font-size:12px;color:#3b82f6">🔄 Урок перенесён с ${new Date(transferredInToday[g.id]).toLocaleDateString('ru')} на сегодня</div>` : ''}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
               ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
               ${roomStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🚪 ${roomStr}</span>`:''}
