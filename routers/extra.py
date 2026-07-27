@@ -865,6 +865,24 @@ def transfer_lesson(
         raise HTTPException(status_code=404, detail="Группа не найдена")
     if data.new_date == data.date:
         raise HTTPException(status_code=400, detail="Новая дата совпадает с исходной")
+    # исходная дата действительно является днём урока по расписанию группы?
+    weekday_map = {0: "MON", 1: "TUE", 2: "WED", 3: "THU", 4: "FRI", 5: "SAT", 6: "SUN"}
+    dow = weekday_map[data.date.weekday()]
+    scheduled_days = {s.day_of_week.value if hasattr(s.day_of_week, "value") else str(s.day_of_week) for s in group.schedule_slots}
+    if dow not in scheduled_days:
+        raise HTTPException(status_code=400, detail=f"У группы «{group.name}» нет урока в этот день ({data.date}) по расписанию")
+    # урок уже отменён на эту дату?
+    if db.query(models.CancelledLesson).filter(
+        models.CancelledLesson.group_id == data.group_id,
+        models.CancelledLesson.date == data.date,
+    ).first():
+        raise HTTPException(status_code=400, detail="Урок на эту дату уже отменён — перенести его нельзя")
+    # урок уже проведён (отчёт заполнен) на эту дату?
+    if db.query(models.Attendance).filter(
+        models.Attendance.group_id == data.group_id,
+        models.Attendance.date == data.date,
+    ).first():
+        raise HTTPException(status_code=400, detail="Урок на эту дату уже проведён (отчёт заполнен) — перенести его нельзя")
     # уже перенесён с этой даты?
     existing = db.query(models.TransferredLesson).filter(
         models.TransferredLesson.group_id == data.group_id,
