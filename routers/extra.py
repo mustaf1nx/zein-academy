@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
-from datetime import date
+from datetime import date, timedelta
 import calendar
 from database import get_db
 from dependencies import get_current_user, require_admin, require_admin_or_manager, log_action
@@ -659,6 +659,8 @@ def create_freeze(
         reason=data.reason,
     )
     db.add(fr)
+    db.flush()
+    recompute_student_paid_until(db, data.student_id)
     db.commit()
     db.refresh(fr)
     log_action(db, _, "create", "freeze", fr.id, f"Заморозка ученика {student.full_name}: {fr.start_date}—{fr.end_date}")
@@ -673,7 +675,10 @@ def delete_freeze(
 ):
     fr = db.query(models.Freeze).filter(models.Freeze.id == freeze_id).first()
     if fr:
+        student_id = fr.student_id
         db.delete(fr)
+        db.flush()
+        recompute_student_paid_until(db, student_id)
         db.commit()
     return None
 
@@ -1110,6 +1115,62 @@ def _add_months(d: date, months: int) -> date:
     day = min(d.day, calendar.monthrange(y, m)[1])
     return date(y, m, day)
 
+# ─── Пересчёт "оплачено до" с учётом заморозок ──────────────────────────────
+def _student_lesson_weekdays(db: Session, student_id: int) -> set:
+    """Объединение дней недели (MON..SUN), в которые у ученика идут уроки —
+    по всем группам, в которых он сейчас состоит."""
+    group_ids = [
+        gs.group_id for gs in
+        db.query(models.GroupStudent).filter(models.GroupStudent.student_id == student_id).all()
+    ]
+    if not group_ids:
+        return set()
+    slots = db.query(models.ScheduleSlot).filter(models.ScheduleSlot.group_id.in_(group_ids)).all()
+    return {s.day_of_week.value if hasattr(s.day_of_week, "value") else str(s.day_of_week) for s in slots}
+
+def _count_lesson_days(start: date, end: date, weekday_set: set) -> int:
+    """Сколько дней в диапазоне [start, end] — учебные дни по расписанию."""
+    if not weekday_set or start > end:
+        return 0
+    n = 0
+    d = start
+    while d <= end:
+        if _DOW_MAP[d.weekday()] in weekday_set:
+            n += 1
+        d += timedelta(days=1)
+    return n
+
+def _advance_by_lesson_days(base: date, n: int, weekday_set: set) -> date:
+    """Сдвигает base вперёд на n учебных дней (пропущенные уроки "дописываются" в конец)."""
+    if n <= 0:
+        return base
+    if not weekday_set:
+        # расписание неизвестно — сдвигаем на n календарных дней как запасной вариант
+        return base + timedelta(days=n)
+    d = base
+    counted = 0
+    while counted < n:
+        d += timedelta(days=1)
+        if _DOW_MAP[d.weekday()] in weekday_set:
+            counted += 1
+    return d
+
+def recompute_student_paid_until(db: Session, student_id: int):
+    """Пересчитывает Student.paid_until = (макс. дата по оплатам) + сдвиг за все заморозки."""
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        return
+    base = db.query(func.max(models.Payment.paid_until)).filter(
+        models.Payment.student_id == student_id
+    ).scalar()
+    if not base:
+        student.paid_until = None
+        return
+    weekday_set = _student_lesson_weekdays(db, student_id)
+    freezes = db.query(models.Freeze).filter(models.Freeze.student_id == student_id).all()
+    total_shift = sum(_count_lesson_days(f.start_date, f.end_date, weekday_set) for f in freezes)
+    student.paid_until = _advance_by_lesson_days(base, total_shift, weekday_set)
+
 @payments_router.get("/", response_model=List[schemas.PaymentOut])
 def list_payments(
     student_id: Optional[int] = Query(None),
@@ -1147,9 +1208,8 @@ def create_payment(
         note=data.note, created_by=current_user.id,
     )
     db.add(rec)
-    # обновляем кэш оплаты у ученика — берём максимум по всем платежам
-    if not student.paid_until or paid_until > student.paid_until:
-        student.paid_until = paid_until
+    db.flush()
+    recompute_student_paid_until(db, data.student_id)
     db.commit()
     db.refresh(rec)
     log_action(db, current_user, "create", "payment", rec.id,
@@ -1170,11 +1230,10 @@ def delete_payment(
     if not rec:
         raise HTTPException(status_code=404, detail="Запись не найдена")
     student = rec.student
+    student_id = rec.student_id
+    student_name = student.full_name if student else "?"
     db.delete(rec)
     db.flush()
-    # пересчитываем кэш paid_until ученика по оставшимся платежам
-    if student:
-        remaining = db.query(models.Payment).filter(models.Payment.student_id == student.id).all()
-        student.paid_until = max((p.paid_until for p in remaining), default=None)
+    recompute_student_paid_until(db, student_id)
     db.commit()
-    log_action(db, current_user, "delete", "payment", payment_id, f"Удалена оплата ученика {student.full_name if student else '?'}")
+    log_action(db, current_user, "delete", "payment", payment_id, f"Удалена оплата ученика {student_name}")
