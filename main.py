@@ -24,7 +24,7 @@ from routers.extra import (
     tasks_router, returns_router, forms_router, ent_router,
     forbidden_router, mentors_router, analytics_router, freezes_router, audit_router,
     characteristics_router, cancelled_router, transfer_router, fines_router,
-    substitutions_router,
+    substitutions_router, payments_router,
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -105,6 +105,7 @@ app.include_router(cancelled_router)
 app.include_router(transfer_router)
 app.include_router(fines_router)
 app.include_router(substitutions_router)
+app.include_router(payments_router)
 
 # Статические файлы (логотипы и пр.)
 _assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
@@ -217,6 +218,9 @@ def create_freeze_public(payload: schemas.FreezeCreate, db: Session = Depends(ge
         reason=payload.reason,
     )
     db.add(fr)
+    db.flush()
+    from routers.extra import recompute_student_paid_until
+    recompute_student_paid_until(db, payload.student_id)
     db.commit()
     db.refresh(fr)
     # Запись в журнал действий (заморозка оформлена по публичной ссылке)
