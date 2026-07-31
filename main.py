@@ -61,6 +61,15 @@ def _ensure_columns():
                 print("✅ Миграция: добавлена колонка groups.subject")
         except Exception as e:
             print(f"⚠ Миграция groups.subject пропущена: {e}")
+        # колонка даты окончания оплаты у учеников
+        try:
+            scols = [c["name"] for c in insp.get_columns("students")]
+            if "paid_until" not in scols:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE students ADD COLUMN paid_until DATE"))
+                print("✅ Миграция: добавлена колонка students.paid_until")
+        except Exception as e:
+            print(f"⚠ Миграция students.paid_until пропущена: {e}")
     except Exception as e:
         print(f"⚠ Миграция hourly_rate пропущена: {e}")
 
