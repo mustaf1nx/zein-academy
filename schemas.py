@@ -87,6 +87,7 @@ class StudentUpdate(BaseModel):
 class StudentOut(StudentBase):
     id: int
     status: StatusEnum
+    paid_until: Optional[date] = None
     created_at: datetime
     model_config = {"from_attributes": True}
 
@@ -441,6 +442,27 @@ class FineOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ─── Teacher Substitutions (замена учителя на один день) ───────────────────
+class SubstitutionIn(BaseModel):
+    group_id: int
+    date: date
+    substitute_teacher_id: int
+    reason: Optional[str] = None
+
+class SubstitutionOut(BaseModel):
+    id: int
+    group_id: int
+    group_name: Optional[str] = None
+    date: date
+    substitute_teacher_id: int
+    substitute_teacher_name: Optional[str] = None
+    original_teacher_id: Optional[int] = None
+    original_teacher_name: Optional[str] = None
+    reason: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
 # ─── Transferred Lessons ─────────────────────────────────────────────────────
 class TransferLessonIn(BaseModel):
     group_id: int
@@ -456,5 +478,29 @@ class TransferLessonOut(BaseModel):
     reason: Optional[str] = None
     transferred_by: Optional[int] = None
     group_name: Optional[str] = None
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
+# ─── Payments (Оплаты учеников) ──────────────────────────────────────────────
+class PaymentIn(BaseModel):
+    student_id: int
+    start_date: date
+    months: int = 0
+    gift_months: int = 0
+    amount: Optional[int] = None
+    note: Optional[str] = None
+
+class PaymentOut(BaseModel):
+    id: int
+    student_id: int
+    student_name: Optional[str] = None
+    start_date: date
+    months: int
+    gift_months: int
+    amount: Optional[int] = None
+    paid_until: date
+    note: Optional[str] = None
+    created_by: Optional[int] = None
     created_at: datetime
     model_config = {"from_attributes": True}

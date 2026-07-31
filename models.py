@@ -111,6 +111,7 @@ class Student(Base):
     parent_phone = Column(String(20))
     branch = Column(String(100))
     status = Column(SAEnum(StatusEnum), default=StatusEnum.ACTIVE)
+    paid_until = Column(Date, nullable=True)   # до какой даты оплачено обучение (кэш, пересчитывается из Payment)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -118,6 +119,7 @@ class Student(Base):
     attendance_records = relationship("Attendance", back_populates="student")
     mentor_assignment = relationship("MentorAssignment", back_populates="student", uselist=False)
     returns = relationship("Return", back_populates="student")
+    payments = relationship("Payment", back_populates="student", order_by="Payment.start_date")
 
 
 # ─── Classrooms ───────────────────────────────────────────────────────────────
@@ -320,6 +322,25 @@ class ForbiddenDate(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+# ─── Payments (Оплаты учеников) ──────────────────────────────────────────────
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    start_date = Column(Date, nullable=False)     # с какой даты считается период оплаты
+    months = Column(Integer, nullable=False, default=0)        # оплаченные месяцы
+    gift_months = Column(Integer, nullable=False, default=0)   # подарочные месяцы
+    amount = Column(Integer, nullable=True)       # сумма оплаты, тенге (опционально)
+    paid_until = Column(Date, nullable=False)     # рассчитанная дата окончания периода
+    note = Column(Text, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    student = relationship("Student", back_populates="payments")
+
+
 # ─── Freezes (Заморозки) ─────────────────────────────────────────────────────
 
 class Freeze(Base):
@@ -390,6 +411,22 @@ class Fine(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     teacher = relationship("User", foreign_keys=[teacher_id])
+
+
+# ─── Замена преподавателя на один день ─────────────────────────────────────
+class TeacherSubstitution(Base):
+    __tablename__ = "teacher_substitutions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    substitute_teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reason = Column(Text, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    group = relationship("Group")
+    substitute_teacher = relationship("User", foreign_keys=[substitute_teacher_id])
 
 
 # ─── Перенесённые уроки (админ переносит урок группы на другую дату) ──────────

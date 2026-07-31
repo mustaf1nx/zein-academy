@@ -24,6 +24,7 @@ from routers.extra import (
     tasks_router, returns_router, forms_router, ent_router,
     forbidden_router, mentors_router, analytics_router, freezes_router, audit_router,
     characteristics_router, cancelled_router, transfer_router, fines_router,
+    substitutions_router,
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -94,6 +95,7 @@ app.include_router(characteristics_router)
 app.include_router(cancelled_router)
 app.include_router(transfer_router)
 app.include_router(fines_router)
+app.include_router(substitutions_router)
 
 # Статические файлы (логотипы и пр.)
 _assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
