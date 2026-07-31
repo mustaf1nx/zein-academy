@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 from datetime import date
+import calendar
 from database import get_db
 from dependencies import get_current_user, require_admin, require_admin_or_manager, log_action
 import models, schemas
@@ -987,3 +988,193 @@ def delete_fine(
     db.commit()
     log_action(db, current_user, "delete", "fine", fine_id,
                f"Удалён штраф {amount} ₸ преподавателя {tname}")
+
+
+# ─── Teacher Substitutions (замена преподавателя на один день) ─────────────
+substitutions_router = APIRouter(prefix="/api/substitutions", tags=["Teacher Substitutions"])
+
+_DOW_MAP = {0: "MON", 1: "TUE", 2: "WED", 3: "THU", 4: "FRI", 5: "SAT", 6: "SUN"}
+
+def _scheduled_days(group) -> set:
+    return {s.day_of_week.value if hasattr(s.day_of_week, "value") else str(s.day_of_week) for s in group.schedule_slots}
+
+@substitutions_router.get("/", response_model=List[schemas.SubstitutionOut])
+def list_substitutions(
+    group_id: Optional[int] = Query(None),
+    date_: Optional[date] = Query(None, alias="date"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    q = db.query(models.TeacherSubstitution)
+    if current_user.role == models.RoleEnum.teacher:
+        my_group_ids = [g.id for g in db.query(models.Group).filter(models.Group.teacher_id == current_user.id).all()]
+        q = q.filter(
+            (models.TeacherSubstitution.substitute_teacher_id == current_user.id) |
+            (models.TeacherSubstitution.group_id.in_(my_group_ids))
+        )
+    if group_id:
+        q = q.filter(models.TeacherSubstitution.group_id == group_id)
+    if date_:
+        q = q.filter(models.TeacherSubstitution.date == date_)
+    rows = q.order_by(models.TeacherSubstitution.date.desc()).all()
+    out = []
+    for r in rows:
+        out.append(schemas.SubstitutionOut(
+            id=r.id, group_id=r.group_id, group_name=r.group.name if r.group else None,
+            date=r.date, substitute_teacher_id=r.substitute_teacher_id,
+            substitute_teacher_name=r.substitute_teacher.full_name if r.substitute_teacher else None,
+            original_teacher_id=r.group.teacher_id if r.group else None,
+            original_teacher_name=r.group.teacher.full_name if r.group and r.group.teacher else None,
+            reason=r.reason, created_at=r.created_at,
+        ))
+    return out
+
+@substitutions_router.post("/", response_model=schemas.SubstitutionOut, status_code=201)
+def create_substitution(
+    data: schemas.SubstitutionIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="Группа не найдена")
+    substitute = db.query(models.User).filter(models.User.id == data.substitute_teacher_id).first()
+    if not substitute or substitute.role != models.RoleEnum.teacher:
+        raise HTTPException(status_code=404, detail="Преподаватель не найден")
+    if data.substitute_teacher_id == group.teacher_id:
+        raise HTTPException(status_code=400, detail="Этот преподаватель и так ведёт данную группу")
+    dow = _DOW_MAP[data.date.weekday()]
+    if dow not in _scheduled_days(group):
+        raise HTTPException(status_code=400, detail=f"У группы «{group.name}» нет урока в этот день ({data.date}) по расписанию")
+    if db.query(models.CancelledLesson).filter(
+        models.CancelledLesson.group_id == data.group_id,
+        models.CancelledLesson.date == data.date,
+    ).first():
+        raise HTTPException(status_code=400, detail="Урок на эту дату отменён — замену назначить нельзя")
+    if db.query(models.TransferredLesson).filter(
+        models.TransferredLesson.group_id == data.group_id,
+        models.TransferredLesson.date == data.date,
+    ).first():
+        raise HTTPException(status_code=400, detail="Урок на эту дату перенесён на другой день — замену назначить нельзя")
+    if db.query(models.Attendance).filter(
+        models.Attendance.group_id == data.group_id,
+        models.Attendance.date == data.date,
+    ).first():
+        raise HTTPException(status_code=400, detail="Урок на эту дату уже проведён (отчёт заполнен) — замену назначить нельзя")
+    existing = db.query(models.TeacherSubstitution).filter(
+        models.TeacherSubstitution.group_id == data.group_id,
+        models.TeacherSubstitution.date == data.date,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="На эту дату замена уже назначена")
+    rec = models.TeacherSubstitution(
+        group_id=data.group_id, date=data.date, substitute_teacher_id=data.substitute_teacher_id,
+        reason=data.reason, created_by=current_user.id,
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "teacher_substitution", rec.id,
+               f"Замена в группе {group.name} на {data.date}: {substitute.full_name}")
+    return schemas.SubstitutionOut(
+        id=rec.id, group_id=rec.group_id, group_name=group.name, date=rec.date,
+        substitute_teacher_id=rec.substitute_teacher_id, substitute_teacher_name=substitute.full_name,
+        original_teacher_id=group.teacher_id, original_teacher_name=group.teacher.full_name if group.teacher else None,
+        reason=rec.reason, created_at=rec.created_at,
+    )
+
+@substitutions_router.delete("/{sub_id}", status_code=204)
+def cancel_substitution(
+    sub_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    rec = db.query(models.TeacherSubstitution).filter(models.TeacherSubstitution.id == sub_id).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Запись не найдена")
+    gname = rec.group.name if rec.group else "?"
+    gdate = rec.date
+    db.delete(rec)
+    db.commit()
+    log_action(db, current_user, "delete", "teacher_substitution", sub_id,
+               f"Отменена замена преподавателя в группе {gname} на {gdate}")
+
+
+# ─── Payments (Оплаты учеников) ─────────────────────────────────────────────
+payments_router = APIRouter(prefix="/api/payments", tags=["Payments"])
+
+def _add_months(d: date, months: int) -> date:
+    m = d.month - 1 + months
+    y = d.year + m // 12
+    m = m % 12 + 1
+    day = min(d.day, calendar.monthrange(y, m)[1])
+    return date(y, m, day)
+
+@payments_router.get("/", response_model=List[schemas.PaymentOut])
+def list_payments(
+    student_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
+    q = db.query(models.Payment)
+    if student_id:
+        q = q.filter(models.Payment.student_id == student_id)
+    rows = q.order_by(models.Payment.start_date.desc()).all()
+    return [
+        schemas.PaymentOut(
+            id=r.id, student_id=r.student_id, student_name=r.student.full_name if r.student else None,
+            start_date=r.start_date, months=r.months, gift_months=r.gift_months, amount=r.amount,
+            paid_until=r.paid_until, note=r.note, created_by=r.created_by, created_at=r.created_at,
+        ) for r in rows
+    ]
+
+@payments_router.post("/", response_model=schemas.PaymentOut, status_code=201)
+def create_payment(
+    data: schemas.PaymentIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin_or_manager),
+):
+    student = db.query(models.Student).filter(models.Student.id == data.student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Ученик не найден")
+    total_months = (data.months or 0) + (data.gift_months or 0)
+    if total_months <= 0:
+        raise HTTPException(status_code=400, detail="Укажите оплаченные месяцы (или подарочные)")
+    paid_until = _add_months(data.start_date, total_months)
+    rec = models.Payment(
+        student_id=data.student_id, start_date=data.start_date, months=data.months or 0,
+        gift_months=data.gift_months or 0, amount=data.amount, paid_until=paid_until,
+        note=data.note, created_by=current_user.id,
+    )
+    db.add(rec)
+    # обновляем кэш оплаты у ученика — берём максимум по всем платежам
+    if not student.paid_until or paid_until > student.paid_until:
+        student.paid_until = paid_until
+    db.commit()
+    db.refresh(rec)
+    log_action(db, current_user, "create", "payment", rec.id,
+               f"Оплата ученика {student.full_name}: {data.months}+{data.gift_months} мес. до {paid_until}")
+    return schemas.PaymentOut(
+        id=rec.id, student_id=rec.student_id, student_name=student.full_name,
+        start_date=rec.start_date, months=rec.months, gift_months=rec.gift_months, amount=rec.amount,
+        paid_until=rec.paid_until, note=rec.note, created_by=rec.created_by, created_at=rec.created_at,
+    )
+
+@payments_router.delete("/{payment_id}", status_code=204)
+def delete_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    rec = db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Запись не найдена")
+    student = rec.student
+    db.delete(rec)
+    db.flush()
+    # пересчитываем кэш paid_until ученика по оставшимся платежам
+    if student:
+        remaining = db.query(models.Payment).filter(models.Payment.student_id == student.id).all()
+        student.paid_until = max((p.paid_until for p in remaining), default=None)
+    db.commit()
+    log_action(db, current_user, "delete", "payment", payment_id, f"Удалена оплата ученика {student.full_name if student else '?'}")

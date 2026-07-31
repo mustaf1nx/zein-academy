@@ -33,6 +33,17 @@ def save_attendance(
             status_code=400,
             detail=f"Урок перенесён администратором на {transferred.new_date.strftime('%d.%m.%Y')} — отчёт заполнить можно только в этот день",
         )
+    # Назначена замена преподавателя на эту дату — заполнить может только замещающий (или админ)
+    substitution = db.query(models.TeacherSubstitution).filter(
+        models.TeacherSubstitution.group_id == data.group_id,
+        models.TeacherSubstitution.date == data.date,
+    ).first()
+    if substitution and current_user.role != models.RoleEnum.admin and current_user.id != substitution.substitute_teacher_id:
+        sub_name = substitution.substitute_teacher.full_name if substitution.substitute_teacher else "другой преподаватель"
+        raise HTTPException(
+            status_code=400,
+            detail=f"На эту дату назначена замена — отчёт заполняет {sub_name}",
+        )
     # Determine which students are frozen on this date (server-side guard)
     frozen_ids = {
         f.student_id for f in db.query(models.Freeze).filter(
