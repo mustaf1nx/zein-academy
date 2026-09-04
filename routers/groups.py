@@ -4,7 +4,10 @@ from typing import List, Optional
 from database import get_db
 from dependencies import get_current_user, require_admin, log_action
 import models, schemas
-from models import GroupStudent, ScheduleSlot, Attendance
+from models import (
+    GroupStudent, ScheduleSlot, Attendance,
+    TeacherSubstitution, CancelledLesson, TransferredLesson,
+)
 
 router = APIRouter(prefix="/api/groups", tags=["Groups"])
 
@@ -123,6 +126,12 @@ def delete_group(
         models.ScheduleSlot.group_id == group_id).delete(synchronize_session=False)
     db.query(models.Attendance).filter(
         models.Attendance.group_id == group_id).delete(synchronize_session=False)
+    db.query(models.TeacherSubstitution).filter(
+        models.TeacherSubstitution.group_id == group_id).delete(synchronize_session=False)
+    db.query(models.CancelledLesson).filter(
+        models.CancelledLesson.group_id == group_id).delete(synchronize_session=False)
+    db.query(models.TransferredLesson).filter(
+        models.TransferredLesson.group_id == group_id).delete(synchronize_session=False)
     gname = g.name
     db.delete(g)
     db.commit()
