@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator, Field
 from typing import Optional, List
 from datetime import datetime, date, time
 from models import RoleEnum, LangEnum, StatusEnum, AttendanceStatus, TaskStatus, DayOfWeek
@@ -25,6 +25,7 @@ class TokenResponse(BaseModel):
     full_name: str
     initials: Optional[str] = None
     user_id: int
+    can_teach: bool = False
     iin: Optional[str] = None
 
 
@@ -35,23 +36,46 @@ class UserBase(BaseModel):
     full_name: str
     initials: Optional[str] = None
     role: RoleEnum
+    can_teach: bool = False
     phone: Optional[str] = None
     subject: Optional[str] = None
-    hourly_rate: Optional[int] = None
+    hourly_rate: Optional[int] = Field(None, ge=0)
     branch: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
 
+    @field_validator("iin")
+    @classmethod
+    def valid_staff_iin(cls, value):
+        if not re.fullmatch(r"[0-9]{12}", value):
+            raise ValueError("ИИН должен содержать 12 цифр")
+        return value
+
+    @field_validator("password")
+    @classmethod
+    def valid_password(cls, value):
+        if not 8 <= len(value.encode("utf-8")) <= 72:
+            raise ValueError("Пароль должен занимать от 8 до 72 байт UTF-8")
+        return value
+
 class UserUpdate(BaseModel):
+    can_teach: Optional[bool] = None
     full_name: Optional[str] = None
     initials: Optional[str] = None
     phone: Optional[str] = None
     subject: Optional[str] = None
-    hourly_rate: Optional[int] = None
+    hourly_rate: Optional[int] = Field(None, ge=0)
     branch: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def valid_password(cls, value):
+        if value is not None and not 8 <= len(value.encode("utf-8")) <= 72:
+            raise ValueError("Пароль должен занимать от 8 до 72 байт UTF-8")
+        return value
 
 class UserOut(UserBase):
     id: int
@@ -123,10 +147,23 @@ class ScheduleSlotBase(BaseModel):
     start_time: time
     end_time: time
 
+    @model_validator(mode="after")
+    def validate_interval(self):
+        if self.end_time <= self.start_time:
+            raise ValueError("Окончание урока должно быть позже начала в пределах одного дня")
+        if self.start_time.second or self.end_time.second:
+            raise ValueError("В расписании указывается время с точностью до минуты")
+        return self
+
 class ScheduleSlotCreate(ScheduleSlotBase):
     group_id: int
 
-class ScheduleSlotOut(ScheduleSlotBase):
+class ScheduleSlotOut(BaseModel):
+    # Read legacy data without applying new write validation. A malformed old
+    # slot must not make every group/timetable request fail.
+    day_of_week: DayOfWeek
+    start_time: time
+    end_time: time
     id: int
     group_id: int
     model_config = {"from_attributes": True}
@@ -145,9 +182,11 @@ class GroupBase(BaseModel):
     branch: Optional[str] = None
 
 class GroupCreate(GroupBase):
-    pass
+    schedule: List[ScheduleSlotBase] = Field(default_factory=list, max_length=100)
+    student_ids: List[int] = Field(default_factory=list, max_length=1000)
 
 class GroupUpdate(BaseModel):
+    schedule: Optional[List[ScheduleSlotBase]] = Field(None, max_length=100)
     name: Optional[str] = None
     subject: Optional[str] = None
     grade: Optional[int] = None
@@ -188,20 +227,39 @@ class MentorAssignOut(BaseModel):
 # ─── Attendance ───────────────────────────────────────────────────────────────
 
 class AttendanceRecord(BaseModel):
-    student_id: int
+    student_id: int = Field(gt=0)
     status: AttendanceStatus
-    score_1: Optional[float] = None
-    score_2: Optional[float] = None
+    score_1: Optional[float] = Field(None, ge=1, le=10, allow_inf_nan=False)
+    score_2: Optional[float] = Field(None, ge=1, le=10, allow_inf_nan=False)
 
 class AttendanceSaveRequest(BaseModel):
-    group_id: int
+    group_id: int = Field(gt=0)
     date: date
-    records: List[AttendanceRecord]
-    lesson_topic: Optional[str] = None
-    homework: Optional[str] = None
+    slot_id: Optional[int] = Field(None, gt=0)
+    report_id: Optional[int] = Field(None, gt=0)
+    expected_revision: int = Field(0, ge=0)
+    taught_by: Optional[int] = Field(None, gt=0)
+    records: List[AttendanceRecord] = Field(min_length=1, max_length=1000)
+    lesson_topic: str = Field(min_length=1, max_length=10000)
+    homework: str = Field(min_length=1, max_length=10000)
+
+    @field_validator("lesson_topic", "homework")
+    @classmethod
+    def trim_required(cls, v):
+        if not v.strip():
+            raise ValueError("Заполните тему урока и домашнее задание")
+        return v.strip()
+
+    @model_validator(mode="after")
+    def no_duplicate_students(self):
+        ids = [r.student_id for r in self.records]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Ученик повторяется в отчёте")
+        return self
 
 class AttendanceOut(BaseModel):
     id: int
+    report_id: Optional[int] = None
     group_id: int
     student_id: int
     student_name: str
@@ -211,6 +269,9 @@ class AttendanceOut(BaseModel):
     score_2: Optional[float] = None
     lesson_topic: Optional[str] = None
     homework: Optional[str] = None
+    recorded_by: Optional[int] = None
+    teacher_id: Optional[int] = None
+    revision: Optional[int] = None
     model_config = {"from_attributes": True}
 
 class AttendanceSummary(BaseModel):
