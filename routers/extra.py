@@ -243,9 +243,30 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
         raise HTTPException(404, "Тест не найден")
     
     correct = t.correct_answers or {}
-    student_answers = data.get("answers", {})
-    subject1 = data.get("subject1", "")
-    subject2 = data.get("subject2", "")
+    student_answers = data.get("answers", {}) or {}
+    subject1 = (data.get("subject1") or "").strip()
+    subject2 = (data.get("subject2") or "").strip()
+    creative_exam = "Творческий экзамен"
+    is_creative = subject1 == creative_exam or subject2 == creative_exam
+
+    # Серверная защита от некорректных комбинаций, даже если обойти интерфейс.
+    if subject1 == creative_exam and subject2 == creative_exam:
+        raise HTTPException(status_code=400, detail="Творческий экзамен нельзя выбрать дважды")
+    if not is_creative and subject1 and subject2 and subject1 == subject2:
+        raise HTTPException(status_code=400, detail="Профильные предметы должны быть разными")
+    if not is_creative and (not subject1 or not subject2):
+        raise HTTPException(status_code=400, detail="Нужно выбрать два профильных предмета")
+
+    if is_creative:
+        # Нормализуем творческий ЕНТ: один маркер формата, без второго профильного
+        # и без любых подложенных ответов профильных секций.
+        subject1 = creative_exam
+        subject2 = ""
+        student_answers = {
+            key: student_answers.get(key, {})
+            for key in ("history", "reading", "math")
+        }
+
     scores = {}
     total = 0
 
@@ -295,16 +316,18 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
         scores[key] = calc_score(s_ans, c_ans)
         total += scores[key]
 
-    # Profile subjects - match by student's chosen subject name
-    s1_ans = student_answers.get('subject1', {})
-    c1_ans = correct.get(subject1, {})
-    scores['subject1'] = calc_score(s1_ans, c1_ans)
-    total += scores['subject1']
+    # Профильные секции считаем только для обычного ЕНТ.
+    # Для творческого результата содержит только три обязательных предмета.
+    if not is_creative:
+        s1_ans = student_answers.get('subject1', {})
+        c1_ans = correct.get(subject1, {})
+        scores['subject1'] = calc_score(s1_ans, c1_ans)
+        total += scores['subject1']
 
-    s2_ans = student_answers.get('subject2', {})
-    c2_ans = correct.get(subject2, {})
-    scores['subject2'] = calc_score(s2_ans, c2_ans)
-    total += scores['subject2']
+        s2_ans = student_answers.get('subject2', {})
+        c2_ans = correct.get(subject2, {})
+        scores['subject2'] = calc_score(s2_ans, c2_ans)
+        total += scores['subject2']
 
     result = models.ENTStudentResult(
         test_id=test_id,
