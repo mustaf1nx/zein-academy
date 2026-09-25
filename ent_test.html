@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ЕНТ — Zein Academy</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
@@ -139,6 +139,8 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
 }
 
 .form-select { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; font-family:inherit; outline:none; background:#fff; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
+.form-select:disabled { background-color:#f3f4f6; color:#aaa; cursor:not-allowed; }
+.form-hint { font-size:12px; color:#6366f1; margin-top:6px; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 @media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
 
@@ -254,6 +256,9 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
           </select>
         </div>
       </div>
+      <div class="form-hint" id="creative-hint" style="display:none">
+        Выбран творческий экзамен — второй профильный предмет не нужен, его тест сдавать не требуется.
+      </div>
     </div>
   </div>
 
@@ -281,6 +286,7 @@ let answers = {}; // { subject: { "1": "A", "2": ["A","B"] } }
 let currentStep = 0;
 let sections = [];
 
+const CREATIVE_EXAM = 'Творческий экзамен';
 const SUBJECTS = ['history', 'reading', 'math', 'subject1', 'subject2'];
 const SUBJECT_NAMES = {
   history: 'История Казахстана',
@@ -407,7 +413,43 @@ document.addEventListener('DOMContentLoaded', () => {
       input.style.backgroundColor = '#fff';
     });
   });
+  setupSubjectSelects();
 });
+
+// === Логика выбора профильных предметов / творческого экзамена ===
+// Если выбран "Творческий экзамен" в одном из полей — второе поле
+// блокируется и очищается (профильных тестов при творческом нет).
+function syncSubjectSelects() {
+  const s1 = document.getElementById('st-subj1');
+  const s2 = document.getElementById('st-subj2');
+  const hint = document.getElementById('creative-hint');
+  if (!s1 || !s2) return;
+
+  if (s1.value === CREATIVE_EXAM) {
+    s2.value = '';
+    s2.disabled = true;
+    s1.disabled = false;
+    hint.style.display = '';
+  } else if (s2.value === CREATIVE_EXAM) {
+    s1.value = '';
+    s1.disabled = true;
+    s2.disabled = false;
+    hint.style.display = '';
+  } else {
+    s1.disabled = false;
+    s2.disabled = false;
+    hint.style.display = 'none';
+  }
+}
+
+function setupSubjectSelects() {
+  const s1 = document.getElementById('st-subj1');
+  const s2 = document.getElementById('st-subj2');
+  if (!s1 || !s2) return;
+  s1.addEventListener('change', syncSubjectSelects);
+  s2.addEventListener('change', syncSubjectSelects);
+  syncSubjectSelects();
+}
   
 async function init() {
   if (!TEST_ID) { showError(); return; }
@@ -432,6 +474,7 @@ async function init() {
       if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
       if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
       if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      syncSubjectSelects();
       
       // Переход к нужному шагу
       if (currentStep >= 1) {
@@ -445,14 +488,14 @@ async function init() {
         document.getElementById('btn-back').style.display = 'none';
       }
       
-      updateProgress(currentStep, 6);
+      updateProgress(currentStep, sections.length + 1);
     } else {
       // Обычный запуск без сохранённых данных
       document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('step-info').classList.remove('hidden');
       document.getElementById('nav-bar').style.display = 'flex';
       document.getElementById('btn-back').style.display = 'none';
-      updateProgress(0, 6);
+      updateProgress(0, 5);
     }
   } catch(e) { showError(); }
 }
@@ -487,13 +530,30 @@ function goNext() {
       showToast('Введите номер родителя', 'error');
       return;
     }
-    if (!subj1 || !subj2) { 
-      showToast('Выберите профильные предметы', 'warning'); 
-      return; 
+    const isCreative1 = subj1 === CREATIVE_EXAM;
+    const isCreative2 = subj2 === CREATIVE_EXAM;
+    const isCreative = isCreative1 || isCreative2;
+
+    if (isCreative1 && isCreative2) {
+      showToast('Нельзя выбрать творческий экзамен дважды', 'warning');
+      return;
     }
-    if (subj1 === subj2) { 
-      showToast('Профильные предметы должны быть разными', 'warning'); 
-      return; 
+    if (isCreative) {
+      // Творческий экзамен заменяет собой оба профильных предмета —
+      // второе поле в этом случае должно быть пустым.
+      if (!subj1 && !subj2) {
+        showToast('Выберите профильный предмет или творческий экзамен', 'warning');
+        return;
+      }
+    } else {
+      if (!subj1 || !subj2) { 
+        showToast('Выберите профильные предметы', 'warning'); 
+        return; 
+      }
+      if (subj1 === subj2) { 
+        showToast('Профильные предметы должны быть разными', 'warning'); 
+        return; 
+      }
     }
     
     // Успешное уведомление
@@ -503,20 +563,26 @@ function goNext() {
       name, 
       grade,
       phone: phone,
-      subj1, 
-      subj2
+      subj1: isCreative1 ? CREATIVE_EXAM : subj1,
+      subj2: isCreative2 ? CREATIVE_EXAM : subj2,
+      isCreative
     };
-    
-    SUBJECT_NAMES.subject1 = subj1;
-    SUBJECT_NAMES.subject2 = subj2;
     
     sections = [
       { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
       { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
       { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math },
-      { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
-      { key: 'subject2', name: subj2, structure: STRUCTURE.profile },
     ];
+
+    if (!isCreative) {
+      // Профильные предметы — тест сдаётся только если это НЕ творческий экзамен
+      SUBJECT_NAMES.subject1 = subj1;
+      SUBJECT_NAMES.subject2 = subj2;
+      sections.push(
+        { key: 'subject1', name: subj1, structure: STRUCTURE.profile },
+        { key: 'subject2', name: subj2, structure: STRUCTURE.profile }
+      );
+    }
     
     sections.forEach(s => { answers[s.key] = {}; });
     currentStep = 1;
@@ -541,7 +607,7 @@ function goBack() {
     document.getElementById('step-questions').classList.add('hidden');
     document.getElementById('step-info').classList.remove('hidden');
     document.getElementById('btn-back').style.display = 'none';
-    updateProgress(0, 6);
+    updateProgress(0, sections.length + 1);
     saveProgress();
   } else {
     currentStep--;

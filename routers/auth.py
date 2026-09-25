@@ -28,7 +28,6 @@ def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
         initials=user.initials,
         user_id=user.id,
         iin=user.iin,
-        can_teach=user.can_teach or user.role == models.RoleEnum.teacher,
     )
 
 

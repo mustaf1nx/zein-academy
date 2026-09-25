@@ -1,6 +1,6 @@
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, Date, Time, false,
-    ForeignKey, Text, Float, Enum as SAEnum, UniqueConstraint, Index
+    Column, Integer, String, Boolean, DateTime, Date, Time,
+    ForeignKey, Text, Float, Enum as SAEnum
 )
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.types import TypeDecorator
@@ -14,7 +14,6 @@ from datetime import datetime
 class UniversalJSON(TypeDecorator):
     """JSON тип который работает с PostgreSQL и SQLite"""
     impl = Text
-    cache_ok = True
     
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
@@ -83,10 +82,9 @@ class User(Base):
     full_name = Column(String(200), nullable=False)
     initials = Column(String(10))
     role = Column(SAEnum(RoleEnum), nullable=False)
-    can_teach = Column(Boolean, nullable=False, default=False, server_default=false())
     phone = Column(String(20))
     subject = Column(String(100))          # для учителей — предмет
-    hourly_rate = Column(Integer, nullable=True)   # историческое имя поля; в интерфейсе это ставка за один урок, тенге
+    hourly_rate = Column(Integer, nullable=True)   # ставка за час (тенге), для учителей
     branch = Column(String(100))           # филиал
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -207,59 +205,10 @@ class ScheduleSlot(Base):
 
 # ─── Attendance ───────────────────────────────────────────────────────────────
 
-class LessonReport(Base):
-    """A submitted lesson, independent of current group membership/teacher.
-
-    Context and compensation are snapshots, modified only by an explicit audited
-    repair of legacy attribution. Schedule IDs deliberately have no FK: editing
-    the timetable must not delete or relink a submitted lesson.
-    """
-    __tablename__ = "lesson_reports"
-    __table_args__ = (
-        UniqueConstraint("group_id", "date", "slot_key", name="uq_lesson_report_occurrence"),
-        Index("ix_lesson_reports_teacher_date", "teacher_id", "date"),
-        Index("ix_lesson_reports_group_date", "group_id", "date"),
-    )
-    id = Column(Integer, primary_key=True)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
-    slot_key = Column(String(80), nullable=False)  # slot:<id> or legacy
-    schedule_slot_id = Column(Integer, nullable=True)
-    start_time = Column(Time, nullable=True)
-    end_time = Column(Time, nullable=True)
-    teacher_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    teacher_name = Column(String(200), nullable=True)
-    group_name = Column(String(100), nullable=False)
-    subject = Column(String(150), nullable=True)
-    language = Column(String(10), nullable=True)
-    lesson_rate = Column(Integer, nullable=True)  # existing business rule: per lesson
-    lesson_topic = Column(Text, nullable=True)
-    homework = Column(Text, nullable=True)
-    recorded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    revision = Column(Integer, nullable=False, default=1)
-    needs_review = Column(Boolean, nullable=False, default=False)
-    provenance = Column(String(80), nullable=False, default="submitted")
-    review_note = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-
-class SchemaMigration(Base):
-    __tablename__ = "schema_migrations"
-    version = Column(String(100), primary_key=True)
-    applied_at = Column(DateTime(timezone=True), server_default=func.now())
-
-
 class Attendance(Base):
     __tablename__ = "attendance"
-    __table_args__ = (
-        Index("ix_attendance_group_date", "group_id", "date"),
-        Index("ix_attendance_report_student", "report_id", "student_id"),
-    )
 
     id = Column(Integer, primary_key=True, index=True)
-    report_id = Column(Integer, ForeignKey("lesson_reports.id"), nullable=True)
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     date = Column(Date, nullable=False)

@@ -87,21 +87,24 @@ def delete_student(
     s = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not s:
         raise HTTPException(status_code=404, detail="Ученик не найден")
-    s.status = models.StatusEnum.INACTIVE
-    db.commit()
-    log_action(db, current_user, "update", "student", student_id, f"Архивирован ученик: {s.full_name}; история сохранена")
-
-
-@router.post('/{student_id}/freeze-link')
-def create_freeze_link(student_id: int, db: Session = Depends(get_db),
-                       user: models.User = Depends(get_current_user)):
-    from share_links import issue_freeze_token, LINK_DAYS
-    permitted = user.role in (models.RoleEnum.admin, models.RoleEnum.manager)
-    if user.role == models.RoleEnum.mentor:
-        permitted = bool(db.query(models.MentorAssignment.id).filter_by(mentor_id=user.id,student_id=student_id).first())
-    if not permitted:
-        raise HTTPException(403,'Ссылку выдаёт администратор, менеджер или назначенный ментор')
-    if not db.get(models.Student,student_id):
-        raise HTTPException(404,'Ученик не найден')
-    token = issue_freeze_token(student_id)
-    return {'path':f'/freezing?id={student_id}&token={token}','expires_in_days':LINK_DAYS}
+    # Удалить связанные данные
+    db.query(models.GroupStudent).filter(
+        models.GroupStudent.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Attendance).filter(
+        models.Attendance.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.MentorAssignment).filter(
+        models.MentorAssignment.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Return).filter(
+        models.Return.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Freeze).filter(
+        models.Freeze.student_id == student_id).delete(synchronize_session=False)
+    db.query(models.Characteristic).filter(
+        models.Characteristic.student_id == student_id).delete(synchronize_session=False)
+    name = s.full_name
+    db.delete(s)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Не удалось удалить ученика: есть связанные записи")
+    log_action(db, current_user, "delete", "student", student_id, f"Удалён ученик: {name}")

@@ -5,10 +5,8 @@ Each router is defined in this file and exported.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload, selectinload
-from lesson_service import can_teach, payroll, date_slots
-from clock import today as business_today
-from sqlalchemy import func, or_, and_
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from datetime import date, timedelta
 import calendar
@@ -449,7 +447,7 @@ def summary(db: Session = Depends(get_db), _: models.User = Depends(get_current_
     active_students = db.query(models.Student).filter(models.Student.status == models.StatusEnum.ACTIVE).count()
     total_groups = db.query(models.Group).count()
     active_groups = db.query(models.Group).filter(models.Group.status == models.StatusEnum.ACTIVE).count()
-    total_teachers = db.query(models.User).filter(or_(models.User.role == models.RoleEnum.teacher, and_(models.User.role == models.RoleEnum.admin, models.User.can_teach.is_(True))), models.User.is_active == True).count()
+    total_teachers = db.query(models.User).filter(models.User.role == models.RoleEnum.teacher, models.User.is_active == True).count()
     total_mentors = db.query(models.User).filter(models.User.role == models.RoleEnum.mentor, models.User.is_active == True).count()
     total_managers = db.query(models.User).filter(models.User.role == models.RoleEnum.manager, models.User.is_active == True).count()
     return schemas.AnalyticsSummary(
@@ -490,7 +488,7 @@ def group_size_distribution(db: Session = Depends(get_db), _: models.User = Depe
 def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
     """Подробная аналитика: посещаемость, баллы, распределения, нагрузка."""
     from datetime import date, timedelta
-    today = business_today()
+    today = date.today()
     since = today - timedelta(days=30)
 
     # ── Посещаемость за 30 дней ──
@@ -533,7 +531,7 @@ def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(r
 
     # ── Нагрузка преподавателей (групп на каждого) ──
     teachers = db.query(models.User).filter(
-        or_(models.User.role == models.RoleEnum.teacher, and_(models.User.role == models.RoleEnum.admin, models.User.can_teach.is_(True))), models.User.is_active == True).all()
+        models.User.role == models.RoleEnum.teacher, models.User.is_active == True).all()
     teacher_load = []
     for t in teachers:
         cnt = sum(1 for g in groups if g.teacher_id == t.id)
@@ -553,7 +551,8 @@ def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(r
     cancelled_30 = db.query(models.CancelledLesson).filter(models.CancelledLesson.date >= since).count()
     freezes_active = db.query(models.Freeze).filter(
         models.Freeze.start_date <= today, models.Freeze.end_date >= today).count()
-    lessons_recorded_30 = db.query(models.LessonReport).filter(models.LessonReport.date >= since, models.LessonReport.date <= today).count()
+    lessons_recorded_30 = db.query(models.Attendance.group_id, models.Attendance.date).filter(
+        models.Attendance.date >= since).distinct().count()
 
     return {
         "attendance": {
@@ -574,10 +573,56 @@ def analytics_overview(db: Session = Depends(get_db), _: models.User = Depends(r
 
 
 @analytics_router.get("/teacher-reports")
-def teacher_reports(date_from: Optional[date] = None, date_to: Optional[date] = None,
-                    teacher_id: Optional[int] = None, db: Session = Depends(get_db),
-                    current_user: models.User = Depends(require_admin)):
-    return payroll(db, date_from, date_to, teacher_id=teacher_id)
+def teacher_reports(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
+    """Все отчёты всех преподавателей, сгруппированные по преподавателю. Со ставкой и суммой."""
+    teachers = db.query(models.User).filter(models.User.role == models.RoleEnum.teacher).all()
+    tinfo = {t.id: {"name": t.full_name, "rate": t.hourly_rate} for t in teachers}
+    groups = db.query(models.Group).all()
+    gname = {g.id: g.name for g in groups}
+    glang = {g.id: (g.language.value if hasattr(g.language, "value") else str(g.language)) for g in groups}
+
+    att = db.query(models.Attendance).all()
+    # сгруппировать по (преподаватель -> группа+дата = урок)
+    lessons = {}  # teacher_id -> { (group_id,date): {present,total,topic,homework} }
+    for a in att:
+        tid = a.recorded_by
+        if tid is None:
+            continue
+        key = (a.group_id, a.date)
+        lessons.setdefault(tid, {})
+        L = lessons[tid].setdefault(key, {"present": 0, "total": 0, "topic": a.lesson_topic, "homework": a.homework})
+        L["total"] += 1
+        if a.status == models.AttendanceStatus.present:
+            L["present"] += 1
+
+    out = []
+    for tid, lobj in lessons.items():
+        info = tinfo.get(tid, {"name": "—", "rate": None})
+        rate = info["rate"]
+        reps = []
+        for (gid, d), L in lobj.items():
+            reps.append({
+                "group": gname.get(gid, "—"),
+                "language": glang.get(gid, ""),
+                "date": str(d),
+                "present": L["present"],
+                "total": L["total"],
+                "topic": L["topic"],
+                "homework": L["homework"],
+            })
+        reps.sort(key=lambda r: r["date"], reverse=True)
+        count = len(reps)
+        out.append({
+            "teacher_id": tid,
+            "teacher_name": info["name"],
+            "rate": rate,
+            "lessons_count": count,
+            "total_sum": (rate * count) if rate is not None else None,
+            "reports": reps,
+        })
+    out.sort(key=lambda t: t["teacher_name"] or "")
+    return out
+
 
 
 # ══════════════════════════════════════════════════════
@@ -607,8 +652,6 @@ def create_freeze(
     student = db.query(models.Student).filter(models.Student.id == data.student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Ученик не найден")
-    from share_links import check_freeze_overlap
-    check_freeze_overlap(db, data.student_id, data.start_date, data.end_date)
     fr = models.Freeze(
         student_id=data.student_id,
         start_date=data.start_date,
@@ -652,12 +695,8 @@ def list_audit(
     entity: Optional[str] = Query(None),
     user_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(require_admin),
+    _: models.User = Depends(require_admin),
 ):
-    # Admin-teachers do not have access to the global action history.
-    # They keep all other admin + teacher capabilities.
-    if current_user.iin in {"000000000001", "222222222222", "333333333333", "444444444444"}:
-        raise HTTPException(status_code=403, detail="Журнал действий недоступен для этого аккаунта")
     q = db.query(models.AuditLog)
     if entity:
         q = q.filter(models.AuditLog.entity == entity)
@@ -695,14 +734,8 @@ def upsert_characteristic(
     current_user: models.User = Depends(get_current_user),
 ):
     # Только преподаватели могут писать/редактировать
-    if not can_teach(current_user):
+    if current_user.role != models.RoleEnum.teacher:
         raise HTTPException(status_code=403, detail="Только преподаватель может писать характеристики")
-    assigned = db.query(models.GroupStudent.id).join(models.Group).filter(
-        models.GroupStudent.student_id == data.student_id, models.Group.teacher_id == current_user.id).first()
-    historical = db.query(models.Attendance.id).join(models.LessonReport).filter(
-        models.Attendance.student_id == data.student_id, models.LessonReport.teacher_id == current_user.id).first()
-    if not assigned and not historical:
-        raise HTTPException(403, "Нет доступа к характеристике этого ученика")
     # Одна запись на (ученик, месяц, автор) — обновляем если уже есть
     existing = (
         db.query(models.Characteristic)
@@ -763,11 +796,9 @@ def cancel_lesson(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
-    group = db.query(models.Group).filter(models.Group.id == data.group_id).with_for_update().first()
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Группа не найдена")
-    if db.query(models.LessonReport.id).filter_by(group_id=data.group_id, date=data.date).first():
-        raise HTTPException(409, "Урок уже проведён. Отмена не должна менять сданный отчёт и зарплату")
     # уже отменён на эту дату?
     existing = db.query(models.CancelledLesson).filter(
         models.CancelledLesson.group_id == data.group_id,
@@ -835,7 +866,7 @@ def transfer_lesson(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
-    group = db.query(models.Group).filter(models.Group.id == data.group_id).with_for_update().first()
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Группа не найдена")
     if data.new_date == data.date:
@@ -853,9 +884,9 @@ def transfer_lesson(
     ).first():
         raise HTTPException(status_code=400, detail="Урок на эту дату уже отменён — перенести его нельзя")
     # урок уже проведён (отчёт заполнен) на эту дату?
-    if db.query(models.LessonReport).filter(
-        models.LessonReport.group_id == data.group_id,
-        models.LessonReport.date == data.date,
+    if db.query(models.Attendance).filter(
+        models.Attendance.group_id == data.group_id,
+        models.Attendance.date == data.date,
     ).first():
         raise HTTPException(status_code=400, detail="Урок на эту дату уже проведён (отчёт заполнен) — перенести его нельзя")
     # уже перенесён с этой даты?
@@ -865,12 +896,6 @@ def transfer_lesson(
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Урок на эту дату уже перенесён")
-    if (_DOW_MAP[data.new_date.weekday()] in _scheduled_days(group)
-        or db.query(models.TransferredLesson.id).filter_by(group_id=group.id, new_date=data.new_date).first()
-        or db.query(models.CancelledLesson.id).filter_by(group_id=group.id, date=data.new_date).first()
-        or db.query(models.TransferredLesson.id).filter_by(group_id=group.id, date=data.new_date).first()
-        or db.query(models.LessonReport.id).filter_by(group_id=group.id, date=data.new_date).first()):
-        raise HTTPException(409, "На новой дате уже есть урок, отчёт, отмена или перенос этой группы. Выберите свободный день")
     rec = models.TransferredLesson(
         group_id=data.group_id, date=data.date, new_date=data.new_date, reason=data.reason,
         transferred_by=current_user.id,
@@ -894,8 +919,6 @@ def cancel_transfer(
     rec = db.query(models.TransferredLesson).filter(models.TransferredLesson.id == transfer_id).first()
     if not rec:
         raise HTTPException(status_code=404, detail="Запись не найдена")
-    if db.query(models.LessonReport.id).filter_by(group_id=rec.group_id, date=rec.new_date).first():
-        raise HTTPException(409, "Перенесённый урок уже проведён; отменять перенос нельзя")
     gname = rec.group.name if rec.group else "?"
     gdate = rec.date
     db.delete(rec)
@@ -1017,16 +1040,16 @@ def create_substitution(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
-    group = db.query(models.Group).filter(models.Group.id == data.group_id).with_for_update().first()
+    group = db.query(models.Group).filter(models.Group.id == data.group_id).first()
     if not group:
         raise HTTPException(status_code=404, detail="Группа не найдена")
     substitute = db.query(models.User).filter(models.User.id == data.substitute_teacher_id).first()
-    if not substitute or not substitute.is_active or not can_teach(substitute):
+    if not substitute or substitute.role != models.RoleEnum.teacher:
         raise HTTPException(status_code=404, detail="Преподаватель не найден")
     if data.substitute_teacher_id == group.teacher_id:
         raise HTTPException(status_code=400, detail="Этот преподаватель и так ведёт данную группу")
     dow = _DOW_MAP[data.date.weekday()]
-    if not date_slots(db, group, data.date):
+    if dow not in _scheduled_days(group):
         raise HTTPException(status_code=400, detail=f"У группы «{group.name}» нет урока в этот день ({data.date}) по расписанию")
     if db.query(models.CancelledLesson).filter(
         models.CancelledLesson.group_id == data.group_id,
@@ -1038,9 +1061,9 @@ def create_substitution(
         models.TransferredLesson.date == data.date,
     ).first():
         raise HTTPException(status_code=400, detail="Урок на эту дату перенесён на другой день — замену назначить нельзя")
-    if db.query(models.LessonReport).filter(
-        models.LessonReport.group_id == data.group_id,
-        models.LessonReport.date == data.date,
+    if db.query(models.Attendance).filter(
+        models.Attendance.group_id == data.group_id,
+        models.Attendance.date == data.date,
     ).first():
         raise HTTPException(status_code=400, detail="Урок на эту дату уже проведён (отчёт заполнен) — замену назначить нельзя")
     existing = db.query(models.TeacherSubstitution).filter(
@@ -1074,8 +1097,6 @@ def cancel_substitution(
     rec = db.query(models.TeacherSubstitution).filter(models.TeacherSubstitution.id == sub_id).first()
     if not rec:
         raise HTTPException(status_code=404, detail="Запись не найдена")
-    if db.query(models.LessonReport.id).filter_by(group_id=rec.group_id, date=rec.date).first():
-        raise HTTPException(409, "Урок по замене уже проведён; историческая замена сохраняется")
     gname = rec.group.name if rec.group else "?"
     gdate = rec.date
     db.delete(rec)

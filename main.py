@@ -2,13 +2,8 @@
 Zein Academy — Backend API
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from dependencies import require_admin, get_current_user
-from migrations import upgrade
-from bootstrap import seed_accounts
-from routers.lessons import router as lessons_router
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from database import engine, SessionLocal, get_db
@@ -17,8 +12,6 @@ from fastapi import Depends
 import models, os
 import schemas
 from auth import hash_password
-from share_links import verify_freeze_token, check_freeze_overlap
-from clock import today
 
 
 from routers.auth import router as auth_router
@@ -34,21 +27,63 @@ from routers.extra import (
     substitutions_router, payments_router,
 )
 
-# Additive, transactional and idempotent. Stop on migration errors.
-upgrade(engine)
+models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Zein Academy API", version="1.1.0", docs_url="/docs")
+
+# ── Лёгкая авто-миграция: добавляем недостающие колонки в существующие таблицы ──
+def _ensure_columns():
+    from sqlalchemy import inspect, text
+    try:
+        insp = inspect(engine)
+        cols = [c["name"] for c in insp.get_columns("users")]
+        if "hourly_rate" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN hourly_rate INTEGER"))
+            print("✅ Миграция: добавлена колонка users.hourly_rate")
+        # колонки темы урока и домашки в attendance
+        try:
+            acols = [c["name"] for c in insp.get_columns("attendance")]
+            with engine.begin() as conn:
+                if "lesson_topic" not in acols:
+                    conn.execute(text("ALTER TABLE attendance ADD COLUMN lesson_topic TEXT"))
+                    print("✅ Миграция: добавлена колонка attendance.lesson_topic")
+                if "homework" not in acols:
+                    conn.execute(text("ALTER TABLE attendance ADD COLUMN homework TEXT"))
+                    print("✅ Миграция: добавлена колонка attendance.homework")
+        except Exception as e:
+            print(f"⚠ Миграция attendance пропущена: {e}")
+        # колонка предмета у групп
+        try:
+            gcols = [c["name"] for c in insp.get_columns("groups")]
+            if "subject" not in gcols:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE groups ADD COLUMN subject VARCHAR(150)"))
+                print("✅ Миграция: добавлена колонка groups.subject")
+        except Exception as e:
+            print(f"⚠ Миграция groups.subject пропущена: {e}")
+        # колонка даты окончания оплаты у учеников
+        try:
+            scols = [c["name"] for c in insp.get_columns("students")]
+            if "paid_until" not in scols:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE students ADD COLUMN paid_until DATE"))
+                print("✅ Миграция: добавлена колонка students.paid_until")
+        except Exception as e:
+            print(f"⚠ Миграция students.paid_until пропущена: {e}")
+    except Exception as e:
+        print(f"⚠ Миграция hourly_rate пропущена: {e}")
+
+_ensure_columns()
+
+app = FastAPI(title="Zein Academy API", version="1.0.0", docs_url="/docs")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[x.strip() for x in os.getenv("CORS_ORIGINS", "").split(",") if x.strip()],
-    allow_credentials=False,
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
-app.include_router(lessons_router)
 
 app.include_router(auth_router)
 app.include_router(users_router)
@@ -80,23 +115,45 @@ if os.path.isdir(_assets_dir):
 
 @app.on_event("startup")
 def seed_default_admin():
-    if os.getenv("SEED_ACCOUNTS", "true").lower() not in {"1", "true", "yes"}:
-        return
-    with SessionLocal() as db:
-        seed_accounts(db)
+    db = SessionLocal()
+    try:
+        # Главный аккаунт (твой) — не трогаем
+        if not db.query(models.User).filter(models.User.iin == "900101350123").first():
+            db.add(models.User(
+                iin="900101350123",
+                hashed_password=hash_password("zein2024"),
+                full_name="Администратор",
+                initials="АД",
+                role=models.RoleEnum.admin,
+                is_active=True,
+            ))
+            db.commit()
+            print("✅ Admin создан: ИИН=900101350123 пароль=zein2024")
+        else:
+            print("ℹ Admin уже существует — seed пропущен")
 
-
-@app.middleware("http")
-async def response_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    if request.url.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-store"
-    elif request.url.path in {"/", "/freezing", "/ent-test"}:
-        response.headers["Cache-Control"] = "no-cache"
-    return response
+        # ── 3 дополнительных админских аккаунта ──
+        # Формат: ("ИИН", "пароль", "Фамилия Имя", "инициалы")
+        extra_admins = [
+            ("555555555555", "zein4821", "Бекенов Берикбек", "ББ"),
+            ("666666666666", "zein7263", "Айдынұлы Әкежан", "АӘ"),
+            ("777777777777", "zein5934", "Хайбуллин Минтимер", "ХМ"),
+            ("888888888888", "zein2963", "Админ", "АД")
+        ]
+        for iin, password, full_name, initials in extra_admins:
+            if not db.query(models.User).filter(models.User.iin == iin).first():
+                db.add(models.User(
+                    iin=iin,
+                    hashed_password=hash_password(password),
+                    full_name=full_name,
+                    initials=initials,
+                    role=models.RoleEnum.admin,
+                    is_active=True,
+                ))
+                print(f"✅ Доп. админ создан: {full_name} ({iin})")
+        db.commit()
+    finally:
+        db.close()
 
 @app.get("/freezing", include_in_schema=False)
 def serve_freezing():
@@ -113,8 +170,8 @@ def serve_ent_test():
     return {"error": "ent_test.html не найден"}
 
 @app.get("/api/public/student/{student_id}")
-def get_student_public(student_id: int, token: str | None = None, db: Session = Depends(get_db)):
-    verify_freeze_token(token, student_id)
+def get_student_public(student_id: int, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import Session
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
         from fastapi import HTTPException
@@ -129,9 +186,8 @@ def get_student_public(student_id: int, token: str | None = None, db: Session = 
     }
 
 @app.get("/api/public/freezes/{student_id}")
-def get_freezes_public(student_id: int, token: str | None = None, db: Session = Depends(get_db)):
-    """История только владельцу подписанной ссылки."""
-    verify_freeze_token(token, student_id)
+def get_freezes_public(student_id: int, db: Session = Depends(get_db)):
+    """История заморозок ученика (для публичной страницы заморозки)."""
     rows = (
         db.query(models.Freeze)
         .filter(models.Freeze.student_id == student_id)
@@ -149,15 +205,12 @@ def get_freezes_public(student_id: int, token: str | None = None, db: Session = 
     ]
 
 @app.post("/api/public/freezes")
-def create_freeze_public(payload: schemas.FreezeCreate, token: str | None = None, db: Session = Depends(get_db)):
-    """Create only for the student identified by the expiring signed link."""
-    verify_freeze_token(token, payload.student_id)
-    if payload.start_date < today():
-        raise HTTPException(422, "По ссылке нельзя оформлять заморозку задним числом; обратитесь к администратору")
+def create_freeze_public(payload: schemas.FreezeCreate, db: Session = Depends(get_db)):
+    """Создание заморозки с публичной страницы (по ссылке, без авторизации)."""
+    from fastapi import HTTPException
     student = db.query(models.Student).filter(models.Student.id == payload.student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Ученик не найден")
-    check_freeze_overlap(db, payload.student_id, payload.start_date, payload.end_date)
     fr = models.Freeze(
         student_id=payload.student_id,
         start_date=payload.start_date,
@@ -196,7 +249,7 @@ def health():
 
 
 @app.get("/api/debug/tables")
-def debug_tables(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
+def debug_tables(db: Session = Depends(get_db)):
     try:
         from sqlalchemy import text
         result = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"))
@@ -211,7 +264,7 @@ def debug_tables(db: Session = Depends(get_db), _: models.User = Depends(require
         return {"status": "error", "error": str(e)}
 
 @app.get("/api/debug/users")  
-def debug_users(db: Session = Depends(get_db), _: models.User = Depends(require_admin)):
+def debug_users(db: Session = Depends(get_db)):
     try:
         users = db.query(models.User).all()
         return {
@@ -223,7 +276,7 @@ def debug_users(db: Session = Depends(get_db), _: models.User = Depends(require_
         return {"status": "error", "error": str(e)}
 
 @app.get("/api/debug/connection")
-def debug_connection(_: models.User = Depends(require_admin)):
+def debug_connection():
     return {
         "status": "app_running",
         "message": "FastAPI работает",

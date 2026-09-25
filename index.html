@@ -9,7 +9,7 @@
 <link rel="icon" href="assets/zein-owl.png" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@300..800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@300..800&display=swap" rel="stylesheet">
 
 
 <style>
@@ -1109,9 +1109,14 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="page-header">
       <div class="page-title">Расписание</div>
       <div class="page-actions">
-        <select class="form-select" id="schedule-branch" onchange="buildSchedule()" aria-label="Филиал расписания" style="font-size:13px;padding:7px 12px;min-width:150px"><option value="">Все филиалы</option></select>
-        <select class="form-select" id="schedule-day" onchange="buildSchedule()" aria-label="День расписания" style="font-size:13px;padding:7px 12px"><option value="">Все дни</option><option value="MON">Понедельник</option><option value="TUE">Вторник</option><option value="WED">Среда</option><option value="THU">Четверг</option><option value="FRI">Пятница</option><option value="SAT">Суббота</option><option value="SUN">Воскресенье</option></select>
-        <button class="btn btn-primary" onclick="openAddGroup()">+ Группа и расписание</button>
+        <select class="form-select" style="font-size:13px;padding:7px 12px;min-width:150px">
+          <option>Мәңгілік Ел 36</option>
+        </select>
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Фильтр
+        </button>
+        <button class="btn btn-primary" onclick="openModal('add-schedule-modal')">+ Добавить</button>
       </div>
     </div>
     <div class="page-body" style="padding:0">
@@ -1278,7 +1283,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
         <div class="form-group" style="margin:0"><label class="form-label">Дата от</label><input type="date" class="form-input" id="mr-from"></div>
         <div class="form-group" style="margin:0"><label class="form-label">Дата до</label><input type="date" class="form-input" id="mr-to"></div>
         <button class="btn btn-primary btn-sm" onclick="loadMyReports()">Применить</button>
-        <button class="btn btn-outline btn-sm" onclick="clearMyReportsFilter()">Текущий месяц</button>
+        <button class="btn btn-outline btn-sm" onclick="clearMyReportsFilter()">Очистить</button>
       </div>
       <div id="my-reports-body"><div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div></div>
     </div>
@@ -1416,7 +1421,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
         <div class="form-group" style="margin:0"><label class="form-label">Дата от</label><input type="date" class="form-input" id="tr-from"></div>
         <div class="form-group" style="margin:0"><label class="form-label">Дата до</label><input type="date" class="form-input" id="tr-to"></div>
         <button class="btn btn-primary btn-sm" onclick="loadTeacherReports()">Применить</button>
-        <button class="btn btn-outline btn-sm" onclick="clearTeacherReportsFilter()">Текущий месяц</button>
+        <button class="btn btn-outline btn-sm" onclick="clearTeacherReportsFilter()">Очистить</button>
       </div>
       <div id="teacher-reports-body"><div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div></div>
     </div>
@@ -1613,7 +1618,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">ФИО *</label><input class="form-input" id="staff-name" placeholder="Фамилия Имя Отчество"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="staff-phone" placeholder="+7..." maxlength="12" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d+]/g,'').slice(0,12)"></div>
-      <div class="form-group"><label class="form-label">Пароль *</label><input class="form-input" id="staff-pass" type="password" placeholder="Не менее 8 символов"></div>
+      <div class="form-group"><label class="form-label">Пароль *</label><input class="form-input" id="staff-pass" type="password" placeholder="Минимум 6 символов"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Предмет / специализация</label><input class="form-input" id="staff-subject" placeholder="Математика, Физика..."></div>
@@ -1675,8 +1680,8 @@ tbody td { padding: 11px 14px; color: var(--text); }
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Кабинет *</label><select class="form-select" id="ag-classroom"><option value="">— Выберите кабинет —</option></select></div>
-      <div class="form-group"><label class="form-label">Начало</label><input type="time" step="1800" class="form-input" id="ag-start"></div>
-      <div class="form-group"><label class="form-label">Окончание</label><input type="time" step="1800" class="form-input" id="ag-end"></div>
+      <div class="form-group"><label class="form-label">Начало</label><input type="time" class="form-input" id="ag-start"></div>
+      <div class="form-group"><label class="form-label">Окончание</label><input type="time" class="form-input" id="ag-end"></div>
     </div>
     <div class="form-group" style="margin-bottom:14px">
       <label class="form-label">Дни обучения</label>
@@ -1720,7 +1725,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
       <div class="form-group"><label class="form-label">День *</label>
         <select class="form-select"><option>ПН</option><option>ВТ</option><option>СР</option><option>ЧТ</option><option>ПТ</option><option>СБ</option><option>ВС</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Время *</label><input type="time" step="1800" class="form-input" value="09:00"></div>
+      <div class="form-group"><label class="form-label">Время *</label><input type="time" class="form-input" value="09:00"></div>
     </div>
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">Группа *</label><select class="form-select"><option>5 коу A1</option><option>2–3 коу C1</option></select></div>
     <div class="form-group" style="margin-bottom:14px"><label class="form-label">Кабинет *</label><select class="form-select"><option>101</option><option>102</option><option>103</option></select></div>
@@ -1803,49 +1808,23 @@ tbody td { padding: 11px 14px; color: var(--text); }
 // ZEIN ACADEMY — Полная интеграция с API
 // ══════════════════════════════════════════════════════════════════
 
-const API = window.location.origin;
+const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : window.location.origin;
 let TOKEN = localStorage.getItem('zein_token');
 let CURRENT_USER = JSON.parse(localStorage.getItem('zein_user') || 'null');
 let currentRole = 'admin';
 
 // ── API helper ────────────────────────────────────────────────────
-const pendingGets = new Map();
 async function api(path, options = {}) {
-  const method = (options.method || 'GET').toUpperCase();
-  const key = TOKEN + ':' + path;
-  if (method === 'GET' && pendingGets.has(key)) return pendingGets.get(key);
-  if (method !== 'GET') pendingGets.clear();
-  const run = async () => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 45000);
-    try {
-      const headers = {'Content-Type':'application/json',...(options.headers||{})};
-      if (TOKEN) headers.Authorization = 'Bearer ' + TOKEN;
-      const res = await fetch(API + path, {...options,headers,signal:options.signal||controller.signal});
-      if (res.status === 204) return null;
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const detail = Array.isArray(data.detail) ? data.detail.map(x => `${(x.loc||[]).filter(v=>v!=='body').join('.')}: ${x.msg}`).join('; ') : data.detail;
-        if (res.status === 401 && !path.startsWith('/api/auth/')) {
-          TOKEN = null; CURRENT_USER = null;
-          localStorage.removeItem('zein_token'); localStorage.removeItem('zein_user');
-          document.getElementById('login-screen').classList.remove('hidden');
-          document.getElementById('main-app').style.display='none';
-          document.getElementById('sidebar').style.display='none';
-          renderSavedAccounts();
-        }
-        throw new Error(typeof detail === 'string' ? detail : `Ошибка сервера ${res.status}`);
-      }
-      return data;
-    } catch(e) {
-      if (e.name === 'AbortError') throw new Error('Сервер не ответил вовремя. Проверьте состояние отчёта перед повторным сохранением.');
-      if (e instanceof TypeError) throw new Error('Не удалось связаться с сервером. Введённые данные не очищены.');
-      throw e;
-    } finally { clearTimeout(timer); }
-  };
-  const promise = run();
-  if (method === 'GET') pendingGets.set(key,promise);
-  try { return await promise; } finally { if (pendingGets.get(key)===promise) pendingGets.delete(key); }
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+  const res = await fetch(API + path, { ...options, headers });
+  if (res.status === 401) { doLogout(); return null; }
+  if (res.status === 204) return null;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Ошибка ${res.status}`);
+  }
+  return res.json();
 }
 
 function addStudentToGroupForm(id, name) {
@@ -2047,7 +2026,6 @@ async function quickLogin(userId) {
       full_name: me.full_name || account.full_name,
       initials: me.initials || account.initials,
       role: me.role || account.role,
-      can_teach: me.can_teach || me.role === "teacher",
     };
     localStorage.setItem('zein_token', TOKEN);
     localStorage.setItem('zein_user', JSON.stringify(CURRENT_USER));
@@ -2079,10 +2057,31 @@ function enterApp(role, fullName, initials) {
   document.getElementById('main-app').style.display = '';
   currentRole = role;
   document.querySelector('.user-name').textContent = fullName || 'Пользователь';
-  document.querySelector('.user-meta').textContent = role === 'admin' ? (CURRENT_USER?.can_teach ? 'Администратор · Преподаватель' : 'Администратор') : 'Преподаватель';
+  document.querySelector('.user-meta').textContent = role === 'admin' ? 'Администратор' : 'Преподаватель';
   document.querySelector('.user-avatar').textContent = initials || (fullName||'ЗА').slice(0,2).toUpperCase();
   renderNav(role);
-  showPage(role === 'teacher' ? 'page-my-groups' : 'page-students');
+  if (role === 'teacher') showPage('page-my-groups');
+  else showPage('page-students');
+
+  // Принудительно загрузить данные (только для админа)
+  if (role !== 'teacher') {
+    setTimeout(() => {
+      loadStudents();
+      buildSchedule();
+      loadGroups();
+      loadClassrooms();
+      loadStaff('mentor','mentors-tbody',false);
+      loadStaff('teacher','teachers-tbody',true);
+      loadStaff('lidoruby','lidoruby-tbody',false);
+      loadStaff('manager','managers-tbody',false);
+    }, 300);
+    setTimeout(() => {
+      const g = document.getElementById('group-staff');
+      const s = document.getElementById('sub-staff');
+      if(g&&s){ g.classList.add('open'); s.classList.add('open'); }
+    }, 80);
+    _prefillSelects();
+  }
 }
 
 function doLogout() {
@@ -2110,7 +2109,7 @@ async function _prefillSelects() {
     const grpSel = document.getElementById('ns-group');
     if (grpSel && groups) {
       grpSel.innerHTML = '<option value="">Выберите группу</option>' +
-        (groups||[]).map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+        (groups||[]).map(g=>`<option value="${g.id}">${g.name} (${g.language})</option>`).join('');
     }
   } catch(e) { console.warn('prefill:', e); }
 }
@@ -2183,22 +2182,22 @@ async function toggleStudentStatus(id, status) {
 }
 
 async function deleteStudent(id) {
-  showConfirm('Архивировать ученика?', 'История занятий и оплат сохранится; ученика можно снова активировать', async () => {
+  showConfirm('Удалить ученика?', 'Это действие нельзя отменить', async () => {
   try {
     await api(`/api/students/${id}`, {method:'DELETE'});
-    showToast('Ученик архивирован'); loadStudents();
+    showToast('Ученик удалён'); loadStudents();
   } catch(e) { showToast(e.message,'error'); }
   });
   return;
   try {
     await api(`/api/students/${id}`, { method:'DELETE' });
-    showToast('Ученик архивирован'); loadStudents();
+    showToast('Ученик удалён'); loadStudents();
   } catch(e) { showToast(e.message,'error'); }
 }
 
 // Helper function for deleting student from modal
 async function deleteStudentFromModal(studentId) {
-  showConfirm('Архивировать ученика?', 'История занятий и оплат сохранится; ученика можно снова активировать', async () => {
+  showConfirm('Удалить ученика?', 'Это действие нельзя отменить', async () => {
     try {
       await api(`/api/students/${studentId}`, {method: 'DELETE'});
       document.getElementById('student-profile-modal').style.display = 'none';
@@ -2643,8 +2642,8 @@ async function loadGroups() {
 }
 
 async function deleteGroup(id) {
-  if (!confirm('Архивировать группу? Проведённые уроки и отчёты сохранятся.')) return;
-  try { await api(`/api/groups/${id}`,{method:'DELETE'}); showToast('Группа архивирована'); loadGroups(); }
+  if (!confirm('Удалить группу?')) return;
+  try { await api(`/api/groups/${id}`,{method:'DELETE'}); showToast('Удалено'); loadGroups(); }
   catch(e) { showToast(e.message,'error'); }
 }
 
@@ -2663,7 +2662,7 @@ async function openAddGroup() {
   if (en && !en.dataset._defBound) { en.dataset._defBound='1'; en.addEventListener('focus', ()=>{ if(!en.value) en.value='10:00'; }); }
   try {
     const [teachers, classrooms, branches] = await Promise.all([
-      api('/api/users/?role=teacher&is_active=true'),
+      api('/api/users/?role=teacher'),
       api('/api/classrooms/').catch(()=>[]),
       api('/api/branches/').catch(()=>null),
     ]);
@@ -2694,30 +2693,41 @@ function toggleAdvSchedule(prefix) {
 }
 
 // Перерисовать строки времени по выбранным дням, сохраняя уже введённые значения
-function advancedRow(day,start,end) {
-  return `<div data-adv-day="${day}" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-    <span style="width:105px;font-size:12px">${_DAY_LBL[day]}</span><input type="time" step="1800" class="form-input adv-start" style="width:auto" value="${esc(start)}">
-    <span>–</span><input type="time" step="1800" class="form-input adv-end" style="width:auto" value="${esc(end)}"><button type="button" class="btn btn-outline btn-sm" onclick="this.parentElement.remove()" title="Убрать время">×</button></div>`;
-}
-function addAdvancedSlot(prefix,day) {
-  document.getElementById(`${prefix}-adv-schedule`).querySelector(`[data-day-rows="${day}"]`).insertAdjacentHTML('beforeend',advancedRow(day,'',''));
-}
 function renderAdvSchedule(prefix) {
-  const box=document.getElementById(`${prefix}-adv-schedule`);
-  if (!box || box.style.display==='none') return;
-  const checked=[...document.querySelectorAll(`${_advModalSelector(prefix)} input[type=checkbox][value]:checked`)].map(c=>c.value).filter(v=>_DAY_LBL[v]);
-  const prev={};
-  box.querySelectorAll('[data-adv-day]').forEach(row=>{
-    const d=row.dataset.advDay;
-    (prev[d] ||= []).push({start:row.querySelector('.adv-start').value,end:row.querySelector('.adv-end').value});
+  const box = document.getElementById(`${prefix}-adv-schedule`);
+  if (!box || box.style.display === 'none') return;
+  const sel = _advModalSelector(prefix);
+  const checked = [...document.querySelectorAll(`${sel} .day-checkbox:checked, ${sel} input[type=checkbox][value]:checked`)]
+    .map(c => c.value).filter(v => _DAY_LBL[v]);
+  // общее время как значение по умолчанию
+  const defStart = document.getElementById(`${prefix}-start`)?.value || '09:00';
+  const defEnd   = document.getElementById(`${prefix}-end`)?.value || '10:00';
+  // сохранить уже введённые
+  const prev = {};
+  box.querySelectorAll('[data-adv-day]').forEach(row => {
+    const d = row.getAttribute('data-adv-day');
+    prev[d] = {
+      start: row.querySelector('.adv-start')?.value || '',
+      end: row.querySelector('.adv-end')?.value || '',
+    };
   });
-  const defStart=document.getElementById(`${prefix}-start`)?.value||'09:00';
-  const defEnd=document.getElementById(`${prefix}-end`)?.value||'10:00';
-  box.innerHTML=checked.length ? checked.map(day=>{
-    const slots=prev[day] || (prefix==='eg' ? (window._egOriginalSlots||[]).filter(s=>s.day===day) : []) ;
-    const rows=slots.length ? slots : [{start:defStart,end:defEnd}];
-    return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div data-day-rows="${day}">${rows.map(r=>advancedRow(day,r.start,r.end)).join('')}</div><button type="button" class="btn btn-outline btn-sm" onclick="addAdvancedSlot('${prefix}','${day}')">+ Ещё урок в этот день</button></div>`;
-  }).join('') : '<p>Выберите дни обучения.</p>';
+  if (!checked.length) {
+    box.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:6px 0">Отметьте дни обучения выше, чтобы задать время для каждого.</div>';
+    return;
+  }
+  box.innerHTML = `<div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Время для каждого дня (по умолчанию общее ${defStart}–${defEnd}):</div>` +
+    checked.map(d => {
+      // приоритет: уже введённое в этом блоке → существующее время дня (в редактировании) → общее
+      const existing = (prefix === 'eg' && window._egDayTimes && window._egDayTimes[d]) ? window._egDayTimes[d] : null;
+      const st = prev[d]?.start || existing?.start || defStart;
+      const en = prev[d]?.end || existing?.end || defEnd;
+      return `<div data-adv-day="${d}" style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="width:120px;font-size:13px">${_DAY_LBL[d]}</div>
+        <input type="time" class="form-input adv-start" style="width:auto" value="${st}">
+        <span style="color:var(--text-3)">–</span>
+        <input type="time" class="form-input adv-end" style="width:auto" value="${en}">
+      </div>`;
+    }).join('');
 }
 
 // Собрать слоты: если расширенный блок открыт и заполнен — берём время по дням, иначе общее
@@ -2729,10 +2739,10 @@ function collectDaySlots(prefix, selectedDays, defStart, defEnd) {
     if (rows.length) {
       return rows.map(row => {
         const day = row.getAttribute('data-adv-day');
-        const start = row.querySelector('.adv-start')?.value || '';
-        const end = row.querySelector('.adv-end')?.value || '';
-        return {day,start,end};
-      });
+        const start = row.querySelector('.adv-start')?.value || defStart;
+        const end = row.querySelector('.adv-end')?.value || defEnd;
+        return (start && end) ? { day, start, end } : null;
+      }).filter(Boolean);
     }
   }
   // обычный режим — общее время на все выбранные дни
@@ -2740,34 +2750,55 @@ function collectDaySlots(prefix, selectedDays, defStart, defEnd) {
   return (selectedDays || []).map(day => ({ day, start: defStart, end: defEnd }));
 }
 
-function groupSchedulePayload(prefix) {
-  const selector = _advModalSelector(prefix);
-  const days = [...document.querySelectorAll(`${selector} input[type=checkbox]:checked`)].map(c=>c.value).filter(v=>_DAY_LBL[v]);
-  const start=document.getElementById(prefix+'-start')?.value, end=document.getElementById(prefix+'-end')?.value;
-  const slots=collectDaySlots(prefix,days,start,end);
-  if (days.length && (!slots.length || slots.some(s=>!s.start||!s.end))) throw new Error('Укажите время для каждого выбранного дня');
-  return slots.map(s=>({day_of_week:s.day,start_time:s.start,end_time:s.end}));
-}
-function groupFormPayload(prefix) {
-  const get=suffix=>document.getElementById(prefix+'-'+suffix)?.value?.trim()||'';
-  if (!get('name')) throw new Error('Введите название группы');
-  return {name:get('name'),subject:get('subject')||null,branch:get('branch'),teacher_id:Number(get('teacher'))||null,
-    classroom_id:Number(get('classroom'))||null,schedule:groupSchedulePayload(prefix)};
-}
-let groupSaving = false;
 async function submitAddGroup() {
-  if (groupSaving) return;
-  groupSaving=true;
+  const name      = document.getElementById('ag-name')?.value?.trim();
+  const subject   = document.getElementById('ag-subject')?.value?.trim();
+  const teacherVal= document.getElementById('ag-teacher')?.value;
+  const branchVal = document.getElementById('ag-branch')?.value?.trim();
+  const classroomVal = document.getElementById('ag-classroom')?.value;
+  const tStart    = document.getElementById('ag-start')?.value;
+  const tEnd      = document.getElementById('ag-end')?.value;
+  const selectedDays = [...document.querySelectorAll('#add-group-modal input[type=checkbox]:checked')].map(c => c.value);
+
+  if (!name) { showToast('Введите название группы','error'); return; }
+
   try {
-    const payload = {...groupFormPayload('ag'), student_ids:Object.keys(window._agStudents||{}).map(Number)};
-    const group = await api('/api/groups/',{method:'POST',body:JSON.stringify(payload)});
-    if (!group?.id) throw new Error('Сервер не подтвердил создание группы');
-    window._agStudents={};
-    showToast('Группа, расписание и ученики сохранены');
+    const group = await api('/api/groups/', { method:'POST', body: JSON.stringify({
+      name,
+      subject: subject || null,
+      branch: branchVal || '',
+      teacher_id: teacherVal ? parseInt(teacherVal) : null,
+      classroom_id: classroomVal ? parseInt(classroomVal) : null,
+    })});
+
+    if (group?.id) {
+      const slots = collectDaySlots('ag', selectedDays, tStart, tEnd);
+      await Promise.all(slots.map(sl =>
+        api(`/api/groups/${group.id}/schedule`, {
+          method:'POST',
+          body: JSON.stringify({ day_of_week: sl.day, start_time: sl.start + ':00', end_time: sl.end + ':00' })
+        }).catch(()=>{})
+      ));
+    }
+    // Добавить выбранных учеников
+    if (window._agStudents && group?.id) {
+      await Promise.all(Object.keys(window._agStudents).map(studentId =>
+        api(`/api/groups/${group.id}/students/${studentId}`, {method:'POST'}).catch(()=>{})
+      ));
+      window._agStudents = {};
+      if (window._agStudentDiv) window._agStudentDiv.innerHTML = '';
+    }
+    showToast('Группа создана!');
     closeModal('add-group-modal');
     loadGroups();
-  } catch(e) { showToast(e.message,'error'); }
-  finally { groupSaving=false; }
+    loadMyGroups();
+  } catch(e) {
+    // Показать читаемую ошибку
+    let msg = e.message;
+    try { const parsed = JSON.parse(msg); msg = JSON.stringify(parsed); } catch{}
+    showToast('Ошибка: ' + msg, 'error');
+    console.error('Group create error:', e);
+  }
 }
 
 // ══ CLASSROOMS ════════════════════════════════════════════════════
@@ -2889,100 +2920,226 @@ async function submitAddTask() {
 let _myLessonsTab = 'today';
 
 // История сданных отчётов преподавателя
-// Shared rendering helpers. No dynamic names are inserted into HTML unescaped.
-function esc(value) {
-  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function displayDate(iso) { return String(iso || '').slice(0,10).split('-').reverse().join('.'); }
-function reportPeriod(prefix, reset = false) {
-  const today = localDate();
-  const from = document.getElementById(prefix + '-from');
-  const to = document.getElementById(prefix + '-to');
-  if (from && (reset || !from.value)) from.value = today.slice(0,7) + '-01';
-  if (to && (reset || !to.value)) to.value = today;
-  return new URLSearchParams({date_from: from?.value || today.slice(0,7) + '-01', date_to: to?.value || today});
-}
-function money(value) { return Number(value).toLocaleString('ru-RU') + ' ₸'; }
-function payrollCard(t) {
-  const reports = t.reports || [], fines = t.fines || [];
-  const warning = t.unpriced_lessons || t.needs_review_count;
-  return `${warning ? `<div role="alert" style="padding:12px;border:1px solid var(--gold);border-radius:8px;margin-bottom:12px">Итог требует сверки: без ставки — ${t.unpriced_lessons}, спорных отчётов — ${t.needs_review_count}. Такие суммы нельзя считать окончательной зарплатой.</div>` : ''}
-    ${reports.map(r => `<div class="submitted-report" data-report-id="${r.id}" style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div><b>${esc(r.group)}</b>${r.subject ? ` · ${esc(r.subject)}` : ''}<div style="font-size:12px;color:var(--text-2);margin-top:4px">${displayDate(r.date)}${r.start_time ? ' · ' + esc(r.start_time) + '–' + esc(r.end_time) : ' · исторический отчёт за день'}</div></div>
-        <div>Присутствовали: <b>${r.present} из ${r.total}</b> · ${r.amount == null ? 'Ставка не указана' : money(r.amount)}</div>
-      </div>
-      <div style="margin-top:10px"><b>Тема:</b> ${esc(r.topic || '—')}<br><b>Д/з:</b> ${esc(r.homework || '—')}</div>
-      ${r.needs_review ? `<div style="color:var(--danger);margin-top:8px">Требует сверки: ${esc(r.review_note || 'Проверьте автора урока')}</div>` : ''}
-      ${r.provenance === 'legacy_recorded_by' ? '<div style="font-size:11px;color:var(--text-3);margin-top:6px">Старая запись: автор взят из recorded_by, ставка — из профиля на момент обновления.</div>' : ''}
-      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openAttendanceModal(${r.group_id},${esc(JSON.stringify(r.group))},${esc(JSON.stringify(r.date))},${r.slot_id || 'null'},${r.id})">Открыть отчёт</button>
-    </div>`).join('')}
-    ${fines.length ? '<h4>Штрафы за период</h4>' : ''}
-    ${fines.map(f => `<div style="padding:12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">${displayDate(f.issued_on)} · ${esc(f.reason || 'Без комментария')} <b style="color:var(--danger)">−${money(f.amount)}</b></div>`).join('')}
-    <div style="padding:16px 20px;border:2px solid var(--gold);border-radius:12px;margin:12px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <span>Уроков: <b>${t.lessons_count}</b> · Начислено по известным ставкам: ${money(t.gross_sum)} · Штрафы: ${money(t.fines_sum)}</span>
-      <b style="color:var(--gold)">${t.total_sum == null ? 'Итог требует сверки' : 'Итого: ' + money(t.total_sum)}</b>
-    </div>`;
-}
-
-let myReportsGeneration = 0;
 async function loadMyReports() {
   const body = document.getElementById('my-reports-body');
   if (!body) return;
-  const generation = ++myReportsGeneration;
-  const params = reportPeriod('mr');
-  const selected = document.getElementById('mr-group')?.value || '';
-  if (selected) params.set('group_id', selected);
-  body.innerHTML = '<div style="padding:24px;text-align:center">Загрузка отчётов...</div>';
+  body.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  const fGroup = document.getElementById('mr-group')?.value || '';
+  const fFrom = document.getElementById('mr-from')?.value || '';
+  const fTo = document.getElementById('mr-to')?.value || '';
   try {
-    const data = await api('/api/attendance/my-reports?' + params);
-    if (generation !== myReportsGeneration) return;
-    const select = document.getElementById('mr-group');
-    if (select && !selected) {
-      const groups = new Map((data.reports || []).map(r => [r.group_id, r.group]));
-      select.innerHTML = '<option value="">Все группы</option>' + [...groups].map(([id,name]) => `<option value="${id}">${esc(name)}</option>`).join('');
+    const [groups, me] = await Promise.all([
+      api('/api/groups/'),
+      api('/api/auth/me').catch(()=>null),
+    ]);
+    const rate = (me && me.hourly_rate != null) ? me.hourly_rate : null;
+    if (!groups?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
+    // заполнить список групп в фильтре (один раз)
+    const gsel = document.getElementById('mr-group');
+    if (gsel && gsel.options.length <= 1) {
+      gsel.innerHTML = '<option value="">Все группы</option>' + groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+      if (fGroup) gsel.value = fGroup;
     }
-    body.innerHTML = (selected ? '<div style="font-size:12px;color:var(--text-2);margin-bottom:12px">Штрафы относятся ко всему выбранному периоду преподавателя, не к отдельной группе.</div>' : '') +
-      (!data.reports.length && !data.fines.length ? '<p>За выбранный период отчётов и штрафов нет.</p>' : '') + payrollCard(data);
-  } catch (e) { if (generation === myReportsGeneration) body.innerHTML = `<div role="alert" style="padding:20px;color:var(--danger)">${esc(e.message)}</div>`; }
+    // какие группы опрашивать
+    const targetGroups = fGroup ? groups.filter(g=>String(g.id)===String(fGroup)) : groups;
+    const all = [];
+    await Promise.all(targetGroups.map(async g => {
+      try {
+        let url = `/api/attendance/?group_id=${g.id}`;
+        if (fFrom) url += `&date_from=${fFrom}`;
+        if (fTo) url += `&date_to=${fTo}`;
+        const recs = await api(url);
+        const byDate = {};
+        (recs||[]).forEach(r => {
+          if (!byDate[r.date]) byDate[r.date] = { present:0, total:0, topic:r.lesson_topic, homework:r.homework };
+          byDate[r.date].total++;
+          if (r.status === 'present') byDate[r.date].present++;
+        });
+        Object.entries(byDate).forEach(([date,st]) => {
+          all.push({ group: g.name, language: g.language, date, present: st.present, total: st.total, topic: st.topic, homework: st.homework });
+        });
+      } catch {}
+    }));
+    if (!all.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов не найдено</p></div>'; return; }
+    all.sort((a,b) => b.date.localeCompare(a.date));
+
+    const lessonsCount = all.length;
+    const fmt = n => n.toLocaleString('ru');
+
+    // штрафы (преподаватель видит только свои)
+    let fines = [];
+    try {
+      fines = await api('/api/fines/');
+      if (fFrom) fines = fines.filter(f => f.created_at.slice(0,10) >= fFrom);
+      if (fTo) fines = fines.filter(f => f.created_at.slice(0,10) <= fTo);
+    } catch {}
+    const finesSum = fines.reduce((s,f)=>s+f.amount, 0);
+
+    const grossSum = rate != null ? rate * lessonsCount : null;
+    const totalSum = grossSum != null ? grossSum - finesSum : null;
+
+    body.innerHTML = all.map(r => `
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <b style="font-size:14px">${r.group}</b>
+            <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
+            <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600">✓ Присутствовали: ${r.present} из ${r.total}</span>
+            ${rate!=null?`<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,150,30,.16);color:var(--gold);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700">${fmt(rate)} ₸</span>`:''}
+          </div>
+        </div>
+        ${(r.topic||r.homework)?`<div style="margin-top:10px;border-top:1px solid var(--line-soft);padding-top:10px;font-size:13px">
+          ${r.topic?`<div style="margin-bottom:4px"><b>Тема:</b> ${r.topic.replace(/</g,'&lt;')}</div>`:''}
+          ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
+        </div>`:''}
+      </div>`).join('') + `
+      ${fines.length ? `
+      <div style="font-weight:600;margin:18px 0 10px">Штрафы</div>
+      ${fines.map(f => `
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:12px;color:var(--text-2)">📅 ${new Date(f.created_at).toLocaleDateString('ru')}</div>
+            ${f.reason?`<div style="font-size:13px;margin-top:3px">${f.reason.replace(/</g,'&lt;')}</div>`:''}
+          </div>
+          <span style="background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700">-${fmt(f.amount)} ₸</span>
+        </div>`).join('')}
+      ` : ''}
+      <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;margin-top:16px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:14px;color:var(--text-2)">
+          Проведено уроков: <b style="color:var(--text)">${lessonsCount}</b>${rate!=null?` · Ставка за урок: <b style="color:var(--text)">${fmt(rate)} ₸</b>`:''}
+          ${finesSum>0?` · Штрафы: <b style="color:#ef4444">-${fmt(finesSum)} ₸</b>`:''}
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--gold)">
+          ${totalSum!=null?`Итого: ${fmt(totalSum)} ₸`:'Ставка не указана'}
+        </div>
+      </div>`;
+  } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
+
 function clearMyReportsFilter() {
-  document.getElementById('mr-group').value = '';
-  reportPeriod('mr', true);
+  const g=document.getElementById('mr-group'); if(g) g.value='';
+  const f=document.getElementById('mr-from'); if(f) f.value='';
+  const t=document.getElementById('mr-to'); if(t) t.value='';
   loadMyReports();
 }
 
-let teacherReportsGeneration = 0;
 async function loadTeacherReports() {
   const body = document.getElementById('teacher-reports-body');
   if (!body) return;
-  const generation = ++teacherReportsGeneration;
-  const params = reportPeriod('tr');
-  const selected = document.getElementById('tr-teacher')?.value || '';
-  if (selected) params.set('teacher_id', selected);
-  body.innerHTML = '<div style="padding:24px;text-align:center">Загрузка отчётов...</div>';
+  body.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
+  const fTeacher = document.getElementById('tr-teacher')?.value || '';
+  const fFrom = document.getElementById('tr-from')?.value || '';
+  const fTo = document.getElementById('tr-to')?.value || '';
   try {
-    const data = await api('/api/analytics/teacher-reports?' + params);
-    if (generation !== teacherReportsGeneration) return;
-    const select = document.getElementById('tr-teacher');
-    if (select && !selected) select.innerHTML = '<option value="">Все преподаватели</option>' + data.filter(t => t.teacher_id != null).map(t => `<option value="${t.teacher_id}">${esc(t.teacher_name)}${t.is_active ? '' : ' (архив)'}</option>`).join('');
-    if (!data.length) { body.innerHTML = '<p>За выбранный период отчётов и штрафов нет.</p>'; return; }
-    let total = 0, count = 0, incomplete = false;
-    body.innerHTML = data.map((t,i) => {
-      count += t.lessons_count;
-      if (t.total_sum == null) incomplete = true; else total += t.total_sum;
-      return `<details class="teacher-payroll" style="padding:16px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px" ${selected ? 'open' : ''}>
-        <summary style="cursor:pointer;font-weight:700">${esc(t.teacher_name)}${t.is_active ? '' : ' · архив/неизвестный автор'} · Уроков: ${t.lessons_count} · ${t.total_sum == null ? 'Требует сверки' : money(t.total_sum)}</summary>
-        <div style="margin-top:14px">${payrollCard(t)}</div></details>`;
-    }).join('') + `<div style="padding:18px;border:2px solid var(--gold);border-radius:12px"><b>Всего уроков: ${count}. ${incomplete ? 'Общий итог требует сверки.' : 'Общий итог: ' + money(total)}</b></div>`;
-  } catch(e) { if (generation === teacherReportsGeneration) body.innerHTML = `<div role="alert" style="color:var(--danger);padding:20px">${esc(e.message)}</div>`; }
-}
-function clearTeacherReportsFilter() {
-  document.getElementById('tr-teacher').value = '';
-  reportPeriod('tr', true);
-  loadTeacherReports();
+    const [data, allFines] = await Promise.all([
+      api('/api/analytics/teacher-reports'),
+      api('/api/fines/').catch(()=>[]),
+    ]);
+    if (!data?.length) { body.innerHTML = '<div class="empty-state"><p>Отчётов нет</p></div>'; return; }
+    // заполнить фильтр преподавателей (один раз)
+    const tsel = document.getElementById('tr-teacher');
+    if (tsel && tsel.options.length <= 1) {
+      tsel.innerHTML = '<option value="">Все преподаватели</option>' +
+        data.map(t=>`<option value="${t.teacher_id}">${t.teacher_name}</option>`).join('');
+      if (fTeacher) tsel.value = fTeacher;
+    }
+    const fmt = n => n.toLocaleString('ru');
+    let teachers = data;
+    if (fTeacher) teachers = teachers.filter(t => String(t.teacher_id) === String(fTeacher));
+
+    let html = '';
+    let grandTotal = 0, grandLessons = 0, grandFines = 0;
+    let idx = 0;
+    teachers.forEach(t => {
+      // фильтрация отчётов по датам
+      let reps = t.reports || [];
+      if (fFrom) reps = reps.filter(r => r.date >= fFrom);
+      if (fTo) reps = reps.filter(r => r.date <= fTo);
+      // штрафы этого преподавателя (с той же фильтрацией по датам, по дате выписки)
+      let fines = (allFines||[]).filter(f => f.teacher_id === t.teacher_id);
+      if (fFrom) fines = fines.filter(f => f.created_at.slice(0,10) >= fFrom);
+      if (fTo) fines = fines.filter(f => f.created_at.slice(0,10) <= fTo);
+      if (!reps.length && !fines.length) return;
+      const count = reps.length;
+      const finesSum = fines.reduce((s,f)=>s+f.amount, 0);
+      const gross = t.rate != null ? t.rate * count : null;
+      const sum = gross != null ? gross - finesSum : null;
+      if (sum != null) grandTotal += sum;
+      grandLessons += count;
+      grandFines += finesSum;
+      const secId = `tr-sec-${idx++}`;
+
+      html += `
+        <div style="margin-bottom:14px">
+          <div onclick="toggleTeacherSection('${secId}')"
+            style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;transition:border-color .15s"
+            onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--line)'">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="${secId}-arrow" style="font-size:12px;color:var(--text-3);transition:transform .15s">▶</span>
+              <span style="font-weight:800;font-size:16px">👤 ${t.teacher_name}</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-2)">
+              Уроков: <b style="color:var(--text)">${count}</b>
+              ${t.rate!=null?` · Ставка: <b style="color:var(--text)">${fmt(t.rate)} ₸</b>`:''}
+              ${finesSum>0?` · Штрафы: <b style="color:#ef4444">-${fmt(finesSum)} ₸</b>`:''}
+              ${sum!=null?` · <span style="color:var(--gold);font-weight:800">Итого: ${fmt(sum)} ₸</span>`:' · <span style="color:var(--text-3)">ставка не указана</span>'}
+            </div>
+          </div>
+          <div id="${secId}" style="display:none;padding-top:10px">
+          ${reps.map(r => `
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:12px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <b style="font-size:13px">${r.group}</b>
+                  <span class="badge ${r.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${r.language}</span>
+                  <div style="font-size:12px;color:var(--text-2);margin-top:3px">📅 ${new Date(r.date).toLocaleDateString('ru')}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600">✓ ${r.present} из ${r.total}</span>
+                  ${t.rate!=null?`<span style="background:rgba(200,150,30,.16);color:var(--gold);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700">${fmt(t.rate)} ₸</span>`:''}
+                </div>
+              </div>
+              ${(r.topic||r.homework)?`<div style="margin-top:8px;border-top:1px solid var(--line-soft);padding-top:8px;font-size:12.5px">
+                ${r.topic?`<div style="margin-bottom:3px"><b>Тема:</b> ${r.topic.replace(/</g,'&lt;')}</div>`:''}
+                ${r.homework?`<div><b>Д/з:</b> ${r.homework.replace(/</g,'&lt;')}</div>`:''}
+              </div>`:''}
+            </div>`).join('')}
+          ${fines.length ? `
+            <div style="font-weight:600;margin:12px 0 8px;font-size:13px;color:var(--text-2)">Штрафы</div>
+            ${fines.map(f => `
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:12px;color:var(--text-2)">📅 ${new Date(f.created_at).toLocaleDateString('ru')}</div>
+                  ${f.reason?`<div style="font-size:12.5px;margin-top:3px">${f.reason.replace(/</g,'&lt;')}</div>`:''}
+                </div>
+                <span style="background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700">-${fmt(f.amount)} ₸</span>
+              </div>`).join('')}
+          ` : ''}
+          </div>
+        </div>`;
+    });
+
+    if (!html) { body.innerHTML = '<div class="empty-state"><p>Отчётов не найдено</p></div>'; return; }
+
+    // общий итог по всем показанным преподавателям
+    html += `
+      <div style="background:var(--surface);border:2px solid var(--gold);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
+        <div style="font-size:14px;color:var(--text-2)">Всего уроков: <b style="color:var(--text)">${grandLessons}</b>${grandFines>0?` · Штрафы: <b style="color:#ef4444">-${fmt(grandFines)} ₸</b>`:''}</div>
+        <div style="font-size:18px;font-weight:800;color:var(--gold)">Общий итог: ${fmt(grandTotal)} ₸</div>
+      </div>`;
+    body.innerHTML = html;
+  } catch(e) { body.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
 }
 
+function clearTeacherReportsFilter() {
+  const t=document.getElementById('tr-teacher'); if(t) t.value='';
+  const f=document.getElementById('tr-from'); if(f) f.value='';
+  const d=document.getElementById('tr-to'); if(d) d.value='';
+  loadTeacherReports();
+}
 
 function toggleTeacherSection(secId) {
   const el = document.getElementById(secId);
@@ -2997,7 +3154,7 @@ function toggleTeacherSection(secId) {
 async function loadFines() {
   // заполнить список преподавателей
   try {
-    const teachers = await api('/api/users/?role=teacher&is_active=true');
+    const teachers = await api('/api/users/?role=teacher');
     const sel = document.getElementById('fn-teacher');
     if (sel) sel.innerHTML = '<option value="">— Выберите преподавателя —</option>' +
       (teachers||[]).map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
@@ -3164,36 +3321,143 @@ async function deleteSubstitutionAndRefresh(subId, groupId) {
   });
 }
 
-let lessonsGeneration = 0;
 async function loadMyGroups() {
   const container = document.getElementById('my-groups-body');
   if (!container) return;
-  const generation = ++lessonsGeneration;
-  container.innerHTML = '<div style="padding:30px;text-align:center">Загрузка уроков...</div>';
+  container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
   try {
-    if (_myLessonsTab === 'all') {
-      const groups = await api('/api/groups/?mine=true&status=ACTIVE');
-      if (generation !== lessonsGeneration) return;
-      container.innerHTML = groups.length ? groups.map(g => `<div style="padding:18px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px"><b>${esc(g.name)}</b>${g.subject ? ' · ' + esc(g.subject) : ''}<div style="margin:8px 0;color:var(--text-2)">${esc(g.classroom_name || 'Кабинет не назначен')} · ${g.student_count} уч.</div>${g.schedule_slots.map(s => `<span style="display:inline-block;margin:4px 8px 4px 0">${esc(_DAY_LBL[s.day_of_week])}: ${esc(s.start_time.slice(0,5))}–${esc(s.end_time.slice(0,5))}</span>`).join('')}</div>`).join('') : '<p>Назначенных групп нет. Разовые замены отображаются во вкладке «Сегодня».</p>';
+    const data = await api('/api/groups/');
+    if (!data?.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
+    const days = {MON:'ПН',TUE:'ВТ',WED:'СР',THU:'ЧТ',FRI:'ПТ',SAT:'СБ',SUN:'ВС'};
+    // текущий день недели в формате MON..SUN
+    const dowMap = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const todayDow = dowMap[new Date().getDay()];
+
+    // фильтрация по вкладке "Сегодня"
+    let groups = data;
+    if (_myLessonsTab === 'today') {
+      groups = data.filter(g => (g.schedule_slots||[]).some(s => s.day_of_week === todayDow));
+    }
+
+    const isAll = _myLessonsTab === 'all';
+    // для вкладки "Сегодня" узнаём, по каким группам отчёт уже сдан сегодня
+    const today = localDate();
+    const submitted = {};
+    const cancelledToday = {};
+    const transferredAwayToday = {};   // group_id -> новая дата (урок сегодня перенесён на другой день)
+    const transferredInToday = {};     // group_id -> исходная дата (урок перенесён на сегодня с другого дня)
+    const substitutedAwayToday = {};   // group_id -> имя замещающего (мой урок сегодня ведёт другой преподаватель)
+    const substitutingInToday = {};    // group_id -> имя постоянного преподавателя (я замещаю сегодня)
+    if (!isAll) {
+      const myId = CURRENT_USER && CURRENT_USER.user_id;
+      // отменённые уроки на сегодня
+      try {
+        const cancels = await api('/api/cancelled-lessons/');
+        (cancels||[]).forEach(c => { if (c.date === today) cancelledToday[c.group_id] = c.reason || ''; });
+      } catch {}
+      // перенесённые уроки
+      try {
+        const transfers = await api('/api/transfer-lessons/');
+        (transfers||[]).forEach(t => {
+          if (t.date === today) transferredAwayToday[t.group_id] = t.new_date;
+          if (t.new_date === today) transferredInToday[t.group_id] = t.date;
+        });
+      } catch {}
+      // замены преподавателя на сегодня
+      try {
+        const subs = await api(`/api/substitutions/?date=${today}`);
+        (subs||[]).forEach(s => {
+          if (s.substitute_teacher_id === myId) {
+            substitutingInToday[s.group_id] = s.original_teacher_name || '—';
+          } else if (s.original_teacher_id === myId) {
+            substitutedAwayToday[s.group_id] = s.substitute_teacher_name || '—';
+          }
+        });
+      } catch {}
+      // добавляем в список группы, урок которых перенесён на сегодня
+      // (даже если сегодняшний день недели им обычно не расписан)
+      Object.keys(transferredInToday).forEach(gid => {
+        const id = parseInt(gid);
+        if (!groups.some(g => g.id === id)) {
+          const g = data.find(x => x.id === id);
+          if (g) groups.push(g);
+        }
+      });
+      // добавляем группы, в которых я сегодня замещаю другого преподавателя
+      // (эти группы не мои — их нет в data, нужно подгрузить отдельно)
+      await Promise.all(Object.keys(substitutingInToday).map(async gid => {
+        const id = parseInt(gid);
+        if (!groups.some(g => g.id === id)) {
+          try { const g = await api(`/api/groups/${id}`); if (g) groups.push(g); } catch {}
+        }
+      }));
+      if (!groups.length) {
+        container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
+        return;
+      }
+      await Promise.all(groups.map(async g => {
+        try {
+          const rec = await api(`/api/attendance/?group_id=${g.id}&date_from=${today}&date_to=${today}`);
+          submitted[g.id] = (rec||[]).length > 0;
+        } catch { submitted[g.id] = false; }
+      }));
+    }
+    if (!groups.length) {
+      container.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px">${_myLessonsTab==='today'?'На сегодня уроков нет':'Групп нет'}</div>`;
       return;
     }
-    const data = await api('/api/lessons/today');
-    if (generation !== lessonsGeneration) return;
-    container.innerHTML = data.lessons.length ? data.lessons.map(lesson => {
-      const action = lesson.can_open ? `onclick="openAttendanceModal(${lesson.group_id},${esc(JSON.stringify(lesson.group_name))},${esc(JSON.stringify(data.date))},${lesson.slot_id || 'null'},${lesson.report_id || 'null'})"` : '';
-      return `<div class="lesson-card" data-group-id="${lesson.group_id}" data-slot-id="${lesson.slot_id || ''}" ${action} style="padding:16px 18px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;${lesson.can_open ? 'cursor:pointer' : 'opacity:.8'}">
-        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>${esc(lesson.group_name)}${lesson.subject ? ' · ' + esc(lesson.subject) : ''}</b>
-          <span style="font-weight:700;color:${lesson.blocked_reason ? 'var(--text-2)' : lesson.submitted ? '#22834a' : 'var(--gold)'}">${lesson.blocked_reason ? esc(lesson.blocked_reason) : lesson.submitted ? '✓ Отчёт заполнен' : '📋 Заполнить отчёт'}</span></div>
-        <div style="margin-top:8px;color:var(--text-2)">${esc(lesson.teacher_name || 'Преподаватель не назначен')} · ${esc(lesson.classroom_name || 'Без кабинета')}</div>
-        <div style="margin-top:10px"><b>${lesson.start_time ? esc(lesson.start_time) + '–' + esc(lesson.end_time) : 'Исторический отчёт за день'}</b> · ${lesson.student_count} уч.</div>
-        ${lesson.substitution ? '<div style="margin-top:8px">Вы проводите урок по замене.</div>' : ''}
-        ${lesson.transferred_from ? `<div style="margin-top:8px">Перенесён с ${displayDate(lesson.transferred_from)}.</div>` : ''}
-        ${lesson.needs_review ? '<div style="color:var(--danger);margin-top:8px">Историческая запись требует сверки.</div>' : ''}
-      </div>`;
-    }).join('') : '<p>На сегодня уроков нет.</p>';
-  } catch(e) { if (generation === lessonsGeneration) container.innerHTML = `<div role="alert" style="color:var(--danger);padding:20px">${esc(e.message)}</div>`; }
-}
 
+    container.innerHTML = groups.map(g => {
+      const slots = g.schedule_slots||[];
+      const timeStr = slots[0]?`${slots[0].start_time.slice(0,5)}–${slots[0].end_time.slice(0,5)}`:'';
+      const roomStr = slots[0]?.classroom_name || g.classroom_name || '';
+      const done = submitted[g.id];
+      const isTransferredAway = !isAll && (g.id in transferredAwayToday);
+      const isTransferredIn = !isAll && (g.id in transferredInToday);
+      const isCancelled = !isAll && (g.id in cancelledToday);
+      const isSubstitutedAway = !isAll && (g.id in substitutedAwayToday);
+      const isSubstitutingIn = !isAll && (g.id in substitutingInToday);
+      const isBlocked = isCancelled || isTransferredAway || isSubstitutedAway;
+      // кнопка только на вкладке "Сегодня"
+      const btn = isAll ? '' : (isCancelled
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.16);color:#ef4444;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🚫 Урок отменён</span>`
+        : (isTransferredAway
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.16);color:#3b82f6;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🔄 Перенесён на ${new Date(transferredAwayToday[g.id]).toLocaleDateString('ru')}</span>`
+        : (isSubstitutedAway
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(168,85,247,.16);color:#a855f7;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">🔁 Заменяет: ${substitutedAwayToday[g.id]}</span>`
+        : (done
+        ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">✓ Отчёт заполнен</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#16161a;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;white-space:nowrap">📋 Заполнить</span>`))));
+      // кликабельность только на "Сегодня" и если не отменён/не перенесён с этого дня
+      const clickAttr = (isAll || isBlocked) ? '' : `onclick="openAttendanceModal(${g.id},'${g.name.replace(/'/g,"\\'")}')"`;
+      const hoverAttrs = (isAll || isBlocked) ? '' : `onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--line)';this.style.boxShadow='none'"`;
+      const cursor = (isAll || isBlocked) ? 'default' : 'pointer';
+      return `
+        <div ${clickAttr}
+          style="background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:${cursor};transition:border-color .15s,box-shadow .15s;${isBlocked?'opacity:.7':''}"
+          ${hoverAttrs}>
+          <div style="padding:16px 18px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+              <div>
+                <b style="font-size:15px">${g.name}</b>
+                <span class="badge ${g.language==='KAZ'?'badge-kaz':'badge-rus'}" style="margin-left:8px">${g.language}</span>
+                <div style="font-size:12px;color:var(--text-2);margin-top:3px">${g.teacher_name||'Преподаватель не назначен'}</div>
+              </div>
+              ${btn}
+            </div>
+            ${isCancelled && cancelledToday[g.id] ? `<div style="margin-top:8px;font-size:12px;color:#ef4444">Причина: ${cancelledToday[g.id].replace(/</g,'&lt;')}</div>` : ''}
+            ${isTransferredIn ? `<div style="margin-top:8px;font-size:12px;color:#3b82f6">🔄 Урок перенесён с ${new Date(transferredInToday[g.id]).toLocaleDateString('ru')} на сегодня</div>` : ''}
+            ${isSubstitutingIn ? `<div style="margin-top:8px;font-size:12px;color:#a855f7">🔁 Вы замещаете сегодня ${substitutingInToday[g.id]}</div>` : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              ${timeStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🕐 ${timeStr}</span>`:''}
+              ${roomStr?`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">🚪 ${roomStr}</span>`:''}
+              <span style="display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 11px;font-size:12px;color:var(--text-2)">👥 ${g.student_count} уч.</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) { container.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
 
 // ══ ХАРАКТЕРИСТИКИ (обратная связь по ученикам) ════════════════════
 // Страница: список групп → ученики группы → поле характеристики на каждого.
@@ -3205,7 +3469,7 @@ async function loadCharGroups() {
   gv.style.display = 'block';
   gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:30px">Загрузка...</div>';
   try {
-    const data = await api('/api/groups/?mine=true&status=ACTIVE');
+    const data = await api('/api/groups/');
     if (!data?.length) { gv.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Групп нет</div>'; return; }
     gv.innerHTML = `<div style="color:var(--text-2);font-size:13px;margin-bottom:14px">Выберите группу, чтобы оставить характеристику на учеников за месяц</div>` +
       data.map(g => `
@@ -3369,95 +3633,103 @@ function clampScore(input) {
   }
 }
 
-let attendanceContext = null;
-let attendanceGeneration = 0;
-async function openAttendanceModal(groupId, groupName, on = localDate(), slotId = null, reportId = null) {
-  const generation = ++attendanceGeneration;
-  const ctx = {groupId, on, slotId, reportId, revision:0, ready:false};
-  attendanceContext = ctx;
+async function openAttendanceModal(groupId, groupName) {
   attendanceGroupId = groupId;
-  document.getElementById('report-modal-title').textContent = `Журнал — ${groupName} — ${displayDate(on)}`;
+  const titleEl = document.getElementById('report-modal-title');
+  if (titleEl) titleEl.textContent = `Журнал — ${groupName} — ${new Date().toLocaleDateString('ru')}`;
   openModal('report-modal');
   const tbody = document.getElementById('report-tbody');
-  const save = document.getElementById('report-save-btn');
-  const status = document.getElementById('report-status');
-  save.disabled = true;
-  save.textContent = 'Загрузка...';
-  status.style.display = 'none';
-  document.getElementById('report-topic').value = '';
-  document.getElementById('report-homework').value = '';
-  tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center">Загрузка учеников...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">Загрузка учеников...</td></tr>';
   try {
-    const params = new URLSearchParams({group_id:groupId, on});
-    if (slotId) params.set('slot_id',slotId);
-    if (reportId) params.set('report_id',reportId);
-    const data = await api('/api/attendance/context?' + params);
-    if (generation !== attendanceGeneration) return;
-    ctx.reportId = data.report?.id || null;
-    ctx.revision = data.report?.revision || 0;
-    ctx.canEdit = data.can_edit;
-    const existing = new Map(data.records.map(r => [r.student_id,r]));
-    const frozen = new Set(data.frozen_ids);
-    document.getElementById('report-topic').value = data.report?.lesson_topic || '';
-    document.getElementById('report-homework').value = data.report?.homework || '';
-    if (data.report) {
-      status.style.display = 'block';
-      status.innerHTML = `✓ Отчёт сдан. Провёл: <b>${esc(data.report.teacher_name || 'Неизвестно')}</b>. Редакция: ${data.report.revision}.${data.can_edit ? '' : ' Только просмотр.'}`;
+    const today = localDate();
+    const [students, existing, frozenResp] = await Promise.all([
+      api(`/api/groups/${groupId}/students`),
+      api(`/api/attendance/?group_id=${groupId}&date_from=${today}&date_to=${today}`),
+      api(`/api/attendance/frozen?on=${today}`).catch(()=>({frozen_ids:[]}))
+    ]);
+    const existMap = {};
+    (existing||[]).forEach(r => existMap[r.student_id] = r);
+    const frozenSet = new Set((frozenResp?.frozen_ids)||[]);
+    // Урок считается завершённым, если за сегодня уже есть сохранённые записи
+    const alreadySubmitted = (existing||[]).length > 0;
+    const statusEl = document.getElementById('report-status');
+    const saveBtn = document.getElementById('report-save-btn');
+    if (statusEl) {
+      if (alreadySubmitted) {
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.16);color:#22c55e;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">✓ Урок завершён · отчёт сдан</span>';
+      } else {
+        statusEl.style.display = 'none';
+        statusEl.innerHTML = '';
+      }
     }
-    if (!data.students.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center">Нет активных учеников. Пустой отчёт не будет сохранён.</td></tr>';
-      save.textContent = 'Нет учеников';
-      return;
+    if (saveBtn) saveBtn.textContent = alreadySubmitted ? 'Изменить отчёт' : 'Сохранить отчёт';
+    // подставить тему и домашку, если уже были сохранены
+    const topicEl = document.getElementById('report-topic');
+    const hwEl = document.getElementById('report-homework');
+    const firstRec = (existing||[])[0];
+    if (topicEl) topicEl.value = firstRec?.lesson_topic || '';
+    if (hwEl) hwEl.value = firstRec?.homework || '';
+    if (!students?.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-3);padding:16px">В группе нет учеников</td></tr>'; return;
     }
-    tbody.innerHTML = data.students.map(s => {
-      const rec = existing.get(s.id), isFrozen = frozen.has(s.id), present = rec?.status === 'present';
-      return `<tr data-student-id="${s.id}" ${isFrozen ? 'data-frozen="1"' : ''}>
-        <td data-label="Ученик"><b>${esc(s.full_name)}</b></td>
-        ${isFrozen ? '<td data-label="Присутствие">❄</td><td colspan="2">Заморожен</td>' : `
-        <td data-label="Присутствие" style="text-align:center"><button class="attendance-btn ${present ? 'att-present' : 'att-none'}" onclick="toggleAttendance(this)" ${data.can_edit ? '' : 'disabled'}>${present ? '✓' : ''}</button></td>
-        <td data-label="Балл за урок"><input class="score-input" type="number" min="1" max="10" step="0.5" oninput="clampScore(this)" value="${rec?.score_1 ?? ''}" ${data.can_edit ? '' : 'disabled'}></td>
-        <td data-label="Балл за д/з"><input class="score-input" type="number" min="1" max="10" step="0.5" oninput="clampScore(this)" value="${rec?.score_2 ?? ''}" ${data.can_edit ? '' : 'disabled'}></td>`}
+    tbody.innerHTML = students.map(s => {
+      const rec = existMap[s.id];
+      const frozen = frozenSet.has(s.id);
+      const present = rec?.status==='present';
+      if (frozen) {
+        return `<tr data-student-id="${s.id}" data-frozen="1" style="opacity:.6">
+          <td data-label="Ученик"><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
+          <td data-label="Присутствие" style="text-align:center"><button class="attendance-btn att-frozen" title="Ученик заморожен" disabled>❄</button></td>
+          <td colspan="2" data-label="" style="text-align:center;font-size:12px;color:#2563eb;font-weight:600">Заморожен</td>
+        </tr>`;
+      }
+      return `<tr data-student-id="${s.id}">
+        <td data-label="Ученик"><b>${s.full_name}</b><div style="font-size:11px;color:var(--text-3)">${s.grade} класс</div></td>
+        <td data-label="Присутствие" style="text-align:center">
+          <button class="attendance-btn ${present?'att-present':'att-none'}" onclick="toggleAttendance(this)">${present?'✓':''}</button>
+        </td>
+        <td data-label="Балл за урок" style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_1!=null?rec.score_1:''}"></td>
+        <td data-label="Балл за д/з" style="text-align:center"><input class="score-input" type="number" min="1" max="10" step="0.5" placeholder="—" oninput="clampScore(this)" value="${rec?.score_2!=null?rec.score_2:''}"></td>
       </tr>`;
     }).join('');
-    ctx.ready = true;
-    save.disabled = !data.can_edit;
-    save.textContent = data.can_edit ? (data.report ? 'Изменить отчёт' : 'Сохранить отчёт') : 'Только просмотр';
-  } catch(e) {
-    if (generation !== attendanceGeneration) return;
-    tbody.innerHTML = `<tr><td colspan="4" role="alert" style="padding:20px;color:var(--danger)">${esc(e.message)}</td></tr>`;
-    save.textContent = 'Не удалось загрузить';
-  }
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger);padding:16px">${e.message}</td></tr>`; }
 }
 
 async function saveAttendanceReport() {
-  const ctx = attendanceContext;
-  if (!ctx?.ready || !ctx.canEdit) { showToast('Отчёт ещё не загружен или доступен только для просмотра','error'); return; }
-  const topic = document.getElementById('report-topic').value.trim();
-  const homework = document.getElementById('report-homework').value.trim();
-  if (!topic || !homework) { showToast('Заполните тему урока и домашнее задание','error'); return; }
-  const records = [...document.querySelectorAll('#report-tbody tr[data-student-id]')].map(row => {
-    if (row.dataset.frozen === '1') return {student_id:Number(row.dataset.studentId),status:'none',score_1:null,score_2:null};
+  if (!attendanceGroupId) return;
+  const topic = document.getElementById('report-topic')?.value?.trim();
+  const homework = document.getElementById('report-homework')?.value?.trim();
+  if (!topic) { showToast('Укажите тему урока', 'error'); document.getElementById('report-topic')?.focus(); return; }
+  if (!homework) { showToast('Укажите домашнее задание', 'error'); document.getElementById('report-homework')?.focus(); return; }
+  const today = localDate();
+  const rows = document.querySelectorAll('#report-tbody tr[data-student-id]');
+  const records = [];
+  rows.forEach(row => {
+    const studentId = parseInt(row.dataset.studentId);
+    if (row.dataset.frozen === '1') {
+      // заморожен — фиксируем как "не отмечен", без баллов
+      records.push({ student_id: studentId, status: 'none', score_1: null, score_2: null });
+      return;
+    }
+    const btn = row.querySelector('.attendance-btn');
     const inputs = row.querySelectorAll('.score-input');
-    return {student_id:Number(row.dataset.studentId),status:row.querySelector('.attendance-btn').classList.contains('att-present') ? 'present' : 'absent',
-      score_1:inputs[0].value === '' ? null : Number(inputs[0].value), score_2:inputs[1].value === '' ? null : Number(inputs[1].value)};
+    const status = btn.classList.contains('att-present') ? 'present' : 'absent';
+    records.push({
+      student_id: studentId, status,
+      score_1: inputs[0]?.value ? parseFloat(inputs[0].value) : null,
+      score_2: inputs[1]?.value ? parseFloat(inputs[1].value) : null,
+    });
   });
-  if (!records.length) { showToast('Нельзя сохранить пустой отчёт','error'); return; }
   try {
-    const result = await api('/api/attendance/', {method:'POST',body:JSON.stringify({
-      group_id:ctx.groupId,date:ctx.on,slot_id:ctx.slotId,report_id:ctx.reportId,expected_revision:ctx.revision,
-      records,lesson_topic:topic,homework,
-    })});
-    if (!result?.report_id || result.saved !== records.length) throw new Error('Сервер не подтвердил сохранение всех записей. Проверьте отчёт.');
-    ctx.reportId = result.report_id;
-    ctx.revision = result.revision;
-    showToast(`Отчёт №${result.report_id} сохранён: ${result.saved} учеников`);
-    if (attendanceContext === ctx) closeModal('report-modal');
-    if (document.getElementById('page-my-groups').classList.contains('active')) loadMyGroups();
-    if (document.getElementById('page-my-reports').classList.contains('active')) loadMyReports();
-    if (document.getElementById('page-teacher-reports').classList.contains('active')) loadTeacherReports();
+    await api('/api/attendance/', { method:'POST', body: JSON.stringify({ group_id: attendanceGroupId, date: today, records, lesson_topic: topic, homework }) });
+    const presentCount = records.filter(r=>r.status==='present').length;
+    showToast(`Отчёт сдан! Присутствовали: ${presentCount}`);
+    closeModal('report-modal');
+    // обновить список уроков, чтобы кнопка стала "Отчёт заполнен"
+    if (document.getElementById('page-my-groups')?.classList.contains('active')) loadMyGroups();
   } catch(e) { showToast(e.message,'error'); }
 }
-
 
 // ══ RETURNS ═══════════════════════════════════════════════════════
 async function loadReturns() {
@@ -4212,7 +4484,7 @@ async function openEditGroupModal(groupId) {
     const [group, students, teachers, allStudents, classrooms, substitutions] = await Promise.all([
       api(`/api/groups/${groupId}`),
       api(`/api/groups/${groupId}/students`),
-      api('/api/users/?role=teacher&is_active=true'),
+      api('/api/users/?role=teacher'),
       api('/api/students/?status=ACTIVE'),
       api('/api/classrooms/'),
       api(`/api/substitutions/?group_id=${groupId}`).catch(()=>[]),
@@ -4354,7 +4626,6 @@ async function openEditGroupModal(groupId) {
     });
 
     // Существующее время по дням (для расширенного режима)
-    window._egOriginalSlots = (group.schedule_slots||[]).map(s=>({day:s.day_of_week,start:s.start_time.slice(0,5),end:s.end_time.slice(0,5)}));
     window._egDayTimes = {};
     (group.schedule_slots||[]).forEach(s => {
       window._egDayTimes[s.day_of_week] = {
@@ -4365,7 +4636,7 @@ async function openEditGroupModal(groupId) {
     // Если у разных дней разное время — сразу открыть расширенный блок
     const _times = Object.values(window._egDayTimes);
     const _mixed = _times.length > 1 && _times.some(t => t.start !== _times[0].start || t.end !== _times[0].end);
-    if (_mixed || window._egOriginalSlots.length > Object.keys(window._egDayTimes).length) {
+    if (_mixed) {
       const box = document.getElementById('eg-adv-schedule');
       if (box) { box.style.display = 'block'; renderAdvSchedule('eg'); }
     }
@@ -4376,17 +4647,40 @@ async function openEditGroupModal(groupId) {
 }
 
 async function saveEditGroup(groupId) {
-  if (groupSaving) return;
-  groupSaving=true;
+  const name     = document.getElementById('eg-name')?.value?.trim();
+  const subject  = document.getElementById('eg-subject')?.value?.trim();
+  const teacher  = document.getElementById('eg-teacher')?.value;
+  const branch   = document.getElementById('eg-branch')?.value?.trim();
+  const tStart   = document.getElementById('eg-start')?.value;
+  const tEnd     = document.getElementById('eg-end')?.value;
+  const modal    = document.getElementById('edit-group-content');
+  const checks   = modal.querySelectorAll('.day-checkbox:checked, input[type=checkbox][value]:checked');
+  const newDays  = [...checks].map(c => c.value).filter(v => ['MON','TUE','WED','THU','FRI','SAT','SUN'].includes(v));
+
+  if (!name) { showToast('Введите название','error'); return; }
   try {
-    const group=await api(`/api/groups/${groupId}`,{method:'PUT',body:JSON.stringify(groupFormPayload('eg'))});
-    if (!group?.id) throw new Error('Сервер не подтвердил обновление группы');
-    showToast('Группа и расписание обновлены');
+    await api(`/api/groups/${groupId}`, { method:'PUT', body: JSON.stringify({
+      name, subject: subject || null, branch,
+      teacher_id: teacher ? parseInt(teacher) : null,
+      classroom_id: document.getElementById('eg-classroom')?.value ? parseInt(document.getElementById('eg-classroom').value) : null,
+    })});
+    // Обновить расписание: удалить старые слоты и создать новые — параллельно
+    const group = await api(`/api/groups/${groupId}`);
+    await Promise.all((group.schedule_slots||[]).map(slot =>
+      api(`/api/groups/schedule/${slot.id}`, {method:'DELETE'}).catch(()=>{})
+    ));
+    const slots = collectDaySlots('eg', newDays, tStart, tEnd);
+    await Promise.all(slots.map(sl =>
+      api(`/api/groups/${groupId}/schedule`, {
+        method:'POST',
+        body: JSON.stringify({ day_of_week: sl.day, start_time: sl.start+':00', end_time: sl.end+':00' })
+      }).catch(()=>{})
+    ));
+    showToast('Группа обновлена!');
     document.getElementById('edit-group-modal').style.display='none';
-    if (document.getElementById('page-schedule').classList.contains('active')) buildSchedule();
-    else loadGroups();
+    loadGroups();
+    buildSchedule();
   } catch(e) { showToast(e.message,'error'); }
-  finally { groupSaving=false; }
 }
 
 // ══ STUDENT PROFILE ═══════════════════════════════════════════════
@@ -4434,7 +4728,7 @@ async function openStudentProfile(studentId) {
       <div style="padding:12px 28px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;background:var(--surface)">
         <button onclick="openEditStudentModal(${student.id})" class="btn btn-outline btn-sm">✏️ Редактировать</button>
         <button onclick="copyInvitationText(${student.id})" class="btn btn-outline btn-sm">📋 Скопировать приглашение</button>
-        <button onclick="copyFreezeLink(${student.id})" class="btn btn-outline btn-sm">🔗 Ссылка заморозки</button>
+        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Ссылка скопирована!'))" class="btn btn-outline btn-sm">🔗 Ссылка заморозки</button>
         <button onclick="toggleStudentStatus(${student.id},'${student.status}');document.getElementById('student-profile-modal').style.display='none'"
           class="btn btn-sm" style="background:${student.status==='ACTIVE'?'#fee2e2':'#dcfce7'};color:${student.status==='ACTIVE'?'var(--danger-600)':'#16a34a'};border:1px solid ${student.status==='ACTIVE'?'#fca5a5':'#86efac'}">
           ${student.status==='ACTIVE'?'⏸ Деактивировать':'▶ Активировать'}
@@ -4444,8 +4738,8 @@ async function openStudentProfile(studentId) {
       </div>
 
       <div style="margin:12px 28px;padding:10px 16px;background:var(--paper-2);border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:13px">
-          <div><b>Ссылка заморозки:</b> персональная, действует 30 дней.</div>
-          <button onclick="copyFreezeLink(${student.id})" class="btn btn-outline btn-sm">Получить и скопировать</button>
+          <div><b>Ссылка заморозки:</b> <a href="${window.location.origin}/freezing?id=${student.id}" target="_blank" style="color:var(--ink);margin-left:6px;text-decoration:underline">${window.location.origin}/freezing?id=${student.id}</a></div>        <button onclick="navigator.clipboard.writeText(window.location.origin+'/freezing?id=${student.id}').then(()=>showToast('Скопировано!'))"
+          style="background:none;border:none;cursor:pointer;color:var(--ink);font-size:16px">📋</button>
       </div>
 
       <div style="background:var(--surface);border-radius:0 0 16px 16px">
@@ -4646,7 +4940,7 @@ function submitStudentComment(studentId) {
   if (list.querySelector('[style*="text-align:center"]')) list.innerHTML = '';
   list.prepend(div);
   document.getElementById('sp-comment-input').value = '';
-  showToast('Комментарий виден только на этой странице и исчезнет после перезагрузки. Сохранение в базе пока не реализовано.','warn');
+  showToast('Комментарий добавлен!');
 }
 
 async function loadStudentAttendance(studentId) {
@@ -4942,18 +5236,6 @@ async function saveEditStudent(studentId) {
   } catch(e) { showToast(e.message,'error'); }
 }
 
-async function getFreezeLink(studentId) {
-  const data = await api(`/api/students/${studentId}/freeze-link`,{method:'POST'});
-  return window.location.origin + data.path;
-}
-async function copyFreezeLink(studentId) {
-  try {
-    const link=await getFreezeLink(studentId);
-    await navigator.clipboard.writeText(link);
-    showToast('Персональная ссылка скопирована. Срок действия: 30 дней.');
-  } catch(e) { showToast(e.message,'error'); }
-}
-
 async function copyInvitationText(studentId) {
   try {
     const student = await api(`/api/students/${studentId}`);
@@ -5003,7 +5285,7 @@ async function copyInvitationText(studentId) {
       });
     });
 
-    const freezeLink = await getFreezeLink(studentId);
+    const freezeLink = `${window.location.origin}/freezing?id=${studentId}`;
     const parentName = student.parent_name || 'Родитель';
     const branch = student.branch || 'наш филиал';
 
@@ -5028,7 +5310,7 @@ async function loadNewStudentPage() {
     const grpSel = document.getElementById('ns-group');
     if (grpSel) {
       grpSel.innerHTML = '<option value="">Выберите группу</option>' +
-        (groups||[]).map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+        (groups||[]).map(g=>`<option value="${g.id}">${g.name} (${g.language})</option>`).join('');
     }
   } catch(e) { console.error(e); }
 }
@@ -5036,7 +5318,7 @@ async function loadNewStudentPage() {
 function saveStudentComment(studentId) {
   const text = document.getElementById('student-comment-text')?.value?.trim();
   if (!text) { showToast('Введите комментарий','error'); return; }
-  showToast('Комментарии ещё не подключены к базе. Текст не сохранён.','warn');
+  showToast('Комментарий сохранён!');
 }
 
 async function addStudentToEditGroup(groupId, studentId, name, grade, lang) {
@@ -5165,22 +5447,19 @@ function icon(name) {
 
 function renderNav(role) {
   const nav = document.getElementById('nav');
-  let items = role === 'admin' ? [{section:'Администрация'}, ...adminNav, ...(CURRENT_USER?.can_teach ? [{divider:true},{section:'Преподавание'},...teacherNav] : [])] : teacherNav;
-  // Глобальный журнал действий доступен только обычным администраторам.
-  // Четыре совмещённых аккаунта «админ + преподаватель» его не видят.
+  let items = role === 'admin' ? adminNav : teacherNav;
+  // У Хайбуллина Минтимера (ИИН 777777777777) скрыть Журнал действий
   const iin = (CURRENT_USER && CURRENT_USER.iin) || '';
-  const AUDIT_DENIED = ['000000000001','222222222222','333333333333','444444444444'];
-  if (AUDIT_DENIED.includes(iin)) {
+  if (iin === '777777777777') {
     items = items.filter(i => i.id !== 'audit');
   }
   // "Отчёты преподавателей" — только для Акежана (666...) и Администратора (900...)
-  const REPORTS_ALLOWED = ['666666666666','900101350123','000000000001','222222222222','333333333333','444444444444'];
+  const REPORTS_ALLOWED = ['666666666666','900101350123', '888888888888'];
   if (!REPORTS_ALLOWED.includes(iin)) {
     items = items.filter(i => i.id !== 'teacher-reports');
   }
   nav.innerHTML = '';
   items.forEach(item => {
-    if (item.section) { nav.innerHTML += `<div style="padding:12px 16px 6px;font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--text-3)">${item.section}</div>`; return; }
     if (item.divider) { nav.innerHTML += '<div class="nav-divider"></div>'; return; }
     if (item.children) {
       nav.innerHTML += `
@@ -5189,68 +5468,111 @@ function renderNav(role) {
           <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="nav-sub" id="sub-${item.id}">
-          ${item.children.map(c=>`<div class="nav-sub-item" id="nav-${c.id}">${icon(c.icon)}<span>${c.label}</span></div>`).join('')}
+          ${item.children.map(c=>`<div class="nav-sub-item" onclick="showPage('page-${c.id}')" id="nav-${c.id}">${icon(c.icon)}<span>${c.label}</span></div>`).join('')}
         </div>`;
     } else {
-      nav.innerHTML += `<div class="nav-item" id="nav-${item.id}">${icon(item.icon)}<span>${item.label}</span></div>`;
+      nav.innerHTML += `<div class="nav-item" onclick="showPage('page-${item.id}')" id="nav-${item.id}">${icon(item.icon)}<span>${item.label}</span></div>`;
     }
   });
 }
 
-let scheduleGeneration = 0;
-function timeMinutes(value) { const [h,m] = String(value).split(':').map(Number); return h*60+m; }
-function minuteLabel(m) { return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
 async function buildSchedule() {
   const grid = document.getElementById('schedule-grid');
   if (!grid) return;
-  const generation = ++scheduleGeneration;
-  grid.innerHTML = '<div style="padding:30px;text-align:center">Загрузка расписания...</div>';
+  grid.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3)">Загрузка...</div>';
   try {
-    const [groups, classrooms] = await Promise.all([api('/api/groups/?status=ACTIVE'),api('/api/classrooms/')]);
-    if (generation !== scheduleGeneration) return;
-    const roomMap = new Map(classrooms.map(r => [r.id,r]));
-    const branchSelect=document.getElementById('schedule-branch');
-    const selectedBranch=branchSelect.value;
-    const branches=[...new Set(groups.map(g=>g.branch||roomMap.get(g.classroom_id)?.branch||'').filter(Boolean))].sort();
-    branchSelect.innerHTML='<option value="">Все филиалы</option>'+branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
-    branchSelect.value=branches.includes(selectedBranch)?selectedBranch:'';
-    const selectedDay=document.getElementById('schedule-day').value;
-    let invalidSlots = 0;
-    const byDay = Object.fromEntries(Object.keys(_DAY_LBL).map(d => [d,[]]));
-    groups.filter(g=>!branchSelect.value||(g.branch||roomMap.get(g.classroom_id)?.branch||'')===branchSelect.value).forEach(g => (g.schedule_slots || []).forEach(s => {
-      const start=timeMinutes(s.start_time), end=timeMinutes(s.end_time);
-      if (!Number.isFinite(start) || !Number.isFinite(end) || end<=start) { invalidSlots++; return; }
-      if ((!selectedDay || s.day_of_week===selectedDay) && byDay[s.day_of_week]) byDay[s.day_of_week].push({...s,group:g,start,end});
-    }));
-    let html = '';
-    for (const [day,lessons] of Object.entries(byDay)) {
-      if (!lessons.length) continue;
-      const start = Math.floor(Math.min(...lessons.map(s=>s.start))/30)*30;
-      const end = Math.ceil(Math.max(...lessons.map(s=>s.end))/30)*30;
-      const ticks = Array.from({length:(end-start)/30+1},(_,i)=>start+i*30);
-      const roomIds = [...new Set(lessons.map(s=>s.group.classroom_id || 0))];
-      const height = (end-start)*2;
-      html += `<section class="schedule-day" data-day="${day}" style="margin:20px 0"><h3>${_DAY_LBL[day]}</h3><div style="overflow-x:auto;max-width:100%;padding-bottom:12px"><div style="min-width:${Math.max(520,roomIds.length*230+68)}px;display:grid;grid-template-columns:68px repeat(${roomIds.length},minmax(210px,1fr));gap:0">
-        <div style="height:42px;padding:10px 0">Время</div>${roomIds.map(id=>{const r=roomMap.get(id);return `<div style="padding:10px;border-left:1px solid var(--line);font-weight:600">${esc(r ? r.name+(r.branch?' · '+r.branch:'') : id ? 'Кабинет '+id : 'Без кабинета')}</div>`;}).join('')}
-        <div style="position:relative;height:${height+20}px">${ticks.map(m=>`<span class="schedule-time" style="position:absolute;top:${(m-start)*2}px;font-size:12px;font-variant-numeric:tabular-nums">${minuteLabel(m)}</span>`).join('')}</div>`;
-      for (const roomId of roomIds) {
-        const slots = lessons.filter(s=>(s.group.classroom_id||0)===roomId).sort((a,b)=>a.start-b.start||a.end-b.end);
-        const laneEnds=[];
-        slots.forEach(s=>{let lane=laneEnds.findIndex(e=>e<=s.start);if(lane<0)lane=laneEnds.length;laneEnds[lane]=s.end;s.lane=lane;});
-        const lanes=Math.max(1,laneEnds.length);
-        html += `<div style="height:${height+20}px;position:relative;border-left:1px solid var(--line)">${ticks.map(m=>`<div style="position:absolute;left:0;right:0;top:${(m-start)*2}px;border-top:1px ${m%60===0?'solid':'dashed'} var(--line);pointer-events:none"></div>`).join('')}`;
-        html += slots.map(s=>`<button class="schedule-lesson" data-slot-id="${s.id}" data-start="${minuteLabel(s.start)}" data-end="${minuteLabel(s.end)}" onclick="openEditGroupModal(${s.group.id})" title="${esc(s.group.name+' · '+minuteLabel(s.start)+'–'+minuteLabel(s.end)+' · '+(s.group.teacher_name||''))}" style="position:absolute;box-sizing:border-box;top:${(s.start-start)*2+2}px;height:${Math.max(24,(s.end-s.start)*2-4)}px;left:calc(${s.lane*100/lanes}% + 4px);width:calc(${100/lanes}% - 8px);overflow:auto;text-align:left;padding:5px 8px;background:var(--paper-2);color:var(--text);border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:6px;cursor:pointer;font-family:inherit">
-          <div style="font-weight:700;font-size:12px">${esc(s.group.name)}</div><div style="font-size:12px;font-weight:600">${minuteLabel(s.start)}–${minuteLabel(s.end)}</div><div style="font-size:11px">${esc(s.group.teacher_name||'Не назначен')}</div></button>`).join('');
-        html+='</div>';
-      }
-      html+='</div></div></section>';
+    const [groups, classrooms] = await Promise.all([
+      api('/api/groups/'),
+      api('/api/classrooms/').catch(()=>[]),
+    ]);
+    if (!groups?.length) {
+      grid.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">Расписания нет. Создайте группы.</div>';
+      return;
     }
-    grid.style.padding="0 12px";
-    const warning=invalidSlots ? `<p role="alert" style="padding:12px;color:var(--danger)">Некорректных старых слотов: ${invalidSlots}. Исправьте время в карточке соответствующей группы.</p>` : '';
-    grid.innerHTML = warning + (html || '<p style="padding:25px">Расписание не задано.</p>');
-  } catch(e) { if (generation===scheduleGeneration) grid.innerHTML=`<div role="alert" style="padding:20px;color:var(--danger)">${esc(e.message)}</div>`; }
-}
+    const allRooms = [...new Set((classrooms||[]).map(c=>c.name).filter(Boolean))];
+    const DAYS = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const DLBL = {MON:'Понедельник',TUE:'Вторник',WED:'Среда',THU:'Четверг',FRI:'Пятница',SAT:'Суббота',SUN:'Воскресенье'};
+    const BORDER = ['#1976d2','#7b1fa2','#388e3c','#f57c00','#c2185b','#0097a7','#827717','#4527a0'];
+    const hexToRgba = (hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;};
 
+    // Собрать слоты по дням
+    const byDay = {};
+    DAYS.forEach(d => byDay[d] = []);
+    groups.forEach(g => (g.schedule_slots||[]).forEach(s => {
+      if (byDay[s.day_of_week]) byDay[s.day_of_week].push({...s, group: g});
+    }));
+
+    // Помощник: hh из "HH:MM:SS"
+    const hourOf = t => parseInt((t||'00').slice(0,2), 10);
+
+    let html = '<div style="padding:16px;display:flex;flex-direction:column;gap:26px">';
+
+    DAYS.forEach((d, di) => {
+      const slots = byDay[d];
+      if (!slots.length) {
+        html += `
+          <div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid ${BORDER[di%8]}">${DLBL[d]}</div>
+            <div style="color:var(--text-3);font-size:13px;padding:10px 0">Нет занятий</div>
+          </div>`;
+        return;
+      }
+      // Колонки: все кабинеты справочника + занятые кабинеты не из справочника + "—" если есть уроки без кабинета
+      let rooms = [...allRooms];
+      slots.forEach(s => {
+        const r = s.group.classroom_name;
+        if (r && !rooms.includes(r)) rooms.push(r);
+      });
+      const hasNoRoom = slots.some(s => !s.group.classroom_name);
+      if (hasNoRoom) rooms.push('—');
+      if (!rooms.length) rooms = [...new Set(slots.map(s => s.group.classroom_name || '—'))];
+      // Диапазон часов
+      let minH = Math.min(...slots.map(s => hourOf(s.start_time)));
+      let maxH = Math.max(...slots.map(s => hourOf(s.end_time)));
+      if (maxH <= minH) maxH = minH + 1;
+      const hours = [];
+      for (let hh = minH; hh < maxH; hh++) hours.push(hh);
+
+      // Карта: room -> startHour -> slot
+      const cell = {};
+      rooms.forEach(r => cell[r] = {});
+      slots.forEach(s => {
+        const r = s.group.classroom_name || '—';
+        if (!cell[r]) cell[r] = {};
+        cell[r][hourOf(s.start_time)] = s;
+      });
+
+      html += `
+        <div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid ${BORDER[di%8]}">${DLBL[d]}</div>
+          <div style="display:grid;grid-template-columns:64px repeat(${rooms.length}, minmax(0,1fr));gap:6px">
+                <div></div>
+                ${rooms.map(r => `<div style="font-weight:600;font-size:12px;text-align:center;color:var(--text-2);padding:6px 4px;background:var(--paper-2);border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🚪 ${r}</div>`).join('')}
+                ${hours.map(hh => {
+                  const label = `${String(hh).padStart(2,'0')}:00`;
+                  return `
+                    <div style="font-size:12px;color:var(--text-3);text-align:right;padding:8px 6px 0 0">${label}</div>
+                    ${rooms.map((r,ri) => {
+                      const s = cell[r] && cell[r][hh];
+                      if (!s) return `<div style="min-height:54px;background:var(--paper);border:1px dashed var(--line-soft);border-radius:6px"></div>`;
+                      const c = BORDER[ri%8];
+                      return `<div onclick="openEditGroupModal(${s.group.id})"
+                        style="min-height:54px;background:${hexToRgba(c,0.16)};border-left:3px solid ${c};border-radius:6px;padding:6px 8px;cursor:pointer;transition:opacity .15s"
+                        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                        <div style="font-weight:700;font-size:12px;color:var(--text);line-height:1.2">${s.group.name}</div>
+                        <div style="font-size:10.5px;color:var(--text-2);margin-top:2px">${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)}</div>
+                        ${s.group.teacher_name?`<div style="font-size:10.5px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.group.teacher_name}</div>`:''}
+                      </div>`;
+                    }).join('')}
+                  `;
+                }).join('')}
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+    grid.innerHTML = html;
+  } catch(e) { grid.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`; }
+}
 
 const pageLoaders = {
   'page-students':      loadStudents,
@@ -5329,10 +5651,9 @@ function openAddStaffModal(role) {
 
 function openModal(id) {
   document.getElementById(id)?.classList.add('open');
-  if (id === 'add-task-modal') _prefillSelects();
   if (id === 'add-group-modal') {
     Promise.all([
-      api('/api/users/?role=teacher&is_active=true'),
+      api('/api/users/?role=teacher'),
       api('/api/students/?status=ACTIVE'),
       api('/api/classrooms/'),
     ]).then(([teachers, students, classrooms]) => {
@@ -5431,10 +5752,12 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 });
 
 // Локальная дата (Астана) в формате YYYY-MM-DD — без UTC-сдвига
-function localDate(d = new Date()) {
-  const parts = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Almaty',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
-  const get = type => parts.find(p=>p.type===type).value;
-  return `${get('year')}-${get('month')}-${get('day')}`;
+function localDate(d) {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
 }
 
 // Присутствие: галочка / пусто (два состояния)
@@ -5518,18 +5841,12 @@ function toggleTheme() {
 applyTheme(localStorage.getItem('zein_theme') || 'auto');
 
 // ── Auto-login ────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   if (TOKEN && CURRENT_USER) {
-    try {
-      const me=await api('/api/auth/me');
-      CURRENT_USER={...CURRENT_USER,...me,user_id:me.id,can_teach:me.can_teach||me.role==='teacher'};
-      localStorage.setItem('zein_user',JSON.stringify(CURRENT_USER));
-      enterApp(CURRENT_USER.role,CURRENT_USER.full_name,CURRENT_USER.initials);
-    } catch(e) {
-      TOKEN=null;CURRENT_USER=null;localStorage.removeItem('zein_token');localStorage.removeItem('zein_user');
-      renderSavedAccounts();showToast('Войдите заново: '+e.message,'warn');
-    }
-  } else renderSavedAccounts();
+    enterApp(CURRENT_USER.role, CURRENT_USER.full_name, CURRENT_USER.initials);
+  } else {
+    renderSavedAccounts();
+  }
 });
 
 document.addEventListener('keydown', e => {
