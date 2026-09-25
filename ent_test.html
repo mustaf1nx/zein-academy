@@ -214,51 +214,39 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
           <input class="form-input" id="st-phone" placeholder="+7 777 123 45 67" maxlength="15" oninput="this.value=this.value.replace(/[^\d+\s]/g,'').slice(0,15)">
         </div>
         <div style="margin-bottom:14px">
-          <label class="form-label">Профильный предмет 1 *</label>
-          <select class="form-select" id="st-subj1">
-            <option value="">— Выберите —</option>
-            <option>Математика</option>
-            <option>Физика</option>
-            <option>Химия</option>
-            <option>Биология</option>
-            <option>География</option>
-            <option>История Казахстана (профиль)</option>
-            <option>Всемирная история</option>
-            <option>Русская литература</option>
-            <option>Казахская литература</option>
-            <option>Информатика</option>
-            <option>Английский язык</option>
-            <option>Русский язык (профиль)</option>
-            <option>Казахский язык (профиль)</option>
-            <option>Основы права</option>
-            <option>Творческий экзамен</option>
+          <label class="form-label">Формат ЕНТ *</label>
+          <select class="form-select" id="st-ent-type">
+            <option value="profile">С профильными предметами</option>
+            <option value="creative">Творческий экзамен</option>
           </select>
         </div>
-        <div>
-          <label class="form-label">Профильный предмет 2 *</label>
-          <select class="form-select" id="st-subj2">
-            <option value="">— Выберите —</option>
-            <option>Математика</option>
-            <option>Физика</option>
-            <option>Химия</option>
-            <option>Биология</option>
-            <option>География</option>
-            <option>История Казахстана (профиль)</option>
-            <option>Всемирная история</option>
-            <option>Русская литература</option>
-            <option>Казахская литература</option>
-            <option>Информатика</option>
-            <option>Английский язык</option>
-            <option>Русский язык (профиль)</option>
-            <option>Казахский язык (профиль)</option>
-            <option>Основы права</option>
-            <option>Творческий экзамен</option>
-          </select>
+        <div id="profile-subjects-block">
+          <div style="margin-bottom:14px">
+            <label class="form-label">Профильный предмет 1 *</label>
+            <select class="form-select" id="st-subj1">
+              <option value="">— Выберите —</option>
+              <option>Математика</option><option>Физика</option><option>Химия</option><option>Биология</option>
+              <option>География</option><option>История Казахстана (профиль)</option><option>Всемирная история</option>
+              <option>Русская литература</option><option>Казахская литература</option><option>Информатика</option>
+              <option>Английский язык</option><option>Русский язык (профиль)</option><option>Казахский язык (профиль)</option>
+              <option>Основы права</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Профильный предмет 2 *</label>
+            <select class="form-select" id="st-subj2">
+              <option value="">— Выберите —</option>
+              <option>Математика</option><option>Физика</option><option>Химия</option><option>Биология</option>
+              <option>География</option><option>История Казахстана (профиль)</option><option>Всемирная история</option>
+              <option>Русская литература</option><option>Казахская литература</option><option>Информатика</option>
+              <option>Английский язык</option><option>Русский язык (профиль)</option><option>Казахский язык (профиль)</option>
+              <option>Основы права</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div class="form-hint" id="creative-hint" style="display:none">
-        Выбран творческий экзамен — второй профильный предмет не нужен, его тест сдавать не требуется.
-      </div>
+        <div class="form-hint" id="creative-hint" style="display:none">
+          Творческий ЕНТ: только История Казахстана, Математическая грамотность и Грамотность чтения. Профильных тестов и формы ответов для творческого экзамена нет.
+        </div>
     </div>
   </div>
 
@@ -321,7 +309,11 @@ const STORAGE_KEY = `ent_test_${TEST_ID}`;
 function saveProgress() {
   const progress = {
     studentInfo: studentInfo,
-    answers: answers,
+    answers: studentInfo.isCreative ? {
+    history: answers.history || {},
+    reading: answers.reading || {},
+    math: answers.math || {}
+  } : answers,
     currentStep: currentStep,
     sections: sections,
     timestamp: Date.now()
@@ -416,38 +408,31 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSubjectSelects();
 });
 
-// === Логика выбора профильных предметов / творческого экзамена ===
-// Если выбран "Творческий экзамен" в одном из полей — второе поле
-// блокируется и очищается (профильных тестов при творческом нет).
+// === Логика формата ЕНТ ===
+// Творческий экзамен — отдельный формат: профильные предметы вообще не выбираются.
 function syncSubjectSelects() {
+  const type = document.getElementById('st-ent-type');
   const s1 = document.getElementById('st-subj1');
   const s2 = document.getElementById('st-subj2');
+  const block = document.getElementById('profile-subjects-block');
   const hint = document.getElementById('creative-hint');
-  if (!s1 || !s2) return;
+  if (!type || !s1 || !s2 || !block || !hint) return;
 
-  if (s1.value === CREATIVE_EXAM) {
-    s2.value = '';
-    s2.disabled = true;
-    s1.disabled = false;
-    hint.style.display = '';
-  } else if (s2.value === CREATIVE_EXAM) {
+  const isCreative = type.value === 'creative';
+  block.style.display = isCreative ? 'none' : '';
+  hint.style.display = isCreative ? '' : 'none';
+  s1.disabled = isCreative;
+  s2.disabled = isCreative;
+  if (isCreative) {
     s1.value = '';
-    s1.disabled = true;
-    s2.disabled = false;
-    hint.style.display = '';
-  } else {
-    s1.disabled = false;
-    s2.disabled = false;
-    hint.style.display = 'none';
+    s2.value = '';
   }
 }
 
 function setupSubjectSelects() {
-  const s1 = document.getElementById('st-subj1');
-  const s2 = document.getElementById('st-subj2');
-  if (!s1 || !s2) return;
-  s1.addEventListener('change', syncSubjectSelects);
-  s2.addEventListener('change', syncSubjectSelects);
+  const type = document.getElementById('st-ent-type');
+  if (!type) return;
+  type.addEventListener('change', syncSubjectSelects);
   syncSubjectSelects();
 }
   
@@ -472,8 +457,21 @@ async function init() {
       if (studentInfo.name) document.getElementById('st-name').value = studentInfo.name;
       if (studentInfo.grade) document.getElementById('st-grade').value = studentInfo.grade;
       if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
-      if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
-      if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      const restoredCreative = studentInfo.isCreative || studentInfo.subj1 === CREATIVE_EXAM || studentInfo.subj2 === CREATIVE_EXAM;
+      document.getElementById('st-ent-type').value = restoredCreative ? 'creative' : 'profile';
+      if (restoredCreative) {
+        // Совместимость со старым сохранённым прогрессом: убираем профильные шаги/ответы.
+        studentInfo.isCreative = true;
+        studentInfo.subj1 = CREATIVE_EXAM;
+        studentInfo.subj2 = '';
+        sections = sections.filter(s => ['history', 'reading', 'math'].includes(s.key));
+        delete answers.subject1;
+        delete answers.subject2;
+        if (currentStep > sections.length) currentStep = sections.length;
+      } else {
+        if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
+        if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      }
       syncSubjectSelects();
       
       // Переход к нужному шагу
@@ -515,8 +513,10 @@ function goNext() {
     const name = document.getElementById('st-name').value.trim();
     const grade = document.getElementById('st-grade').value.trim();
     const phone = document.getElementById('st-phone').value.trim();
-    const subj1 = document.getElementById('st-subj1').value;
-    const subj2 = document.getElementById('st-subj2').value;
+    const entType = document.getElementById('st-ent-type').value;
+    const isCreative = entType === 'creative';
+    const subj1 = isCreative ? '' : document.getElementById('st-subj1').value;
+    const subj2 = isCreative ? '' : document.getElementById('st-subj2').value;
     
     if (!name) { 
       showToast('Введите имя и фамилию', 'error'); 
@@ -530,29 +530,14 @@ function goNext() {
       showToast('Введите номер родителя', 'error');
       return;
     }
-    const isCreative1 = subj1 === CREATIVE_EXAM;
-    const isCreative2 = subj2 === CREATIVE_EXAM;
-    const isCreative = isCreative1 || isCreative2;
-
-    if (isCreative1 && isCreative2) {
-      showToast('Нельзя выбрать творческий экзамен дважды', 'warning');
-      return;
-    }
-    if (isCreative) {
-      // Творческий экзамен заменяет собой оба профильных предмета —
-      // второе поле в этом случае должно быть пустым.
-      if (!subj1 && !subj2) {
-        showToast('Выберите профильный предмет или творческий экзамен', 'warning');
+    if (!isCreative) {
+      if (!subj1 || !subj2) {
+        showToast('Выберите два профильных предмета', 'warning');
         return;
       }
-    } else {
-      if (!subj1 || !subj2) { 
-        showToast('Выберите профильные предметы', 'warning'); 
-        return; 
-      }
-      if (subj1 === subj2) { 
-        showToast('Профильные предметы должны быть разными', 'warning'); 
-        return; 
+      if (subj1 === subj2) {
+        showToast('Нельзя выбрать два одинаковых профильных предмета', 'warning');
+        return;
       }
     }
     
@@ -563,8 +548,8 @@ function goNext() {
       name, 
       grade,
       phone: phone,
-      subj1: isCreative1 ? CREATIVE_EXAM : subj1,
-      subj2: isCreative2 ? CREATIVE_EXAM : subj2,
+      subj1: isCreative ? CREATIVE_EXAM : subj1,
+      subj2: isCreative ? '' : subj2,
       isCreative
     };
     
