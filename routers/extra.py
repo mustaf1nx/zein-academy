@@ -243,29 +243,28 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
         raise HTTPException(404, "Тест не найден")
     
     correct = t.correct_answers or {}
-    student_answers = data.get("answers", {}) or {}
+    student_answers = data.get("answers", {})
     subject1 = (data.get("subject1") or "").strip()
     subject2 = (data.get("subject2") or "").strip()
-    creative_exam = "Творческий экзамен"
-    is_creative = subject1 == creative_exam or subject2 == creative_exam
+    CREATIVE_EXAM = "Творческий экзамен"
+    is_creative = subject1 == CREATIVE_EXAM or subject2 == CREATIVE_EXAM
 
-    # Серверная защита от некорректных комбинаций, даже если обойти интерфейс.
-    if subject1 == creative_exam and subject2 == creative_exam:
-        raise HTTPException(status_code=400, detail="Творческий экзамен нельзя выбрать дважды")
-    if not is_creative and subject1 and subject2 and subject1 == subject2:
-        raise HTTPException(status_code=400, detail="Профильные предметы должны быть разными")
-    if not is_creative and (not subject1 or not subject2):
-        raise HTTPException(status_code=400, detail="Нужно выбрать два профильных предмета")
-
+    # Серверная валидация: творческий ЕНТ не имеет профильных тестов.
     if is_creative:
-        # Нормализуем творческий ЕНТ: один маркер формата, без второго профильного
-        # и без любых подложенных ответов профильных секций.
-        subject1 = creative_exam
+        if subject1 == CREATIVE_EXAM and subject2 == CREATIVE_EXAM:
+            raise HTTPException(400, "Творческий экзамен нельзя выбрать дважды")
+        if (subject1 == CREATIVE_EXAM and subject2) or (subject2 == CREATIVE_EXAM and subject1):
+            raise HTTPException(400, "Для творческого ЕНТ профильные предметы не выбираются")
+        subject1 = CREATIVE_EXAM
         subject2 = ""
-        student_answers = {
-            key: student_answers.get(key, {})
-            for key in ("history", "reading", "math")
-        }
+        # Не принимаем подменённые профильные ответы даже при ручном запросе к API.
+        student_answers.pop("subject1", None)
+        student_answers.pop("subject2", None)
+    else:
+        if not subject1 or not subject2:
+            raise HTTPException(400, "Выберите два профильных предмета")
+        if subject1 == subject2:
+            raise HTTPException(400, "Профильные предметы должны быть разными")
 
     scores = {}
     total = 0
@@ -316,8 +315,7 @@ def submit_ent(test_id: int, data: dict, db: Session = Depends(get_db)):
         scores[key] = calc_score(s_ans, c_ans)
         total += scores[key]
 
-    # Профильные секции считаем только для обычного ЕНТ.
-    # Для творческого результата содержит только три обязательных предмета.
+    # Профильные предметы считаются только для обычного ЕНТ.
     if not is_creative:
         s1_ans = student_answers.get('subject1', {})
         c1_ans = correct.get(subject1, {})

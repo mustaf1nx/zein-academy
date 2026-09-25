@@ -214,13 +214,13 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
           <input class="form-input" id="st-phone" placeholder="+7 777 123 45 67" maxlength="15" oninput="this.value=this.value.replace(/[^\d+\s]/g,'').slice(0,15)">
         </div>
         <div style="margin-bottom:14px">
-          <label class="form-label">Формат ЕНТ *</label>
+          <label class="form-label">Тип ЕНТ *</label>
           <select class="form-select" id="st-ent-type">
             <option value="profile">С профильными предметами</option>
             <option value="creative">Творческий экзамен</option>
           </select>
         </div>
-        <div id="profile-subjects-block">
+        <div id="profile-subjects-wrap">
           <div style="margin-bottom:14px">
             <label class="form-label">Профильный предмет 1 *</label>
             <select class="form-select" id="st-subj1">
@@ -244,9 +244,10 @@ body { font-family:'Inter',sans-serif; background:#f4f6fb; min-height:100vh; }
             </select>
           </div>
         </div>
-        <div class="form-hint" id="creative-hint" style="display:none">
-          Творческий ЕНТ: только История Казахстана, Математическая грамотность и Грамотность чтения. Профильных тестов и формы ответов для творческого экзамена нет.
-        </div>
+      </div>
+      <div class="form-hint" id="creative-hint" style="display:none">
+        Творческий ЕНТ: только История Казахстана, Грамотность чтения и Математическая грамотность. Профильных тестов нет.
+      </div>
     </div>
   </div>
 
@@ -309,11 +310,7 @@ const STORAGE_KEY = `ent_test_${TEST_ID}`;
 function saveProgress() {
   const progress = {
     studentInfo: studentInfo,
-    answers: studentInfo.isCreative ? {
-    history: answers.history || {},
-    reading: answers.reading || {},
-    math: answers.math || {}
-  } : answers,
+    answers: answers,
     currentStep: currentStep,
     sections: sections,
     timestamp: Date.now()
@@ -341,6 +338,23 @@ function loadProgress() {
       answers = progress.answers || {};
       currentStep = progress.currentStep || 0;
       sections = progress.sections || [];
+
+      // Миграция старого сохранения: раньше творческий экзамен мог храниться
+      // как один из профильных предметов. Удаляем профильные секции/ответы.
+      const savedCreative = studentInfo.isCreative || studentInfo.subj1 === CREATIVE_EXAM || studentInfo.subj2 === CREATIVE_EXAM;
+      if (savedCreative) {
+        studentInfo.isCreative = true;
+        studentInfo.subj1 = CREATIVE_EXAM;
+        studentInfo.subj2 = '';
+        sections = [
+          { key: 'history', name: 'История Казахстана', structure: STRUCTURE.history },
+          { key: 'reading', name: 'Грамотность чтения', structure: STRUCTURE.reading },
+          { key: 'math', name: 'Математическая грамотность', structure: STRUCTURE.math }
+        ];
+        delete answers.subject1;
+        delete answers.subject2;
+        if (currentStep > sections.length) currentStep = sections.length;
+      }
       
       console.log('Progress loaded:', progress);
       return true;
@@ -408,34 +422,29 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSubjectSelects();
 });
 
-// === Логика формата ЕНТ ===
-// Творческий экзамен — отдельный формат: профильные предметы вообще не выбираются.
-function syncSubjectSelects() {
+// === Логика типа ЕНТ ===
+function syncEntType() {
   const type = document.getElementById('st-ent-type');
+  const wrap = document.getElementById('profile-subjects-wrap');
   const s1 = document.getElementById('st-subj1');
   const s2 = document.getElementById('st-subj2');
-  const block = document.getElementById('profile-subjects-block');
   const hint = document.getElementById('creative-hint');
-  if (!type || !s1 || !s2 || !block || !hint) return;
-
-  const isCreative = type.value === 'creative';
-  block.style.display = isCreative ? 'none' : '';
-  hint.style.display = isCreative ? '' : 'none';
-  s1.disabled = isCreative;
-  s2.disabled = isCreative;
-  if (isCreative) {
-    s1.value = '';
-    s2.value = '';
-  }
+  if (!type || !wrap || !s1 || !s2) return;
+  const creative = type.value === 'creative';
+  wrap.style.display = creative ? 'none' : '';
+  hint.style.display = creative ? '' : 'none';
+  s1.disabled = creative;
+  s2.disabled = creative;
+  if (creative) { s1.value = ''; s2.value = ''; }
 }
 
 function setupSubjectSelects() {
   const type = document.getElementById('st-ent-type');
   if (!type) return;
-  type.addEventListener('change', syncSubjectSelects);
-  syncSubjectSelects();
+  type.addEventListener('change', syncEntType);
+  syncEntType();
 }
-  
+
 async function init() {
   if (!TEST_ID) { showError(); return; }
   try {
@@ -457,22 +466,10 @@ async function init() {
       if (studentInfo.name) document.getElementById('st-name').value = studentInfo.name;
       if (studentInfo.grade) document.getElementById('st-grade').value = studentInfo.grade;
       if (studentInfo.phone) document.getElementById('st-phone').value = studentInfo.phone;
-      const restoredCreative = studentInfo.isCreative || studentInfo.subj1 === CREATIVE_EXAM || studentInfo.subj2 === CREATIVE_EXAM;
-      document.getElementById('st-ent-type').value = restoredCreative ? 'creative' : 'profile';
-      if (restoredCreative) {
-        // Совместимость со старым сохранённым прогрессом: убираем профильные шаги/ответы.
-        studentInfo.isCreative = true;
-        studentInfo.subj1 = CREATIVE_EXAM;
-        studentInfo.subj2 = '';
-        sections = sections.filter(s => ['history', 'reading', 'math'].includes(s.key));
-        delete answers.subject1;
-        delete answers.subject2;
-        if (currentStep > sections.length) currentStep = sections.length;
-      } else {
-        if (studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
-        if (studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
-      }
-      syncSubjectSelects();
+      document.getElementById('st-ent-type').value = studentInfo.isCreative ? 'creative' : 'profile';
+      if (!studentInfo.isCreative && studentInfo.subj1) document.getElementById('st-subj1').value = studentInfo.subj1;
+      if (!studentInfo.isCreative && studentInfo.subj2) document.getElementById('st-subj2').value = studentInfo.subj2;
+      syncEntType();
       
       // Переход к нужному шагу
       if (currentStep >= 1) {
@@ -515,7 +512,7 @@ function goNext() {
     const phone = document.getElementById('st-phone').value.trim();
     const entType = document.getElementById('st-ent-type').value;
     const isCreative = entType === 'creative';
-    const subj1 = isCreative ? '' : document.getElementById('st-subj1').value;
+    const subj1 = isCreative ? CREATIVE_EXAM : document.getElementById('st-subj1').value;
     const subj2 = isCreative ? '' : document.getElementById('st-subj2').value;
     
     if (!name) { 
@@ -536,7 +533,7 @@ function goNext() {
         return;
       }
       if (subj1 === subj2) {
-        showToast('Нельзя выбрать два одинаковых профильных предмета', 'warning');
+        showToast('Профильные предметы должны быть разными', 'warning');
         return;
       }
     }
@@ -548,8 +545,8 @@ function goNext() {
       name, 
       grade,
       phone: phone,
-      subj1: isCreative ? CREATIVE_EXAM : subj1,
-      subj2: isCreative ? '' : subj2,
+      subj1,
+      subj2,
       isCreative
     };
     
