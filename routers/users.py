@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
+from lesson_service import can_teach
 from typing import List, Optional
 from database import get_db
 from dependencies import get_current_user, require_admin, log_action
@@ -17,7 +19,9 @@ def list_users(
     _: models.User = Depends(require_admin),
 ):
     q = db.query(models.User)
-    if role:
+    if role == models.RoleEnum.teacher:
+        q = q.filter(or_(models.User.role == role, and_(models.User.role == models.RoleEnum.admin, models.User.can_teach.is_(True))))
+    elif role:
         q = q.filter(models.User.role == role)
     if is_active is not None:
         q = q.filter(models.User.is_active == is_active)
@@ -38,6 +42,7 @@ def create_user(
         full_name=data.full_name,
         initials=data.initials,
         role=data.role,
+        can_teach=data.role == models.RoleEnum.teacher or (data.role == models.RoleEnum.admin and data.can_teach),
         phone=data.phone,
         subject=data.subject,
         hourly_rate=data.hourly_rate,
@@ -82,7 +87,18 @@ def update_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    for field, val in data.model_dump(exclude_none=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    if current_user.role != models.RoleEnum.admin:
+        forbidden = set(changes) - {"full_name", "initials", "phone", "password"}
+        if forbidden:
+            raise HTTPException(status_code=403, detail="Ставку, преподавательские права и статус меняет только администратор")
+    if changes.get("can_teach") and user.role not in (models.RoleEnum.admin, models.RoleEnum.teacher):
+        raise HTTPException(422, "Преподавательские права доступны только преподавателю или администратору")
+    if user.id == current_user.id and changes.get("is_active") is False:
+        raise HTTPException(400, "Нельзя деактивировать собственный аккаунт")
+    if any(changes.get(k) is None for k in ("full_name", "is_active", "can_teach", "password") if k in changes):
+        raise HTTPException(422, "Обязательное поле не может быть пустым")
+    for field, val in changes.items():
         if field == "password":
             user.hashed_password = hash_password(val)
         else:
@@ -102,34 +118,9 @@ def delete_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    # Удалить/обнулить связанные данные, чтобы снять ссылки на пользователя
-    db.query(models.MentorAssignment).filter(
-        models.MentorAssignment.mentor_id == user_id).delete(synchronize_session=False)
-    db.query(models.Task).filter(
-        models.Task.assigned_to == user_id).delete(synchronize_session=False)
-    db.query(models.Task).filter(
-        models.Task.created_by == user_id).delete(synchronize_session=False)
-    # Обнулить ссылки там, где поле допускает NULL (данные сохраняются)
-    db.query(models.Group).filter(
-        models.Group.teacher_id == user_id).update(
-        {models.Group.teacher_id: None}, synchronize_session=False)
-    db.query(models.Attendance).filter(
-        models.Attendance.recorded_by == user_id).update(
-        {models.Attendance.recorded_by: None}, synchronize_session=False)
-    db.query(models.EnrollmentForm).filter(
-        models.EnrollmentForm.manager_id == user_id).update(
-        {models.EnrollmentForm.manager_id: None}, synchronize_session=False)
-    db.query(models.Characteristic).filter(
-        models.Characteristic.author_id == user_id).update(
-        {models.Characteristic.author_id: None}, synchronize_session=False)
-    db.query(models.AuditLog).filter(
-        models.AuditLog.user_id == user_id).update(
-        {models.AuditLog.user_id: None}, synchronize_session=False)
-    uname = user.full_name
-    db.delete(user)
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=400, detail="Не удалось удалить сотрудника: есть связанные записи")
-    log_action(db, current_user, "delete", "user", user_id, f"Удалён сотрудник: {uname}")
+    if user_id == current_user.id:
+        raise HTTPException(400, "Нельзя деактивировать собственный аккаунт")
+    # Never delete payroll provenance, fines, tasks or report authors.
+    user.is_active = False
+    db.commit()
+    log_action(db, current_user, "update", "user", user_id, f"Архивирован сотрудник: {user.full_name}; история сохранена")
