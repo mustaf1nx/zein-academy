@@ -10,9 +10,19 @@ import models
 
 VERSION = "2026_09_lesson_snapshots_v1"
 ACCOUNT_ROLES_VERSION = "2026_09_staff_accounts_v2"
+ADMIN_TEACHER_PASSWORDS_VERSION = "2026_09_admin_teacher_passwords_v1"
 ADMIN_TEACHER_IINS = ("000000000001", "222222222222", "333333333333", "444444444444")
 ADMIN_ONLY_IINS = ("666666666666",)
 RETIRED_ADMIN_IINS = ("555555555555", "777777777777", "888888888888")
+
+# One-time bootstrap for the four admin-teacher accounts. Only bcrypt hashes are
+# stored in the repository; plaintext passwords are not embedded in the code.
+ADMIN_TEACHER_DEFAULTS = {
+    "000000000001": ("Админ-преподаватель 1", "АП1", "$2b$12$qv0jVlqfZEWcw2OZWflQL.2ojzritOE6/ljBUtu2zqi3g8RU7l1D6"),
+    "222222222222": ("Админ-преподаватель 2", "АП2", "$2b$12$xyAwIuhJrLuZk4FXybTRP.2M2V5CagcBRlRQLmF5T6NzQKz21ac0a"),
+    "333333333333": ("Админ-преподаватель 3", "АП3", "$2b$12$szx2s64q6YlQfX53aK5S.uNzzR5VZhOLAFazSasY1P6D0xYwGOPZS"),
+    "444444444444": ("Админ-преподаватель 4", "АП4", "$2b$12$Y1C1SxNlIxLfrNby5Ut9GediUamPL.8ytqBXnUfS9bnUcxeE24k2K"),
+}
 
 
 def upgrade(engine):
@@ -47,6 +57,31 @@ def upgrade(engine):
         ):
             conn.execute(text(stmt))
         with Session(bind=conn) as db:
+            # Ensure the four requested admin-teacher accounts exist and set their
+            # initial passwords exactly once. This works even when SEED_ACCOUNTS is
+            # disabled and does not require password variables in Railway.
+            if not db.get(models.SchemaMigration, ADMIN_TEACHER_PASSWORDS_VERSION):
+                for iin, (name, initials, password_hash) in ADMIN_TEACHER_DEFAULTS.items():
+                    user = db.query(models.User).filter_by(iin=iin).first()
+                    if user is None:
+                        user = models.User(
+                            iin=iin,
+                            full_name=name,
+                            initials=initials,
+                            hashed_password=password_hash,
+                            role=models.RoleEnum.admin,
+                            can_teach=True,
+                            is_active=True,
+                        )
+                        db.add(user)
+                    else:
+                        user.hashed_password = password_hash
+                        user.role = models.RoleEnum.admin
+                        user.can_teach = True
+                        user.is_active = True
+                db.add(models.SchemaMigration(version=ADMIN_TEACHER_PASSWORDS_VERSION))
+                db.flush()
+
             # Keep retired users as inactive rows so old lesson/report authorship remains intact.
             if not db.get(models.SchemaMigration, ACCOUNT_ROLES_VERSION):
                 for user in db.query(models.User).all():

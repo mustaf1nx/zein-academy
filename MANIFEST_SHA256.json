@@ -1,7 +1,7 @@
 {
   "release": "1.1.0",
   "date": "2026-09-24",
-  "source_archive": "zein-academy-main (4).zip",
+  "source_archive": "zein-academy-main (6).zip",
   "files": {
     ".env.example": "e4d503ed75c25e85e6c1ad99d72eb31c655d5e520bf2a76eef34463bff2a5e38",
     ".gitignore": "df9b8b6c7553558013f97545bd8d4fb391149735ea7faa30a25af4c80d0dff6b",
@@ -21,11 +21,11 @@
     "dependencies.py": "5ba00b4ab3ca65ffde08f8cb8101f80df5d4825a86b7d3fdc13591881a8ea95b",
     "ent_test.html": "e8d61a4624d3256570ce5393a58b02c88e35c37f31322431dc8422b765550001",
     "freezing.html": "06c27bcb2f21fc6fff4c27632c97553e1a549b101d22e487394e0ef4bd5bfcf8",
-    "index.html": "44361b68a06701a6613ce8da79a6dd6597355352efc786a85403caf329171316",
+    "index.html": "852e10fa47c05f4db95b4d1ccdd264d8e1a8e2c4460a57b5d77585e67fbefe9e",
     "lesson_service.py": "b50c67da10ef901dfe2dbbb4681dc9a8806f5e0782ae0a0b49ef2486cb2e65a8",
     "main.html": "58e03b64c41d5177535bab15876143de9f3866cb34b88fce769fc7bddfd11bf6",
     "main.py": "de8c21286813e31d94e1a38ac4a39e063f62e937e13ead26f793667eace730af",
-    "migrations.py": "19745edef49443e4d5ddb6977a438ba12a7cda29fd9182347b08fd345dd7af1f",
+    "migrations.py": "295a55845798cf3d5423ba81e034230f82652bb65dfbc9e8b67ddd33a63599b2",
     "models.py": "0036351368ae64481f7de29e045d5e1d23ef1e7a07865c5802e9256322aca6d8",
     "pytest.ini": "b160d82f7811555051f8966d8e02750a985227c1d022208c784e606946f2eada",
     "railway.json": "78f412ee49963d23e328652a8daa42390ff6c5ba0e77d3cbd1643b152a77c174",
