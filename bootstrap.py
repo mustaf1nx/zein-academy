@@ -1,7 +1,7 @@
-"""Create missing staff only; never reset existing names, passwords or activation.
+"""Create only the base administrator accounts.
 
-New secrets are either supplied through the environment or written to a private
-local credentials file. No passwords are printed to application logs.
+Admin-teacher accounts are intentionally NOT bootstrapped: the primary admin
+666666666666 creates and manages them from the staff UI.
 """
 from pathlib import Path
 from datetime import datetime, timezone
@@ -14,10 +14,6 @@ from auth import hash_password
 ACCOUNTS = (
     ("900101350123", "Администратор", "АД", False, "INITIAL_ADMIN_PASSWORD"),
     ("666666666666", "Айдынұлы Әкежан", "АӘ", False, "ADMIN_PASSWORD_666666666666"),
-    ("000000000001", "Админ-преподаватель 1", "АП1", True, "ADMIN_TEACHER_1_PASSWORD"),
-    ("222222222222", "Админ-преподаватель 2", "АП2", True, "ADMIN_TEACHER_2_PASSWORD"),
-    ("333333333333", "Админ-преподаватель 3", "АП3", True, "ADMIN_TEACHER_3_PASSWORD"),
-    ("444444444444", "Админ-преподаватель 4", "АП4", True, "ADMIN_TEACHER_4_PASSWORD"),
 )
 
 

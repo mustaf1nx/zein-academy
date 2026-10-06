@@ -54,7 +54,7 @@ def env(tmp_path, monkeypatch, password_hash):
         with Session() as db:
             yield db
     main.app.dependency_overrides[get_db] = override
-    for module in (attendance,lessons,lesson_service):
+    for module in (attendance,lessons,lesson_service,main):
         monkeypatch.setattr(module,'today',lambda:DAY)
     with TestClient(main.app) as client:
         yield {'client':client,'Session':Session,'engine':engine,'day':DAY,'path':tmp_path/'test.db'}

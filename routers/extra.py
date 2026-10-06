@@ -675,10 +675,11 @@ def list_audit(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
-    # Admin-teachers do not have access to the global action history.
-    # They keep all other admin + teacher capabilities.
-    if current_user.iin in {"000000000001", "222222222222", "333333333333", "444444444444"}:
-        raise HTTPException(status_code=403, detail="Журнал действий недоступен для этого аккаунта")
+    # Любой совмещённый аккаунт «администратор + преподаватель» не имеет
+    # доступа к глобальному журналу действий. Это автоматически действует и
+    # для новых аккаунтов, созданных основным администратором.
+    if current_user.role == models.RoleEnum.admin and current_user.can_teach:
+        raise HTTPException(status_code=403, detail="Журнал действий недоступен для аккаунта администратора-преподавателя")
     q = db.query(models.AuditLog)
     if entity:
         q = q.filter(models.AuditLog.entity == entity)

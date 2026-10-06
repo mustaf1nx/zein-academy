@@ -10,6 +10,12 @@ import models, schemas
 
 router = APIRouter(prefix="/api/users", tags=["Users / Staff"])
 
+PRIMARY_ADMIN_IIN = "666666666666"
+
+
+def is_primary_admin(user: models.User) -> bool:
+    return user.role == models.RoleEnum.admin and user.iin == PRIMARY_ADMIN_IIN
+
 
 @router.get("/", response_model=List[schemas.UserOut])
 def list_users(
@@ -36,6 +42,10 @@ def create_user(
 ):
     if db.query(models.User).filter(models.User.iin == data.iin).first():
         raise HTTPException(status_code=400, detail="Пользователь с таким ИИН уже существует")
+    # Админ-преподавателей (и другие админские аккаунты) создаёт только
+    # основной администратор 666666666666. Это нельзя обойти прямым API-запросом.
+    if data.role == models.RoleEnum.admin and not is_primary_admin(current_user):
+        raise HTTPException(status_code=403, detail="Администраторские аккаунты может создавать только основной администратор")
     user = models.User(
         iin=data.iin,
         hashed_password=hash_password(data.password),
@@ -92,6 +102,12 @@ def update_user(
         forbidden = set(changes) - {"full_name", "initials", "phone", "password"}
         if forbidden:
             raise HTTPException(status_code=403, detail="Ставку, преподавательские права и статус меняет только администратор")
+    # Обычный админ-преподаватель не может менять другой админский аккаунт
+    # (включая пароль/статус/право преподавания). Этими аккаунтами управляет 666...
+    if user.role == models.RoleEnum.admin and current_user.id != user.id and not is_primary_admin(current_user):
+        raise HTTPException(status_code=403, detail="Администраторскими аккаунтами управляет только основной администратор")
+    if user.role == models.RoleEnum.admin and "can_teach" in changes and not is_primary_admin(current_user):
+        raise HTTPException(status_code=403, detail="Право администратора-преподавателя меняет только основной администратор")
     if changes.get("can_teach") and user.role not in (models.RoleEnum.admin, models.RoleEnum.teacher):
         raise HTTPException(422, "Преподавательские права доступны только преподавателю или администратору")
     if user.id == current_user.id and changes.get("is_active") is False:
@@ -120,6 +136,8 @@ def delete_user(
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     if user_id == current_user.id:
         raise HTTPException(400, "Нельзя деактивировать собственный аккаунт")
+    if user.role == models.RoleEnum.admin and not is_primary_admin(current_user):
+        raise HTTPException(status_code=403, detail="Администраторскими аккаунтами управляет только основной администратор")
     # Never delete payroll provenance, fines, tasks or report authors.
     user.is_active = False
     db.commit()

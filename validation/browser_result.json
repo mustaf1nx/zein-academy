@@ -1,5 +1,7 @@
 {
   "checks": [
+    "primary admin can see add admin-teacher button",
+    "primary admin creates admin-teacher through UI",
     "admin-teacher sees both menus",
     "no hidden schedule load on login",
     "only own admin-teacher lesson shown",
@@ -22,12 +24,18 @@
     "advanced editor retains two lessons on the same weekday",
     "no JavaScript runtime errors"
   ],
-  "passed": 21,
+  "passed": 23,
   "errors": [],
   "requests": [
     "/api/auth/login",
     "/api/students/?",
     "/api/mentors/assignments",
+    "/api/users/?role=teacher",
+    "/api/users/",
+    "/api/users/?role=mentor",
+    "/api/users/?role=teacher",
+    "/api/users/?role=manager",
+    "/api/users/?role=teacher&is_active=true",
     "/api/lessons/today",
     "/api/groups/?status=ACTIVE",
     "/api/classrooms/",

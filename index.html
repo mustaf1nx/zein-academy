@@ -1059,7 +1059,10 @@ tbody td { padding: 11px 14px; color: var(--text); }
   <div class="page" id="page-teachers">
     <div class="page-header">
       <div class="page-title">Преподаватели</div>
-      <div class="page-actions"><button class="btn btn-primary" onclick="openAddStaffModal('teacher')">+ Добавить</button></div>
+      <div class="page-actions">
+        <button class="btn btn-outline" id="add-admin-teacher-btn" style="display:none" onclick="openAddStaffModal('admin_teacher')">+ Админ-преподаватель</button>
+        <button class="btn btn-primary" onclick="openAddStaffModal('teacher')">+ Добавить</button>
+      </div>
     </div>
     <div class="page-body">
       <div class="search-bar">
@@ -1607,6 +1610,7 @@ tbody td { padding: 11px 14px; color: var(--text); }
           <option value="teacher">Преподаватель</option>
           <option value="manager">Менеджер</option>
           <option value="admin">Администратор</option>
+          <option value="admin_teacher">Администратор + преподаватель</option>
         </select>
       </div>
     </div>
@@ -2081,6 +2085,8 @@ function enterApp(role, fullName, initials) {
   document.querySelector('.user-name').textContent = fullName || 'Пользователь';
   document.querySelector('.user-meta').textContent = role === 'admin' ? (CURRENT_USER?.can_teach ? 'Администратор · Преподаватель' : 'Администратор') : 'Преподаватель';
   document.querySelector('.user-avatar').textContent = initials || (fullName||'ЗА').slice(0,2).toUpperCase();
+  const addAdminTeacherBtn = document.getElementById('add-admin-teacher-btn');
+  if (addAdminTeacherBtn) addAdminTeacherBtn.style.display = (role === 'admin' && CURRENT_USER?.iin === '666666666666') ? '' : 'none';
   renderNav(role);
   showPage(role === 'teacher' ? 'page-my-groups' : 'page-students');
 }
@@ -2443,7 +2449,9 @@ async function submitAddStaff() {
   const name    = document.getElementById('staff-name')?.value?.trim();
   const phone   = document.getElementById('staff-phone')?.value?.trim();
   const pass    = document.getElementById('staff-pass')?.value?.trim();
-  const role = document.getElementById('add-staff-modal').dataset.role || document.getElementById('staff-role')?.value || 'mentor';
+  const selectedRole = document.getElementById('add-staff-modal').dataset.role || document.getElementById('staff-role')?.value || 'mentor';
+  const isAdminTeacher = selectedRole === 'admin_teacher';
+  const role = isAdminTeacher ? 'admin' : selectedRole;
   const subject = document.getElementById('staff-subject')?.value?.trim();
   const rateVal = document.getElementById('staff-rate')?.value?.trim();
   const hourly_rate = rateVal ? parseInt(rateVal) : null;
@@ -2451,7 +2459,7 @@ async function submitAddStaff() {
   if (!name) { showToast('Введите ФИО', 'error'); return; }
   if (!pass || pass.length < 8) { showToast('Пароль минимум 8 символов', 'error'); return; }
   try {
-    await api('/api/users/', { method:'POST', body: JSON.stringify({ iin, full_name: name, phone, password: pass, role, subject, hourly_rate }) });
+    await api('/api/users/', { method:'POST', body: JSON.stringify({ iin, full_name: name, phone, password: pass, role, can_teach: isAdminTeacher, subject, hourly_rate }) });
     showToast('Сотрудник добавлен!');
     closeModal('add-staff-modal');
     // Clear fields
@@ -5167,15 +5175,14 @@ function renderNav(role) {
   const nav = document.getElementById('nav');
   let items = role === 'admin' ? [{section:'Администрация'}, ...adminNav, ...(CURRENT_USER?.can_teach ? [{divider:true},{section:'Преподавание'},...teacherNav] : [])] : teacherNav;
   // Глобальный журнал действий доступен только обычным администраторам.
-  // Четыре совмещённых аккаунта «админ + преподаватель» его не видят.
+  // Любой аккаунт «админ + преподаватель» автоматически его не видит.
   const iin = (CURRENT_USER && CURRENT_USER.iin) || '';
-  const AUDIT_DENIED = ['000000000001','222222222222','333333333333','444444444444'];
-  if (AUDIT_DENIED.includes(iin)) {
+  if (role === 'admin' && CURRENT_USER?.can_teach) {
     items = items.filter(i => i.id !== 'audit');
   }
-  // "Отчёты преподавателей" — только для Акежана (666...) и Администратора (900...)
-  const REPORTS_ALLOWED = ['666666666666','900101350123','000000000001','222222222222','333333333333','444444444444'];
-  if (!REPORTS_ALLOWED.includes(iin)) {
+  // Новые админ-преподаватели получают тот же доступ к отчётам, что и текущие.
+  const canSeeTeacherReports = iin === '666666666666' || iin === '900101350123' || !!CURRENT_USER?.can_teach;
+  if (!canSeeTeacherReports) {
     items = items.filter(i => i.id !== 'teacher-reports');
   }
   nav.innerHTML = '';
@@ -5306,13 +5313,15 @@ function toggleGroup(el) {
 }
 
 function openAddStaffModal(role) {
+  if (role === 'admin_teacher' && CURRENT_USER?.iin !== '666666666666') { showToast('Админ-преподавателей создаёт только основной администратор','error'); return; }
   openModal('add-staff-modal');
   const titles = {
     mentor:   'Добавить ментора',
     teacher:  'Добавить преподавателя', 
     lidoruby: 'Добавить лидоруба',
     manager:  'Добавить менеджера',
-    admin:    'Добавить администратора'
+    admin:    'Добавить администратора',
+    admin_teacher: 'Добавить администратора-преподавателя'
   };
   // Установить роль и заблокировать
   const roleSel = document.getElementById('staff-role');
@@ -5398,10 +5407,12 @@ function openModal(id) {
 }
 
 function openAddStaffModal(role) {
+  if (role === 'admin_teacher' && CURRENT_USER?.iin !== '666666666666') { showToast('Админ-преподавателей создаёт только основной администратор','error'); return; }
   openModal('add-staff-modal');
   const titles = {
     mentor:'Добавить ментора', teacher:'Добавить преподавателя',
-    lidoruby:'Добавить лидоруба', manager:'Добавить менеджера'
+    lidoruby:'Добавить лидоруба', manager:'Добавить менеджера',
+    admin_teacher:'Добавить администратора-преподавателя'
   };
   const roleSel = document.getElementById('staff-role');
   if (roleSel) {

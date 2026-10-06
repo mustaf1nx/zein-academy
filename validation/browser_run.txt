@@ -1,4 +1,6 @@
 LOGIN 666666666666
+PASS: primary admin can see add admin-teacher button
+PASS: primary admin creates admin-teacher through UI
 PASS: admin-teacher sees both menus
 PASS: no hidden schedule load on login
 PASS: only own admin-teacher lesson shown
@@ -22,8 +24,10 @@ PASS: old teacher retains both completed reports after reassignment
 PASS: advanced editor retains two lessons on the same weekday
 PASS: no JavaScript runtime errors
 {
-  "passed": 21,
+  "passed": 23,
   "checks": [
+    "primary admin can see add admin-teacher button",
+    "primary admin creates admin-teacher through UI",
     "admin-teacher sees both menus",
     "no hidden schedule load on login",
     "only own admin-teacher lesson shown",

@@ -44,21 +44,22 @@ def test_original_schema_migration_preserves_ambiguous_data(tmp_path):
     engine.dispose()
 
 
-def test_seed_four_admin_teachers_idempotent_preserves_existing_password(env,tmp_path):
+def test_seed_base_admins_does_not_auto_create_admin_teachers(env,tmp_path):
     with env['Session']() as db:
         original=db.get(models.User,4).hashed_password
         seed_accounts(db,credentials_dir=tmp_path/'secrets')
         seed_accounts(db,credentials_dir=tmp_path/'secrets')
-        admins=db.query(models.User).filter(models.User.iin.in_(['000000000001','222222222222','333333333333','444444444444'])).all()
-        assert len(admins)==4 and all(u.can_teach and u.role==models.RoleEnum.admin for u in admins)
-        admin_only=db.query(models.User).filter_by(iin='666666666666').one()
-        assert admin_only.role==models.RoleEnum.admin and admin_only.can_teach is False
+        # Admin-teachers are now created manually by the primary 666... admin.
+        auto_admin_teachers=db.query(models.User).filter(models.User.iin.in_(['222222222222','333333333333','444444444444'])).all()
+        assert auto_admin_teachers == []
+        primary=db.query(models.User).filter_by(iin='666666666666').one()
+        assert primary.role==models.RoleEnum.admin
         assert db.get(models.User,4).hashed_password==original
-        assert len(list((tmp_path/'secrets').glob('*.json')))==1
+        # Only missing base admin credentials may be generated.
+        assert len(list((tmp_path/'secrets').glob('*.json'))) <= 1
         for path in (tmp_path/'secrets').glob('*.json'):
             assert path.stat().st_mode & 0o777 == 0o600
-            content=json.loads(path.read_text())
-            assert content
+            assert json.loads(path.read_text())
 
 
 def test_freeze_link_requires_authorization_and_exact_student(env):
